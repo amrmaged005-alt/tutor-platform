@@ -1,19 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Navbar from "./Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata = {
-  title: "Coursaty – Egypt's Tutoring Marketplace",
+export const metadata: Metadata = {
+  title: "Coursaty - Egypt's Tutoring Marketplace",
   description: "Browse and book small group tutoring classes in Cairo. Physics, Math, Chemistry and more.",
 };
 
@@ -24,9 +14,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body style={{ margin: 0, padding: 0, backgroundColor: "#0f172a" }}>
+        <Navbar />
         {children}
       </body>
     </html>

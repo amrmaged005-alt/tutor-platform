@@ -1,0 +1,150 @@
+"use client";
+import { useState } from "react";
+
+type Tutor = {
+  id: string;
+  fullName: string | null;
+  name: string | null;
+  bio: string | null;
+  subjects: string[];
+  city: string | null;
+  _count: { ownedClasses: number };
+};
+
+type Center = {
+  id: string;
+  name: string;
+  description: string | null;
+  city: string;
+  location: string | null;
+  _count: { classes: number };
+};
+
+type Props = {
+  tutors: Tutor[];
+  centers: Center[];
+};
+
+const ALL_SUBJECTS = ["Math","Physics","Chemistry","Biology","English","Arabic","History","Geography","Computer Science","Other"];
+
+export default function TutorSearch({ tutors, centers }: Props) {
+  const [nameQuery, setNameQuery] = useState("");
+  const [subject, setSubject] = useState("");
+  const [location, setLocation] = useState("");
+  const [tab, setTab] = useState<"tutors" | "centers">("tutors");
+
+  const filteredTutors = tutors.filter((t) => {
+    const displayName = t.fullName || t.name || "";
+    const matchName = displayName.toLowerCase().includes(nameQuery.toLowerCase());
+    const matchSubject = subject === "" || t.subjects.includes(subject);
+    const matchLocation = location === "" || (t.city || "").toLowerCase().includes(location.toLowerCase());
+    return matchName && matchSubject && matchLocation;
+  });
+
+  const filteredCenters = centers.filter((c) => {
+    const matchName = c.name.toLowerCase().includes(nameQuery.toLowerCase());
+    const matchLocation = location === "" || (c.city + " " + (c.location || "")).toLowerCase().includes(location.toLowerCase());
+    return matchName && matchLocation;
+  });
+
+  const inputStyle = {
+    background: "#0f172a",
+    border: "1px solid #334155",
+    borderRadius: "8px",
+    color: "#f1f5f9",
+    padding: "10px 14px",
+    fontSize: "14px",
+    outline: "none",
+    width: "100%",
+  };
+
+  const cardStyle = {
+    background: "#1e293b",
+    border: "1px solid #334155",
+    borderRadius: "16px",
+    padding: "24px",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "10px",
+  };
+
+  return (
+    <div style={{ fontFamily: "system-ui, sans-serif" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "32px" }}>
+        <input style={inputStyle} placeholder="Search by name..." value={nameQuery} onChange={(e) => setNameQuery(e.target.value)} />
+        <select style={inputStyle} value={subject} onChange={(e) => setSubject(e.target.value)}>
+          <option value="">All Subjects</option>
+          {ALL_SUBJECTS.map((s) => (<option key={s} value={s}>{s}</option>))}
+        </select>
+        <input style={inputStyle} placeholder="Filter by city..." value={location} onChange={(e) => setLocation(e.target.value)} />
+      </div>
+
+      <div style={{ display: "flex", gap: "12px", marginBottom: "28px" }}>
+        <button onClick={() => setTab("tutors")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "tutors" ? "#3b82f6" : "#1e293b", color: tab === "tutors" ? "#fff" : "#94a3b8" }}>
+          {"Tutors (" + filteredTutors.length + ")"}
+        </button>
+        <button onClick={() => setTab("centers")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "centers" ? "#3b82f6" : "#1e293b", color: tab === "centers" ? "#fff" : "#94a3b8" }}>
+          {"Centers (" + filteredCenters.length + ")"}
+        </button>
+      </div>
+
+      {tab === "tutors" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
+          {filteredTutors.length === 0 && (<p style={{ color: "#64748b" }}>No tutors found.</p>)}
+          {filteredTutors.map((tutor) => {
+            const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
+            const bio = tutor.bio ? (tutor.bio.length > 100 ? tutor.bio.slice(0, 100) + "..." : tutor.bio) : "No bio provided.";
+            return (
+              <div key={tutor.id} style={cardStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "20px", color: "#fff", flexShrink: 0 }}>
+                    {displayName[0]?.toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, color: "#f1f5f9", fontSize: "16px" }}>{displayName}</div>
+                    <div style={{ color: "#64748b", fontSize: "13px" }}>{tutor.city || "Cairo"}</div>
+                  </div>
+                </div>
+                {tutor.subjects.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "6px" }}>
+                    {tutor.subjects.map((s) => (
+                      <span key={s} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: "6px", padding: "2px 10px", fontSize: "12px", color: "#94a3b8" }}>{s}</span>
+                    ))}
+                  </div>
+                )}
+                <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0 }}>{bio}</p>
+                <div style={{ color: "#64748b", fontSize: "13px" }}>{tutor._count.ownedClasses} class{tutor._count.ownedClasses !== 1 ? "es" : ""}</div>
+                <a href={"/tutors/" + tutor.id} style={{ marginTop: "auto", display: "inline-block", background: "#3b82f6", color: "#fff", borderRadius: "8px", padding: "10px 18px", textDecoration: "none", fontWeight: 600, fontSize: "14px", textAlign: "center" as const }}>
+                  View Profile
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "centers" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
+          {filteredCenters.length === 0 && (<p style={{ color: "#64748b" }}>No centers found.</p>)}
+          {filteredCenters.map((center) => {
+            const desc = center.description ? (center.description.length > 100 ? center.description.slice(0, 100) + "..." : center.description) : "No description provided.";
+            return (
+              <div key={center.id} style={cardStyle}>
+                <div style={{ width: 48, height: 48, borderRadius: "12px", background: "#1d4ed8", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "20px", color: "#fff" }}>
+                  {center.name[0]?.toUpperCase()}
+                </div>
+                <div style={{ fontWeight: 700, color: "#f1f5f9", fontSize: "16px" }}>{center.name}</div>
+                <div style={{ color: "#64748b", fontSize: "13px" }}>{center.city}{center.location ? " - " + center.location : ""}</div>
+                <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0 }}>{desc}</p>
+                <div style={{ color: "#64748b", fontSize: "13px" }}>{center._count.classes} class{center._count.classes !== 1 ? "es" : ""}</div>
+                <a href={"/centers/" + center.id} style={{ marginTop: "auto", display: "inline-block", background: "#3b82f6", color: "#fff", borderRadius: "8px", padding: "10px 18px", textDecoration: "none", fontWeight: 600, fontSize: "14px", textAlign: "center" as const }}>
+                  View Center
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
