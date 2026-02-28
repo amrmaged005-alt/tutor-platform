@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TUTOR
+  CENTER_ADMIN
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  role      Role
+  fullName  String
+  phone     String?  @unique
+  email     String?  @unique
+  bio       String?
+  photoUrl  String?
+  subjects  String[]
+
+  centerId    String?
+  center      LearningCenter? @relation(fields: [centerId], references: [id])
+
+  classTutors ClassTutor[]
+  bookings    Booking[]
+  ownedClasses Class[]     @relation("ClassOwner")
+}
+
+model LearningCenter {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  name        String
+  description String?
+  logoUrl     String?
+  city        String   @default("Cairo")
+  location    String?
+  phone       String?
+  email       String?
+
+  tutors      User[]
+  classes     Class[]
+}
+
+model Class {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  title       String
+  subject     String
+  description String?
+  city        String   @default("Cairo")
+  location    String?
+  priceEgp    Int      @default(0)
+  capacity    Int?
+  isOnline    Boolean  @default(false)
+  schedule    String?
+
+  centerId    String?
+  center      LearningCenter? @relation(fields: [centerId], references: [id])
+
+  ownerId     String?
+  owner       User?           @relation(fields: [ownerId], references: [id], name: "ClassOwner")
+
+  tutors      ClassTutor[]
+  bookings    Booking[]
+  materials   Material[]
+}
+
+model ClassTutor {
+  id        String @id @default(cuid())
+  classId   String
+  tutorId   String
+
+  class     Class  @relation(fields: [classId], references: [id])
+  tutor     User   @relation(fields: [tutorId], references: [id])
+
+  @@unique([classId, tutorId])
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  classId       String
+  studentId     String
+
+  status        BookingStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
+  paidAt        DateTime?
+  notes         String?
+
+  class         Class         @relation(fields: [classId], references: [id])
+  student       User          @relation(fields: [studentId], references: [id])
+
+  @@unique([classId, studentId])
+}
+
+model Material {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  classId   String
+  title     String
+  url       String
+  isLocked  Boolean  @default(true)
+
+  class     Class    @relation(fields: [classId], references: [id])
+}
