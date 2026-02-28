@@ -27,25 +27,84 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum ClassFormat {
+  IN_PERSON
+  ONLINE
+  HYBRID
+}
+
+enum Curriculum {
+  NATIONAL
+  IGCSE
+  AMERICAN
+  IB
+  FRENCH
+  STEM
+  OTHER
+}
+
 model User {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  role      Role
-  fullName  String
-  phone     String?  @unique
-  email     String?  @unique
-  bio       String?
-  photoUrl  String?
-  subjects  String[]
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
 
-  centerId    String?
-  center      LearningCenter? @relation(fields: [centerId], references: [id])
+  role          Role      @default(STUDENT)
+  fullName      String?
+  phone         String?   @unique
+  bio           String?
+  photoUrl      String?
+  subjects      String[]
 
-  classTutors ClassTutor[]
-  bookings    Booking[]
-  ownedClasses Class[]     @relation("ClassOwner")
+  centerId      String?
+  center        LearningCenter? @relation(fields: [centerId], references: [id])
+
+  accounts      Account[]
+  sessions      Session[]
+  classTutors   ClassTutor[]
+  bookings      Booking[]
+  ownedClasses  Class[]   @relation("ClassOwner")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model LearningCenter {
@@ -66,25 +125,32 @@ model LearningCenter {
 }
 
 model Class {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   title       String
   subject     String
   description String?
-  city        String   @default("Cairo")
+  city        String      @default("Cairo")
   location    String?
-  priceEgp    Int      @default(0)
+  priceEgp    Int         @default(0)
   capacity    Int?
-  isOnline    Boolean  @default(false)
+  isOnline    Boolean     @default(false)
   schedule    String?
+
+  // NEW FIELDS
+  format      ClassFormat @default(IN_PERSON)
+  curriculum  Curriculum  @default(NATIONAL)
+  gradeLevel  String?
+  language    String      @default("Arabic")
+  maxPrice    Int?
 
   centerId    String?
   center      LearningCenter? @relation(fields: [centerId], references: [id])
 
   ownerId     String?
-  owner       User?           @relation(fields: [ownerId], references: [id], name: "ClassOwner")
+  owner       User?    @relation(fields: [ownerId], references: [id], name: "ClassOwner")
 
   tutors      ClassTutor[]
   bookings    Booking[]
@@ -127,7 +193,8 @@ model Material {
 
   classId   String
   title     String
-  url       String
+  url       String?
+  fileUrl   String?
   isLocked  Boolean  @default(true)
 
   class     Class    @relation(fields: [classId], references: [id])
