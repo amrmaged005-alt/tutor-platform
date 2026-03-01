@@ -15,6 +15,7 @@ export default async function Navbar() {
   }
 
   const canCreateClass = role === "TUTOR" || role === "CENTER_ADMIN" || role === "ADMIN";
+  const isAdmin = role === "ADMIN";
 
   return (
     <div style={{ backgroundColor: "#1e293b", borderBottom: "1px solid #334155", padding: "0 2rem", display: "flex", justifyContent: "space-between", alignItems: "center", height: 60, position: "sticky", top: 0, zIndex: 100 }}>
@@ -38,6 +39,11 @@ export default async function Navbar() {
             {canCreateClass && (
               <Link href="/create-class" style={{ color: "#94a3b8", fontSize: 14, textDecoration: "none", fontWeight: 500 }}>
                 Create Class
+              </Link>
+            )}
+            {isAdmin && (
+              <Link href="/admin" style={{ backgroundColor: "#f87171", color: "#fff", padding: "5px 14px", borderRadius: 8, fontSize: 13, textDecoration: "none", fontWeight: 700 }}>
+                Admin
               </Link>
             )}
             <Link href="/api/auth/signout" style={{ backgroundColor: "#334155", color: "#94a3b8", padding: "6px 14px", borderRadius: 8, fontSize: 13, textDecoration: "none", fontWeight: 500 }}>

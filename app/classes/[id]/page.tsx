@@ -18,7 +18,7 @@ export default async function ClassDetailPage({
       center: true,
       owner: true,
       materials: true,
-      _count: { select: { bookings: true } },
+      _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
     },
   });
 
@@ -34,14 +34,19 @@ export default async function ClassDetailPage({
 
   let alreadyBooked = false;
   let currentUserRole = "";
+
   if (session?.user?.email) {
     const currentUser = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
     if (currentUser) {
       currentUserRole = currentUser.role;
-      const existing = await prisma.booking.findUnique({
-        where: { classId_studentId: { classId: cls.id, studentId: currentUser.id } },
+      const existing = await prisma.booking.findFirst({
+        where: {
+          classId: cls.id,
+          studentId: currentUser.id,
+          status: { not: "CANCELLED" },
+        },
       });
       alreadyBooked = !!existing;
     }
@@ -51,21 +56,34 @@ export default async function ClassDetailPage({
     "use server";
     const session = await auth();
     if (!session?.user?.email) redirect("/login");
+
     const currentUser = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
     if (!currentUser) redirect("/login");
-    await prisma.booking.upsert({
-      where: { classId_studentId: { classId: cls!.id, studentId: currentUser.id } },
-      update: {},
-      create: {
-        classId: cls!.id,
-        studentId: currentUser.id,
-        status: "PENDING",
-        paymentStatus: "UNPAID",
-      },
+
+    // Reactivate cancelled booking or create a new one
+    const existingCancelled = await prisma.booking.findFirst({
+      where: { classId: cls!.id, studentId: currentUser.id, status: "CANCELLED" },
     });
-    redirect("/dashboard");
+
+    if (existingCancelled) {
+      await prisma.booking.update({
+        where: { id: existingCancelled.id },
+        data: { status: "PENDING", paymentStatus: "UNPAID" },
+      });
+    } else {
+      await prisma.booking.create({
+        data: {
+          classId: cls!.id,
+          studentId: currentUser.id,
+          status: "PENDING",
+          paymentStatus: "UNPAID",
+        },
+      });
+    }
+
+    redirect("/booking-confirmed?classId=" + cls!.id);
   }
 
   const tutor = cls.owner;
@@ -112,8 +130,8 @@ export default async function ClassDetailPage({
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "1.5rem" }}>
             {[
-              { label: "Price", value: cls.priceEgp === 0 ? "Free" : cls.priceEgp + " EGP / month" },
-              { label: "Location", value: cls.isOnline ? "Online" : (cls.location ?? cls.city) },
+             { label: "Price", value: cls.priceEgp === 0 ? "Free" : cls.priceEgp + " EGP" },
+              { label: "Location", value: cls.isOnline ? "Online" : (cls.location ?? cls.city ?? "—") },
               { label: "Schedule", value: cls.schedule ?? "Contact for schedule" },
               { label: "Spots Left", value: spotsLeft !== null ? spotsLeft + " of " + cls.capacity : "Unlimited" },
             ].map((item) => (
@@ -126,6 +144,14 @@ export default async function ClassDetailPage({
             ))}
           </div>
 
+          {/* Spots warning */}
+          {spotsLeft !== null && spotsLeft <= 5 && spotsLeft > 0 && (
+            <div style={{ backgroundColor: "#451a03", border: "1px solid #92400e", borderRadius: 10, padding: "0.75rem 1rem", marginBottom: "1rem", fontSize: 13, color: "#fdba74", fontWeight: 600 }}>
+              🔥 Only {spotsLeft} spot{spotsLeft === 1 ? "" : "s"} left — book now!
+            </div>
+          )}
+
+          {/* Booking CTA */}
           {!session?.user ? (
             <Link href="/login" style={{ display: "block", textAlign: "center" as const, backgroundColor: "#3b82f6", color: "white", padding: "1rem", borderRadius: 10, fontWeight: 700, fontSize: "1rem", textDecoration: "none" }}>
               Sign in to Book This Class
@@ -136,7 +162,7 @@ export default async function ClassDetailPage({
             </div>
           ) : alreadyBooked ? (
             <div style={{ textAlign: "center" as const, backgroundColor: "#052e16", color: "#4ade80", padding: "1rem", borderRadius: 10, fontWeight: 700, fontSize: "1rem" }}>
-              You have already booked this class
+              ✓ You have already booked this class
             </div>
           ) : spotsLeft === 0 ? (
             <div style={{ textAlign: "center" as const, backgroundColor: "#450a0a", color: "#fca5a5", padding: "1rem", borderRadius: 10, fontWeight: 700 }}>
@@ -144,7 +170,10 @@ export default async function ClassDetailPage({
             </div>
           ) : (
             <form action={bookClass}>
-              <button type="submit" style={{ width: "100%", backgroundColor: "#3b82f6", color: "white", padding: "1rem", borderRadius: 10, fontWeight: 700, fontSize: "1rem", border: "none", cursor: "pointer" }}>
+              <button
+                type="submit"
+                style={{ width: "100%", backgroundColor: "#3b82f6", color: "white", padding: "1rem", borderRadius: 10, fontWeight: 700, fontSize: "1rem", border: "none", cursor: "pointer" }}
+              >
                 {cls.priceEgp === 0 ? "Book This Class — Free" : "Book This Class — " + cls.priceEgp + " EGP"}
               </button>
             </form>
@@ -168,20 +197,24 @@ export default async function ClassDetailPage({
                 {tutor.subjects && tutor.subjects.length > 0 && (
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const, marginBottom: 8 }}>
                     {tutor.subjects.map((s) => (
-                      <span key={s} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 6, padding: "2px 10px", fontSize: 12, color: "#94a3b8" }}>{s}</span>
+                      <span key={s} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 6, padding: "2px 10px", fontSize: 12, color: "#94a3b8" }}>
+                        {s}
+                      </span>
                     ))}
                   </div>
                 )}
                 {tutor.bio && (
-                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.6, margin: "0 0 12px" }}>{tutor.bio}</p>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.6, margin: "0 0 12px" }}>
+                    {tutor.bio}
+                  </p>
                 )}
-                <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const }}>
                   <Link href={"/tutors/" + tutor.id} style={{ color: "#3b82f6", fontSize: 13, textDecoration: "none", fontWeight: 600 }}>
                     View Full Profile
                   </Link>
                   {tutor.phone && (
                     <a href={"https://wa.me/" + whatsappNumber} target="_blank" rel="noopener noreferrer" style={{ backgroundColor: "#16a34a", color: "#fff", borderRadius: 8, padding: "6px 14px", textDecoration: "none", fontWeight: 600, fontSize: 13 }}>
-                      WhatsApp
+                      💬 WhatsApp
                     </a>
                   )}
                 </div>
@@ -201,18 +234,24 @@ export default async function ClassDetailPage({
                 {cls.center.name[0].toUpperCase()}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 16, marginBottom: 4 }}>{cls.center.name}</div>
-                <div style={{ color: "#64748b", fontSize: 13, marginBottom: 8 }}>{cls.center.city}{cls.center.location ? " - " + cls.center.location : ""}</div>
+                <div style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 16, marginBottom: 4 }}>
+                  {cls.center.name}
+                </div>
+                <div style={{ color: "#64748b", fontSize: 13, marginBottom: 8 }}>
+                  {cls.center.city}{cls.center.location ? " · " + cls.center.location : ""}
+                </div>
                 {cls.center.description && (
-                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.6, margin: "0 0 12px" }}>{cls.center.description}</p>
+                  <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.6, margin: "0 0 12px" }}>
+                    {cls.center.description}
+                  </p>
                 )}
-                <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const }}>
                   <Link href={"/centers/" + cls.center.id} style={{ color: "#3b82f6", fontSize: 13, textDecoration: "none", fontWeight: 600 }}>
                     View Center
                   </Link>
                   {cls.center.phone && (
                     <a href={"https://wa.me/" + centerWhatsapp} target="_blank" rel="noopener noreferrer" style={{ backgroundColor: "#16a34a", color: "#fff", borderRadius: 8, padding: "6px 14px", textDecoration: "none", fontWeight: 600, fontSize: 13 }}>
-                      WhatsApp
+                      💬 WhatsApp
                     </a>
                   )}
                 </div>
@@ -231,9 +270,9 @@ export default async function ClassDetailPage({
               <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid #334155" }}>
                 <span style={{ color: "#cbd5e1", fontSize: 14 }}>{m.title}</span>
                 {m.isLocked ? (
-                  <span style={{ color: "#64748b", fontSize: 12 }}>Book to unlock</span>
+                  <span style={{ color: "#64748b", fontSize: 12 }}>🔒 Book to unlock</span>
                 ) : (
-                  <a href={m.fileUrl ?? "#"} style={{ color: "#38bdf8", fontSize: 12 }}>Download</a>
+                  <a href={m.fileUrl ?? "#"} style={{ color: "#38bdf8", fontSize: 12, textDecoration: "none" }}>↓ Download</a>
                 )}
               </div>
             ))}
@@ -254,7 +293,7 @@ export default async function ClassDetailPage({
                     <div style={{ color: "#3b82f6", fontSize: 13, marginBottom: 4 }}>{r.subject}</div>
                     {r.description && (
                       <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 8 }}>
-                        {r.description.length > 70 ? r.description.slice(0, 70) + "..." : r.description}
+                        {r.description.length > 70 ? r.description.slice(0, 70) + "…" : r.description}
                       </div>
                     )}
                     <div style={{ fontWeight: 700, color: "#f1f5f9" }}>

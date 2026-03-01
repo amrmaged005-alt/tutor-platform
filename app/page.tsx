@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import Landing from "./Landing";
 import ClassSearch from "./ClassSearch";
 
 export default async function HomePage() {
@@ -13,16 +14,19 @@ export default async function HomePage() {
   });
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0f172a", fontFamily: "system-ui, sans-serif" }}>
-      <div style={{ textAlign: "center", padding: "3rem 2rem 2rem" }}>
-        <h1 style={{ fontSize: "2.25rem", fontWeight: 800, color: "#f8fafc", marginBottom: "0.75rem" }}>
-          Find Your Perfect Tutor
-        </h1>
-        <p style={{ color: "#94a3b8", fontSize: "1.1rem", maxWidth: 500, margin: "0 auto 2rem" }}>
-          Small group classes in Cairo — Physics, Math, Chemistry and more.
-        </p>
+    <div>
+      <Landing />
+      <div id="classes" style={{ backgroundColor: "#0f172a", paddingTop: "4rem" }}>
+        <div style={{ textAlign: "center", paddingBottom: "2rem" }}>
+          <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#f8fafc", marginBottom: "0.5rem" }}>
+            Browse Classes
+          </h2>
+          <p style={{ color: "#64748b", fontSize: 16 }}>
+            Find the right class for you
+          </p>
+        </div>
+        <ClassSearch initialClasses={initialClasses} />
       </div>
-      <ClassSearch initialClasses={initialClasses} />
     </div>
   );
 }
