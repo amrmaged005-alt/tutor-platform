@@ -167,25 +167,39 @@ export default async function TutorProfilePage({
 
               {/* FIXED SECTION BELOW */}
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const }}>
-                {tutor.phone ? (
-                  <a
-                    href={"https://wa.me/" + whatsappNumber}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      backgroundColor: "#16a34a",
-                      color: "#fff",
-                      borderRadius: 8,
-                      padding: "8px 18px",
-                      textDecoration: "none",
-                      fontWeight: 600,
-                      fontSize: 14,
-                    }}
-                  >
-                    💬 WhatsApp
-                  </a>
-                ) : isOwner ? (
-                  <Link
+  {tutor.phone ? (
+  <a
+    href={`https://wa.me/${whatsappNumber}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{
+      backgroundColor: "#16a34a",
+      color: "#fff",
+      borderRadius: 8,
+      padding: "8px 18px",
+      textDecoration: "none",
+      fontWeight: 600,
+      fontSize: 14,
+    }}
+  >
+    💬 WhatsApp
+  </a>
+) : isOwner ? (
+  <Link
+    href={"/tutors/" + id + "/edit"}
+    style={{
+      backgroundColor: "#334155",
+      color: "#94a3b8",
+      borderRadius: 8,
+      padding: "8px 18px",
+      textDecoration: "none",
+      fontWeight: 600,
+      fontSize: 14,
+    }}
+  >
+    Add WhatsApp number
+  </Link>
+) : null}
                     href={"/tutors/" + id + "/edit"}
                     style={{
                       backgroundColor: "#334155",
