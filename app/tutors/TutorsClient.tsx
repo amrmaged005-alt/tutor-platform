@@ -6,7 +6,7 @@ import Link from "next/link";
 import TutorCard, { TutorCardData } from "./TutorCard";
 import BackgroundFloaters from "../../components/ui/BackgroundFloaters";
 import SectionHeader from "../../components/ui/SectionHeader";
-import SkeletonCard from "../../components/ui/SkeletonCard.tsx";
+import SkeletonCard from "../../components/ui/SkeletonCard";
 
 // ─── CONSTANTS ─────────────────────────────────────────────────────────────────
 
