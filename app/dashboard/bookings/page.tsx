@@ -107,7 +107,7 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
           {booking.student.fullName ?? booking.student.email ?? "Unknown student"}
         </div>
         {booking.student.phone && (
-          
+          <a  
             href={"https://wa.me/" + booking.student.phone.replace(/\D/g, "")}
             target="_blank"
             rel="noopener noreferrer"

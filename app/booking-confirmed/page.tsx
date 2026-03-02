@@ -131,7 +131,7 @@ export default async function BookingConfirmedPage({
         {!isFailed && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {whatsappNumber && (
-              
+              <a
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
