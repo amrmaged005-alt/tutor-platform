@@ -20,6 +20,8 @@ interface ReviewSectionProps {
   existingUserReview?: { rating: number; comment: string | null } | null;
 }
 
+import { motion, AnimatePresence } from "framer-motion";
+
 function StarRating({
   value,
   onChange,
@@ -32,22 +34,26 @@ function StarRating({
   const [hovered, setHovered] = useState(0);
 
   return (
-    <div style={{ display: "flex", gap: "4px" }}>
+    <div style={{ display: "flex", gap: "2px", alignItems: "center" }}>
       {[1, 2, 3, 4, 5].map((star) => (
-        <span
+        <motion.span
           key={star}
+          whileHover={!readonly ? { scale: 1.2 } : {}}
+          whileTap={!readonly ? { scale: 0.9 } : {}}
           onClick={() => !readonly && onChange?.(star)}
           onMouseEnter={() => !readonly && setHovered(star)}
           onMouseLeave={() => !readonly && setHovered(0)}
           style={{
-            fontSize: "28px",
+            fontSize: readonly ? "20px" : "32px",
             cursor: readonly ? "default" : "pointer",
-            color: star <= (hovered || value) ? "#f59e0b" : "#334155",
-            transition: "color 0.15s",
+            color: star <= (hovered || value) ? "#fbbf24" : "#334155",
+            transition: "color 0.15s, transform 0.1s",
+            lineHeight: 1,
+            textShadow: star <= (hovered || value) ? "0 0 12px rgba(251, 191, 36, 0.4)" : "none",
           }}
         >
           ★
-        </span>
+        </motion.span>
       ))}
     </div>
   );
@@ -139,121 +145,131 @@ export default function ReviewSection({
         </div>
 
         {isEligible && !showForm && (
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setShowForm(true)}
             style={{
-              background: "#3b82f6",
+              background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
               color: "#fff",
               border: "none",
               borderRadius: "10px",
               padding: "10px 20px",
               cursor: "pointer",
               fontSize: "14px",
-              fontWeight: 600,
+              fontWeight: 700,
+              boxShadow: "0 4px 12px #3b82f640",
             }}
           >
             {existingUserReview || submitted ? "Edit Your Review" : "Write a Review"}
-          </button>
+          </motion.button>
         )}
       </div>
 
-      {showForm && isEligible && (
-        <div
-          style={{
-            background: "#1e293b",
-            border: "1px solid #334155",
-            borderRadius: "16px",
-            padding: "24px",
-            marginBottom: "24px",
-          }}
-        >
-          <h3 style={{ color: "#f1f5f9", marginTop: 0, marginBottom: "16px" }}>
-            {existingUserReview || submitted ? "Update Your Review" : "Your Review"}
-          </h3>
+      <AnimatePresence>
+        {showForm && isEligible && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            style={{
+              background: "linear-gradient(to bottom right, #1e293b, #0f172a)",
+              border: "1px solid #3b82f640",
+              borderRadius: "16px",
+              padding: "24px",
+              marginBottom: "24px",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+              overflow: "hidden"
+            }}
+          >
+            <h3 style={{ color: "#f1f5f9", marginTop: 0, marginBottom: "16px" }}>
+              {existingUserReview || submitted ? "Update Your Review" : "Your Review"}
+            </h3>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              style={{
-                color: "#94a3b8",
-                fontSize: "14px",
-                display: "block",
-                marginBottom: "8px",
-              }}
-            >
-              Rating
-            </label>
-            <StarRating value={rating} onChange={setRating} />
-          </div>
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  color: "#94a3b8",
+                  fontSize: "14px",
+                  display: "block",
+                  marginBottom: "8px",
+                }}
+              >
+                Rating
+              </label>
+              <StarRating value={rating} onChange={setRating} />
+            </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              style={{
-                color: "#94a3b8",
-                fontSize: "14px",
-                display: "block",
-                marginBottom: "8px",
-              }}
-            >
-              Comment (optional)
-            </label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={4}
-              placeholder="Share your experience..."
-              style={{
-                width: "100%",
-                background: "#0f172a",
-                border: "1px solid #334155",
-                borderRadius: "10px",
-                color: "#f1f5f9",
-                padding: "12px",
-                fontSize: "14px",
-                resize: "vertical",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  color: "#94a3b8",
+                  fontSize: "14px",
+                  display: "block",
+                  marginBottom: "8px",
+                }}
+              >
+                Comment (optional)
+              </label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={4}
+                placeholder="Share your experience..."
+                style={{
+                  width: "100%",
+                  background: "#0f172a",
+                  border: "1px solid #334155",
+                  borderRadius: "10px",
+                  color: "#f1f5f9",
+                  padding: "12px",
+                  fontSize: "14px",
+                  resize: "vertical",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
 
-          {error && (
-            <p style={{ color: "#ef4444", fontSize: "14px", marginBottom: "12px" }}>
-              {error}
-            </p>
-          )}
+            {error && (
+              <p style={{ color: "#ef4444", fontSize: "14px", marginBottom: "12px" }}>
+                {error}
+              </p>
+            )}
 
-          <div style={{ display: "flex", gap: "12px" }}>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              style={{
-                background: "#3b82f6",
-                color: "#fff",
-                border: "none",
-                borderRadius: "10px",
-                padding: "10px 24px",
-                cursor: submitting ? "not-allowed" : "pointer",
-                fontWeight: 600,
-                opacity: submitting ? 0.7 : 1,
-              }}
-            >
-              {submitting ? "Submitting..." : "Submit Review"}
-            </button>
-            <button
-              onClick={() => setShowForm(false)}
-              style={{
-                background: "transparent",
-                color: "#94a3b8",
-                border: "1px solid #334155",
-                borderRadius: "10px",
-                padding: "10px 24px",
-                cursor: "pointer",
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                style={{
+                  background: "#3b82f6",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  padding: "10px 24px",
+                  cursor: submitting ? "not-allowed" : "pointer",
+                  fontWeight: 600,
+                  opacity: submitting ? 0.7 : 1,
+                }}
+              >
+                {submitting ? "Submitting..." : "Submit Review"}
+              </button>
+              <button
+                onClick={() => setShowForm(false)}
+                style={{
+                  background: "transparent",
+                  color: "#94a3b8",
+                  border: "1px solid #334155",
+                  borderRadius: "10px",
+                  padding: "10px 24px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading ? (
         <p style={{ color: "#94a3b8" }}>Loading reviews...</p>
@@ -262,15 +278,20 @@ export default function ReviewSection({
           No reviews yet.{isEligible ? " Be the first to leave one!" : ""}
         </p>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          {reviews.map((review) => (
-            <div
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
+          {reviews.map((review, i) => (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
               key={review.id}
               style={{
                 background: "#1e293b",
                 border: "1px solid #334155",
                 borderRadius: "16px",
                 padding: "20px",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
               <div
@@ -313,7 +334,7 @@ export default function ReviewSection({
                   </div>
                 </div>
 
-                <div style={{ marginLeft: "auto" }}>
+                <div style={{ marginLeft: "auto", alignSelf: "flex-start", marginTop: "4px" }}>
                   <StarRating value={review.rating} readonly />
                 </div>
               </div>
@@ -330,7 +351,7 @@ export default function ReviewSection({
                   {review.comment}
                 </p>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

@@ -31,18 +31,18 @@ export async function lockSeat(
     };
   }
 
-  // Check email is verified before allowing booking
-  const user = await prisma.user.findUnique({
-    where: { id: studentId },
-    select: { isEmailVerified: true },
-  });
-
-  if (!user?.isEmailVerified) {
-    return {
-      success: false,
-      error: "Please verify your email address before booking a class.",
-    };
-  }
+  // TEMP: Email verification disabled
+  // const user = await prisma.user.findUnique({
+  //   where: { id: studentId },
+  //   select: { isEmailVerified: true },
+  // });
+  //
+  // if (!user?.isEmailVerified) {
+  //   return {
+  //     success: false,
+  //     error: "Please verify your email address before booking a class.",
+  //   };
+  // }
 
   try {
     // 1. Get the class and make sure it exists
@@ -247,8 +247,8 @@ export async function updateBookingStatus(
       action === "MARK_PAID"
         ? "booking.confirmed"
         : action === "NO_SHOW"
-        ? "booking.no_show"
-        : "booking.cancelled";
+          ? "booking.no_show"
+          : "booking.cancelled";
 
     await log({
       action: auditAction,

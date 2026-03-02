@@ -35,7 +35,7 @@ function Particle({ x, y, delay }: { x: string; y: string; delay: number }) {
   );
 }
 
-// ── Magnetic Card (tilts toward cursor) ──────────────────────────────────
+// ── Magnetic Card ─────────────────────────────────────────────────────────
 function MagneticCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
@@ -65,7 +65,7 @@ function MagneticCard({ children, style }: { children: React.ReactNode; style?: 
   );
 }
 
-// ── Animated Counter ─────────────────────────────────────────────────────
+// ── Animated Counter ──────────────────────────────────────────────────────
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
@@ -240,27 +240,22 @@ const PARTICLES = [
   { x: "75%", y: "80%", delay: 0.9 }, { x: "5%", y: "50%", delay: 1.4 },
 ];
 
+const CURRICULA = ["Thanaweya Amma", "IGCSE", "American Diploma", "IB", "French System", "STEM"];
+
 // ── Main Landing Component ────────────────────────────────────────────────
 export default function Landing() {
   return (
-    <div style={{ backgroundColor: "#0f172a", fontFamily: "system-ui, sans-serif", overflowX: "hidden" }}>
+    <div style={{ backgroundColor: "#0f172a", fontFamily: "var(--font-sans)", overflowX: "hidden" }}>
 
       {/* ══ HERO ══════════════════════════════════════════════════════════ */}
       <section style={{ minHeight: "95vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "6rem 2rem 4rem", position: "relative", overflow: "hidden" }}>
-
-        {/* Floating orbs */}
         <FloatingOrb x="5%" y="10%" size={600} color="radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)" duration={8} />
         <FloatingOrb x="60%" y="5%" size={500} color="radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)" duration={10} />
         <FloatingOrb x="20%" y="60%" size={400} color="radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)" duration={12} />
         <FloatingOrb x="75%" y="50%" size={350} color="radial-gradient(circle, rgba(245,158,11,0.07) 0%, transparent 70%)" duration={9} />
-
-        {/* Particles */}
         {PARTICLES.map((p, i) => <Particle key={i} {...p} />)}
-
-        {/* Grid overlay */}
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)", backgroundSize: "60px 60px", pointerEvents: "none" }} />
 
-        {/* Badge */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(59,130,246,0.08)", backdropFilter: "blur(10px)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: 20, padding: "6px 16px", marginBottom: "1.75rem" }}>
             <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#3b82f6", display: "inline-block" }} />
@@ -268,7 +263,6 @@ export default function Landing() {
           </div>
         </motion.div>
 
-        {/* Headline with typing effect */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -280,7 +274,6 @@ export default function Landing() {
           <br />in Cairo, today.
         </motion.h1>
 
-        {/* Subheadline */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -290,7 +283,6 @@ export default function Landing() {
           Small group classes, verified tutors, and top learning centers — all subjects, all curricula, one platform.
         </motion.p>
 
-        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -301,7 +293,6 @@ export default function Landing() {
           <ShimmerButton href="/signup" primary={false}>Become a Tutor</ShimmerButton>
         </motion.div>
 
-        {/* Trust badges */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -322,7 +313,6 @@ export default function Landing() {
           ))}
         </motion.div>
 
-        {/* Scroll indicator */}
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
@@ -330,15 +320,33 @@ export default function Landing() {
         >↓</motion.div>
       </section>
 
+      {/* ══ CURRICULA TRUST BAR ══════════════════════════════════════════ */}
+      <section style={{ padding: "1.25rem 2rem", borderTop: "1px solid #1e293b", borderBottom: "1px solid #1e293b", backgroundColor: "#080f1a" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+          <span style={{ color: "#334155", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginRight: 4 }}>Supports</span>
+          {CURRICULA.map((c, i) => (
+            <motion.div
+              key={c}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 + i * 0.08 }}
+              style={{ background: "rgba(30,41,59,0.8)", border: "1px solid #1e293b", borderRadius: 20, padding: "4px 14px", fontSize: 12, fontWeight: 600, color: "#64748b" }}
+            >
+              {c}
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* ══ STATS ══════════════════════════════════════════════════════════ */}
-      <section style={{ padding: "4rem 2rem", borderTop: "1px solid #1e293b", borderBottom: "1px solid #1e293b", position: "relative", overflow: "hidden" }}>
+      <section style={{ padding: "4rem 2rem", borderBottom: "1px solid #1e293b", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.03), transparent)", pointerEvents: "none" }} />
         <div style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "2rem", textAlign: "center" }}>
           {[
-            { value: 50, suffix: "+", label: "Classes Listed", icon: "📚" },
+            { value: 50, suffix: "+", label: "Classes This Month", icon: "📚" },
             { value: 20, suffix: "+", label: "Verified Tutors", icon: "👨‍🏫" },
-            { value: 200, suffix: "+", label: "Bookings Made", icon: "📅" },
-            { value: 7, suffix: "", label: "Subjects Available", icon: "🎯" },
+            { value: 200, suffix: "+", label: "Seats Booked", icon: "📅" },
+            { value: 7, suffix: "", label: "Curricula Supported", icon: "🎯" },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -364,13 +372,7 @@ export default function Landing() {
         <FloatingOrb x="80%" y="20%" size={400} color="radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)" duration={11} />
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <motion.div
-              initial={{ width: 0 }}
-              whileInView={{ width: 60 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              style={{ height: 3, background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", borderRadius: 2, margin: "0 auto 1.5rem" }}
-            />
+            <motion.div initial={{ width: 0 }} whileInView={{ width: 60 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ height: 3, background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", borderRadius: 2, margin: "0 auto 1.5rem" }} />
             <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.5rem)", fontWeight: 800, color: "#f8fafc", marginBottom: "0.75rem" }}>
               Everything you need to learn better
             </h2>
@@ -388,11 +390,10 @@ export default function Landing() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.08 }}
                   whileHover={{ boxShadow: `0 20px 60px ${f.color}20` }}
-                  style={{ backgroundColor: "#1e293b", border: `1px solid #334155`, borderRadius: 20, padding: "2rem", cursor: "default", height: "100%", transition: "border-color 0.3s", position: "relative", overflow: "hidden" }}
+                  style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: "2rem", cursor: "default", height: "100%", transition: "border-color 0.3s", position: "relative", overflow: "hidden" }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = f.color + "60"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#334155"; }}
                 >
-                  {/* Glow top-left */}
                   <div style={{ position: "absolute", top: 0, left: 0, width: 120, height: 120, borderRadius: "0 0 100% 0", background: `radial-gradient(circle, ${f.color}15 0%, transparent 70%)`, pointerEvents: "none" }} />
                   <motion.div whileHover={{ scale: 1.2, rotate: 10 }} style={{ fontSize: "2rem", marginBottom: "1rem", display: "inline-block" }}>{f.icon}</motion.div>
                   <h3 style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{f.title}</h3>
@@ -416,15 +417,7 @@ export default function Landing() {
             <p style={{ color: "#64748b", fontSize: 16 }}>Three steps to your first class.</p>
           </motion.div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "2rem", position: "relative" }}>
-            {/* Connecting line */}
-            <motion.div
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, delay: 0.5 }}
-              style={{ position: "absolute", top: "4rem", left: "20%", right: "20%", height: 1, background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", transformOrigin: "left", display: "none" }}
-            />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "2rem" }}>
             {STEPS.map((s, i) => (
               <motion.div
                 key={s.num}
@@ -562,8 +555,8 @@ export default function Landing() {
         <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} style={{ position: "relative", zIndex: 1 }}>
           <motion.div initial={{ width: 0 }} whileInView={{ width: 60 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ height: 3, background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", borderRadius: 2, margin: "0 auto 2rem" }} />
           <h2 style={{ fontSize: "clamp(2.2rem, 5vw, 3.8rem)", fontWeight: 900, color: "#f8fafc", marginBottom: "1.25rem", lineHeight: 1.15 }}>
-            Start learning{" "}
-            <span style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>today.</span>
+            Your next A grade{" "}
+            <span style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>starts here.</span>
           </h2>
           <p style={{ color: "#64748b", fontSize: 18, marginBottom: "2.5rem", maxWidth: 480, margin: "0 auto 2.5rem" }}>
             Hundreds of classes. Verified tutors. All of Cairo's best educators in one place.
@@ -574,6 +567,7 @@ export default function Landing() {
           </div>
         </motion.div>
       </section>
+
     </div>
   );
 }

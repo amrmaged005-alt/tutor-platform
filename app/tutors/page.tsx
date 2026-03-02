@@ -1,16 +1,26 @@
-// app/tutors/page.tsx
-// SERVER COMPONENT — no "use client" here
-// Fetches tutors with real stats (class count, student count, avg rating)
-// then passes serialized data to TutorsClient
-
 import { prisma } from "../../lib/prisma";
 import TutorsClient from "./TutorsClient";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Tutors | Coursaty" };
-export const revalidate = 60; // refresh data every 60 seconds
+export const metadata: Metadata = {
+  title: "Find a Tutor",
+  description: "Browse verified tutors in Cairo. Find expert educators for Math, Physics, Chemistry, IGCSE, Thanaweya Amma, and more.",
+  openGraph: {
+    title: "Find a Tutor | Coursaty",
+    description: "Browse verified tutors in Cairo for all subjects and curricula.",
+    type: "website",
+    url: "/tutors",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Find a Tutor | Coursaty",
+    description: "Browse verified tutors in Cairo for all subjects and curricula.",
+  },
+};
+
+export const revalidate = 60;
 
 export default async function TutorsPage() {
-  // Fetch all tutors + CENTER_ADMINs with everything we need for cards
   const tutors = await prisma.user.findMany({
     where: { role: { in: ["TUTOR", "CENTER_ADMIN"] } },
     select: {
@@ -20,6 +30,7 @@ export default async function TutorsPage() {
       bio: true,
       subjects: true,
       photoUrl: true,
+      isVerified: true,
       center: {
         select: { id: true, name: true, city: true },
       },
@@ -34,7 +45,6 @@ export default async function TutorsPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Flatten into TutorCardData shape — compute stats here on the server
   const tutorCards = tutors.map((t) => {
     const allReviews = t.ownedClasses.flatMap((c) => c.reviews);
     const avgRating =
@@ -55,6 +65,7 @@ export default async function TutorsPage() {
       studentCount: t.ownedClasses.reduce((s, c) => s + c.bookings.length, 0),
       avgRating: avgRating ? Math.round(avgRating * 10) / 10 : null,
       reviewCount: allReviews.length,
+      isVerified: t.isVerified,
     };
   });
 

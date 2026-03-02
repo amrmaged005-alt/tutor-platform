@@ -17,6 +17,7 @@ export interface TutorCardData {
   studentCount: number;     // total bookings across all their classes
   avgRating: number | null; // computed from reviews
   reviewCount: number;
+  isVerified: boolean;
 }
 
 // ─── SUBJECT COLORS ────────────────────────────────────────────────────────────
@@ -187,23 +188,26 @@ export default function TutorCard({
             </div>
 
             {/* Verified badge */}
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-                backgroundColor: "#1e3a5f",
-                border: "1px solid #38bdf820",
-                borderRadius: 99,
-                padding: "2px 10px",
-                fontSize: 11,
-                fontWeight: 700,
-                color: "#38bdf8",
-                letterSpacing: 0.3,
-              }}
-            >
-              ✓ Verified
-            </div>
+            {tutor.isVerified && (
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  backgroundColor: "#1e3a5f",
+                  border: "1px solid #38bdf820",
+                  borderRadius: 99,
+                  padding: "2px 10px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#38bdf8",
+                  letterSpacing: 0.3,
+                  marginTop: 6,
+                }}
+              >
+                ✓ Verified
+              </div>
+            )}
           </div>
         </div>
 

@@ -52,8 +52,9 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit}>
 
             <div style={{ marginBottom: "1rem" }}>
-              <label style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Full Name</label>
+              <label htmlFor="fullName" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Full Name</label>
               <input
+                id="fullName"
                 name="fullName"
                 type="text"
                 required
@@ -63,8 +64,9 @@ export default function SignupPage() {
             </div>
 
             <div style={{ marginBottom: "1rem" }}>
-              <label style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Email</label>
+              <label htmlFor="email" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Email</label>
               <input
+                id="email"
                 name="email"
                 type="email"
                 required
@@ -74,8 +76,9 @@ export default function SignupPage() {
             </div>
 
             <div style={{ marginBottom: "1rem" }}>
-              <label style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Password</label>
+              <label htmlFor="password" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Password</label>
               <input
+                id="password"
                 name="password"
                 type="password"
                 required
@@ -85,8 +88,9 @@ export default function SignupPage() {
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>I am a...</label>
+              <label htmlFor="role" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>I am a...</label>
               <select
+                id="role"
                 name="role"
                 required
                 style={{ width: "100%", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "0.75rem 1rem", color: "#f1f5f9", fontSize: 14, boxSizing: "border-box" }}

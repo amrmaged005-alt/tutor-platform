@@ -91,6 +91,7 @@ export default async function DashboardPage() {
       subjects: (user as any).subjects ?? [],
       centerId: (user as any).centerId ?? null,
       centerName: (user as any).center?.name ?? null,
+      isVerified: (user as any).isVerified ?? false,
     },
     bookings: user.bookings.map((b) => ({
       id: b.id,
@@ -126,38 +127,38 @@ export default async function DashboardPage() {
     })),
     centerData: centerData
       ? {
-          id: centerData.id,
-          name: centerData.name,
-          city: centerData.city ?? null,
-          location: centerData.location ?? null,
-          description: centerData.description ?? null,
-          tutors: centerData.tutors.map((t: any) => ({
-            id: t.id,
-            fullName: t.fullName ?? null,
-            name: t.name ?? null,
-            email: t.email ?? null,
-            subjects: t.subjects ?? [],
-            phone: t.phone ?? null,
-            classCount: t._count.ownedClasses,
+        id: centerData.id,
+        name: centerData.name,
+        city: centerData.city ?? null,
+        location: centerData.location ?? null,
+        description: centerData.description ?? null,
+        tutors: centerData.tutors.map((t: any) => ({
+          id: t.id,
+          fullName: t.fullName ?? null,
+          name: t.name ?? null,
+          email: t.email ?? null,
+          subjects: t.subjects ?? [],
+          phone: t.phone ?? null,
+          classCount: t._count.ownedClasses,
+        })),
+        classes: centerData.classes.map((cls: any) => ({
+          id: cls.id,
+          title: cls.title,
+          subject: cls.subject,
+          format: cls.format,
+          priceEgp: cls.priceEgp,
+          capacity: cls.capacity,
+          schedule: cls.schedule ?? null,
+          bookingsCount: cls._count.bookings,
+          ownerName: cls.owner?.fullName ?? cls.owner?.name ?? null,
+          bookings: cls.bookings.map((bk: any) => ({
+            id: bk.id,
+            status: bk.status,
+            paymentStatus: bk.paymentStatus,
+            studentName: bk.student?.fullName ?? bk.student?.email ?? "Student",
           })),
-          classes: centerData.classes.map((cls: any) => ({
-            id: cls.id,
-            title: cls.title,
-            subject: cls.subject,
-            format: cls.format,
-            priceEgp: cls.priceEgp,
-            capacity: cls.capacity,
-            schedule: cls.schedule ?? null,
-            bookingsCount: cls._count.bookings,
-            ownerName: cls.owner?.fullName ?? cls.owner?.name ?? null,
-            bookings: cls.bookings.map((bk: any) => ({
-              id: bk.id,
-              status: bk.status,
-              paymentStatus: bk.paymentStatus,
-              studentName: bk.student?.fullName ?? bk.student?.email ?? "Student",
-            })),
-          })),
-        }
+        })),
+      }
       : null,
   };
 

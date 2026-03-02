@@ -1,18 +1,52 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// NOTE: This file splits into two parts:
-//   1. The async Server Component wrapper (default export) — handles data fetching
-//   2. The Client Component <ClassDetailClient /> — handles animations & UI
-// Paste both into: app/classes/[id]/page.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SERVER COMPONENT (top of file — no "use client" directive here)
-// ═══════════════════════════════════════════════════════════════════════════
-
 import { prisma } from "../../../lib/prisma";
 import { auth } from "../../../lib/auth";
 import { redirect } from "next/navigation";
 import ClassDetailClient from "./ClassDetailClient";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const cls = await prisma.class.findUnique({
+    where: { id },
+    select: {
+      title: true,
+      subject: true,
+      description: true,
+      curriculum: true,
+      gradeLevel: true,
+      priceEgp: true,
+      owner: { select: { fullName: true, name: true, isVerified: true } },
+      center: { select: { name: true } },
+    },
+  });
+
+  if (!cls) return { title: "Class Not Found" };
+
+  const tutorName = cls.owner?.fullName ?? cls.owner?.name ?? cls.center?.name ?? "Coursaty Tutor";
+  const description = cls.description
+    ? cls.description.slice(0, 155)
+    : `${cls.subject} class${cls.curriculum ? ` for ${cls.curriculum}` : ""}${cls.gradeLevel ? `, Grade ${cls.gradeLevel}` : ""} by ${tutorName} on Coursaty.`;
+
+  return {
+    title: cls.title,
+    description,
+    openGraph: {
+      title: `${cls.title} | Coursaty`,
+      description,
+      type: "website",
+      url: `/classes/${id}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${cls.title} | Coursaty`,
+      description,
+    },
+  };
+}
 
 export default async function ClassDetailPage({
   params,
@@ -64,8 +98,7 @@ export default async function ClassDetailPage({
   let alreadyBooked = false;
   let currentUserRole = "";
   let isEligibleToReview = false;
-  let existingUserReview: { rating: number; comment: string | null } | null =
-    null;
+  let existingUserReview: { rating: number; comment: string | null } | null = null;
 
   if (session?.user?.email) {
     const currentUser = await prisma.user.findUnique({
@@ -140,7 +173,6 @@ export default async function ClassDetailPage({
     redirect("/booking-confirmed?classId=" + cls!.id);
   }
 
-  // Serialize only what the client needs
   const classData = {
     id: cls.id,
     title: cls.title,
@@ -166,23 +198,24 @@ export default async function ClassDetailPage({
     })),
     owner: cls.owner
       ? {
-          id: cls.owner.id,
-          fullName: (cls.owner as any).fullName ?? null,
-          name: cls.owner.name ?? null,
-          bio: (cls.owner as any).bio ?? null,
-          subjects: (cls.owner as any).subjects ?? [],
-          phone: cls.owner.phone ?? null,
-        }
+        id: cls.owner.id,
+        fullName: (cls.owner as any).fullName ?? null,
+        name: cls.owner.name ?? null,
+        bio: (cls.owner as any).bio ?? null,
+        subjects: (cls.owner as any).subjects ?? [],
+        phone: cls.owner.phone ?? null,
+        isVerified: (cls.owner as any).isVerified ?? false,
+      }
       : null,
     center: cls.center
       ? {
-          id: cls.center.id,
-          name: cls.center.name,
-          city: (cls.center as any).city ?? null,
-          location: (cls.center as any).location ?? null,
-          description: (cls.center as any).description ?? null,
-          phone: (cls.center as any).phone ?? null,
-        }
+        id: cls.center.id,
+        name: cls.center.name,
+        city: (cls.center as any).city ?? null,
+        location: (cls.center as any).location ?? null,
+        description: (cls.center as any).description ?? null,
+        phone: (cls.center as any).phone ?? null,
+      }
       : null,
     relatedClasses: relatedClasses.map((r) => ({
       id: r.id,

@@ -7,18 +7,18 @@ import ReviewSection from "../../components/ReviewSection";
 
 // ─── Subject color map ───────────────────────────────────────────────────────
 const SUBJECT_COLORS: Record<string, { glow: string; badge: string; bg: string }> = {
-  Math:        { glow: "#3b82f6", badge: "#3b82f6", bg: "#1e3a5f" },
+  Math: { glow: "#3b82f6", badge: "#3b82f6", bg: "#1e3a5f" },
   Mathematics: { glow: "#3b82f6", badge: "#3b82f6", bg: "#1e3a5f" },
-  Physics:     { glow: "#8b5cf6", badge: "#8b5cf6", bg: "#2e1a4f" },
-  Chemistry:   { glow: "#22c55e", badge: "#22c55e", bg: "#052e16" },
-  Biology:     { glow: "#10b981", badge: "#10b981", bg: "#022c22" },
-  English:     { glow: "#f59e0b", badge: "#f59e0b", bg: "#1c1400" },
-  Arabic:      { glow: "#ef4444", badge: "#ef4444", bg: "#2d0000" },
-  History:     { glow: "#f97316", badge: "#f97316", bg: "#1c0d00" },
-  Geography:   { glow: "#06b6d4", badge: "#06b6d4", bg: "#002f3a" },
-  French:      { glow: "#a78bfa", badge: "#a78bfa", bg: "#1e1b4b" },
-  Computer:    { glow: "#38bdf8", badge: "#38bdf8", bg: "#0c2a3f" },
-  Science:     { glow: "#34d399", badge: "#34d399", bg: "#052e16" },
+  Physics: { glow: "#8b5cf6", badge: "#8b5cf6", bg: "#2e1a4f" },
+  Chemistry: { glow: "#22c55e", badge: "#22c55e", bg: "#052e16" },
+  Biology: { glow: "#10b981", badge: "#10b981", bg: "#022c22" },
+  English: { glow: "#f59e0b", badge: "#f59e0b", bg: "#1c1400" },
+  Arabic: { glow: "#ef4444", badge: "#ef4444", bg: "#2d0000" },
+  History: { glow: "#f97316", badge: "#f97316", bg: "#1c0d00" },
+  Geography: { glow: "#06b6d4", badge: "#06b6d4", bg: "#002f3a" },
+  French: { glow: "#a78bfa", badge: "#a78bfa", bg: "#1e1b4b" },
+  Computer: { glow: "#38bdf8", badge: "#38bdf8", bg: "#0c2a3f" },
+  Science: { glow: "#34d399", badge: "#34d399", bg: "#052e16" },
 };
 
 function getSubjectColor(subject: string) {
@@ -65,8 +65,8 @@ function SpotsBar({ capacity, spotsLeft }: { capacity: number; spotsLeft: number
             background: isCritical
               ? "linear-gradient(90deg, #ef4444, #f97316)"
               : isLow
-              ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
-              : "linear-gradient(90deg, #22c55e, #34d399)",
+                ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
+                : "linear-gradient(90deg, #22c55e, #34d399)",
           }}
         />
       </div>
@@ -163,6 +163,7 @@ interface ClassData {
     bio: string | null;
     subjects: string[];
     phone: string | null;
+    isVerified: boolean;
   } | null;
   center: {
     id: string;
@@ -692,19 +693,21 @@ export default function ClassDetailClient({
                     }}
                   >
                     {tutor.fullName || tutor.name || "Tutor"}
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        padding: "2px 8px",
-                        borderRadius: 99,
-                        backgroundColor: "#1e3a5f",
-                        color: "#38bdf8",
-                        border: "1px solid #38bdf820",
-                      }}
-                    >
-                      ✓ Verified
-                    </span>
+                    {tutor.isVerified && (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          padding: "2px 8px",
+                          borderRadius: 99,
+                          backgroundColor: "#1e3a5f",
+                          color: "#38bdf8",
+                          border: "1px solid #38bdf820",
+                        }}
+                      >
+                        ✓ Verified
+                      </span>
+                    )}
                   </div>
                   {tutor.subjects && tutor.subjects.length > 0 && (
                     <div
@@ -1084,8 +1087,8 @@ export default function ClassDetailClient({
                     cls.format === "IN_PERSON"
                       ? "In-Person"
                       : cls.format === "ONLINE"
-                      ? "Online"
-                      : "Hybrid",
+                        ? "Online"
+                        : "Hybrid",
                 },
                 {
                   icon: "📅",

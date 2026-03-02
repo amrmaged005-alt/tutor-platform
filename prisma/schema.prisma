@@ -124,6 +124,7 @@ model User {
 
   // Trust & verification
   isEmailVerified Boolean @default(false)
+  isVerified      Boolean @default(false)
   trustScore      Int     @default(50)
   isSuspended     Boolean @default(false)
 

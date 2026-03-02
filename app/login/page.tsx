@@ -50,8 +50,9 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit}>
 
             <div style={{ marginBottom: "1rem" }}>
-              <label style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Email</label>
+              <label htmlFor="email" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Email</label>
               <input
+                id="email"
                 name="email"
                 type="email"
                 required
@@ -61,8 +62,9 @@ export default function LoginPage() {
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Password</label>
+              <label htmlFor="password" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Password</label>
               <input
+                id="password"
                 name="password"
                 type="password"
                 required

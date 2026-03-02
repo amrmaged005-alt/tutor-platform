@@ -1,10 +1,54 @@
-// app/tutors/[id]/page.tsx
-// SERVER COMPONENT — fetches full tutor data including reviews + stats
-
 import { prisma } from "../../../lib/prisma";
 import { auth } from "../../../lib/auth";
 import { notFound } from "next/navigation";
 import TutorProfileClient from "./TutorProfileClient";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  const tutor = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      fullName: true,
+      name: true,
+      bio: true,
+      subjects: true,
+      center: { select: { name: true, city: true } },
+    },
+  });
+
+  if (!tutor) return { title: "Tutor Not Found" };
+
+  const displayName = tutor.fullName ?? tutor.name ?? "Tutor";
+  const subjects = Array.isArray(tutor.subjects) && tutor.subjects.length > 0
+    ? (tutor.subjects as string[]).join(", ")
+    : null;
+  const city = tutor.center?.city ?? "Cairo";
+  const description = tutor.bio
+    ? tutor.bio.slice(0, 155)
+    : `${displayName} is a verified tutor on Coursaty${subjects ? `, specializing in ${subjects}` : ""} in ${city}.`;
+
+  return {
+    title: displayName,
+    description,
+    openGraph: {
+      title: `${displayName} | Coursaty Tutor`,
+      description,
+      type: "profile",
+      url: `/tutors/${id}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${displayName} | Coursaty Tutor`,
+      description,
+    },
+  };
+}
 
 export default async function TutorProfilePage({
   params,
@@ -32,14 +76,12 @@ export default async function TutorProfilePage({
     notFound();
   }
 
-  // Fetch all reviews for this tutor's classes with student info
   const rawReviews = await prisma.review.findMany({
     where: { class: { ownerId: id } },
     include: { student: { select: { fullName: true, name: true } } },
     orderBy: { createdAt: "desc" },
   });
 
-  // Compute aggregate rating
   const allRatings = rawReviews.map(r => r.rating);
   const avgRating = allRatings.length > 0
     ? Math.round((allRatings.reduce((a, b) => a + b, 0) / allRatings.length) * 10) / 10
@@ -47,7 +89,6 @@ export default async function TutorProfilePage({
 
   const isOwner = session?.user?.email === tutor.email;
 
-  // Serialize for client
   const tutorData = {
     id: tutor.id,
     fullName: tutor.fullName,

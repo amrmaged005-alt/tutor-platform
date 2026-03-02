@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import BackgroundFloaters from "../../components/ui/BackgroundFloaters";
+import PageShell from "../../components/ui/PageShell";
 import SectionHeader from "../../components/ui/SectionHeader";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
@@ -26,31 +26,31 @@ export interface ClassCardData {
   avgRating: number | null;
   reviewCount: number;
   center: { id: string; name: string; city: string } | null;
-  owner: { id: string; fullName: string | null; name: string | null; photoUrl: string | null } | null;
+  owner: { id: string; fullName: string | null; name: string | null; photoUrl: string | null; isVerified: boolean; } | null;
 }
 
 // ─── CONSTANTS ─────────────────────────────────────────────────────────────────
 const SUBJECT_META: Record<string, { color: string; bg: string; emoji: string }> = {
-  Math:             { color: "#60a5fa", bg: "#1e3a5f", emoji: "📐" },
-  Mathematics:      { color: "#60a5fa", bg: "#1e3a5f", emoji: "📐" },
-  Physics:          { color: "#c084fc", bg: "#2e1065", emoji: "⚡" },
-  Chemistry:        { color: "#34d399", bg: "#064e3b", emoji: "🧪" },
-  Biology:          { color: "#4ade80", bg: "#052e16", emoji: "🧬" },
-  English:          { color: "#fb923c", bg: "#422006", emoji: "📝" },
-  Arabic:           { color: "#f87171", bg: "#450a0a", emoji: "✍️" },
-  History:          { color: "#a8a29e", bg: "#1c1917", emoji: "📜" },
-  Geography:        { color: "#2dd4bf", bg: "#042f2e", emoji: "🌍" },
+  Math: { color: "#60a5fa", bg: "#1e3a5f", emoji: "📐" },
+  Mathematics: { color: "#60a5fa", bg: "#1e3a5f", emoji: "📐" },
+  Physics: { color: "#c084fc", bg: "#2e1065", emoji: "⚡" },
+  Chemistry: { color: "#34d399", bg: "#064e3b", emoji: "🧪" },
+  Biology: { color: "#4ade80", bg: "#052e16", emoji: "🧬" },
+  English: { color: "#fb923c", bg: "#422006", emoji: "📝" },
+  Arabic: { color: "#f87171", bg: "#450a0a", emoji: "✍️" },
+  History: { color: "#a8a29e", bg: "#1c1917", emoji: "📜" },
+  Geography: { color: "#2dd4bf", bg: "#042f2e", emoji: "🌍" },
   "Computer Science": { color: "#38bdf8", bg: "#0c1a2e", emoji: "💻" },
-  Science:          { color: "#34d399", bg: "#052e16", emoji: "🔬" },
-  French:           { color: "#a78bfa", bg: "#1e1b4b", emoji: "🇫🇷" },
-  Economics:        { color: "#fbbf24", bg: "#1c1400", emoji: "📊" },
-  Business:         { color: "#e879f9", bg: "#2d0a3f", emoji: "💼" },
+  Science: { color: "#34d399", bg: "#052e16", emoji: "🔬" },
+  French: { color: "#a78bfa", bg: "#1e1b4b", emoji: "🇫🇷" },
+  Economics: { color: "#fbbf24", bg: "#1c1400", emoji: "📊" },
+  Business: { color: "#e879f9", bg: "#2d0a3f", emoji: "💼" },
 };
 
 const FORMAT_META: Record<string, { label: string; color: string; bg: string; icon: string }> = {
   IN_PERSON: { label: "In-Person", color: "#4ade80", bg: "#052e16", icon: "📍" },
-  ONLINE:    { label: "Online",    color: "#38bdf8", bg: "#0c2a3f", icon: "💻" },
-  HYBRID:    { label: "Hybrid",    color: "#c084fc", bg: "#1e1040", icon: "🔀" },
+  ONLINE: { label: "Online", color: "#38bdf8", bg: "#0c2a3f", icon: "💻" },
+  HYBRID: { label: "Hybrid", color: "#c084fc", bg: "#1e1040", icon: "🔀" },
 };
 
 const CURRICULUM_LABELS: Record<string, string> = {
@@ -215,7 +215,12 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
           )}
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#94a3b8" }}>
             <span>{isCenter ? "🏫" : "👤"}</span>
-            <span>{displayName}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              {displayName}
+              {cls.owner?.isVerified && (
+                <span title="Verified Tutor" style={{ color: "#38bdf8", fontSize: 12 }}>✓</span>
+              )}
+            </span>
             {isCenter && (
               <span style={{ backgroundColor: "#1d4ed820", color: "#60a5fa", fontSize: 10, padding: "1px 6px", borderRadius: 6, fontWeight: 600, border: "1px solid #1d4ed840" }}>
                 CENTER
@@ -496,12 +501,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
   );
 
   return (
-    <div style={{
-      minHeight: "100vh", backgroundColor: "#0f172a",
-      fontFamily: "system-ui, -apple-system, sans-serif",
-      color: "#f1f5f9", position: "relative",
-    }}>
-      <BackgroundFloaters count={4} />
+    <PageShell padding="0">
 
       {/* ── HERO ── */}
       <div style={{
@@ -753,6 +753,6 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
           </AnimatePresence>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
