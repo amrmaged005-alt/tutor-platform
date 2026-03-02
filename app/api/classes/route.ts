@@ -48,7 +48,7 @@ export async function POST(req: Request) {
         location:    location    ?? null,
         city: "Cairo",
         priceEgp:    Number(priceEgp),
-        capacity:    capacity ? Number(capacity) : null,
+        capacity:    capacity ? Number(capacity) : undefined,
         schedule:    schedule    ?? null,
         isOnline:    format === "ONLINE",
         ownerId: user.id,
