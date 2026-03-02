@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { auth } from "../lib/auth";
 import { prisma } from "../lib/prisma";
+import SignOutButton from "../components/SignOutButton";
 
 export default async function Navbar() {
   const session = await auth();
-
+  s
   let role = "";
   if (session?.user?.email) {
     const user = await prisma.user.findUnique({
@@ -108,20 +109,7 @@ export default async function Navbar() {
               </Link>
             )}
 
-            <Link
-              href="/api/auth/signout"
-              style={{
-                backgroundColor: "#334155",
-                color: "#94a3b8",
-                padding: "6px 14px",
-                borderRadius: 8,
-                fontSize: 13,
-                textDecoration: "none",
-                fontWeight: 500,
-              }}
-            >
-              Sign out
-            </Link>
+            <SignOutButton />
           </div>
         ) : (
           <Link
