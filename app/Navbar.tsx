@@ -5,7 +5,7 @@ import SignOutButton from "../components/SignOutButton";
 
 export default async function Navbar() {
   const session = await auth();
-  s
+
   let role = "";
   if (session?.user?.email) {
     const user = await prisma.user.findUnique({
