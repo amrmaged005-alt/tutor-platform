@@ -13,6 +13,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/login",
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
+      return baseUrl;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -50,7 +55,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const limited = await isRateLimited(authLimiter, `login:${ip}`);
         if (limited) {
-          // Throwing an error shows a message on the login page
           throw new Error("Too many login attempts. Please wait 15 minutes and try again.");
         }
 
