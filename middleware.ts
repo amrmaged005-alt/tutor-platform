@@ -1,32 +1,32 @@
-import { auth } from "./lib/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-// Routes and which roles can access them
 const PROTECTED_ROUTES: Record<string, string[]> = {
-  "/admin":          ["ADMIN"],
-  "/create-class":   ["TUTOR", "CENTER_ADMIN", "ADMIN"],
-  "/dashboard":      ["STUDENT", "TUTOR", "CENTER_ADMIN", "ADMIN"],
-  "/api/bookings":   ["STUDENT", "ADMIN"],
-  "/api/classes/create": ["TUTOR", "CENTER_ADMIN", "ADMIN"],
-  "/api/reviews":    ["STUDENT", "ADMIN"],
-  "/api/stripe":     ["STUDENT", "TUTOR", "CENTER_ADMIN", "ADMIN"],
+  "/admin":               ["ADMIN"],
+  "/create-class":        ["TUTOR", "CENTER_ADMIN", "ADMIN"],
+  "/dashboard":           ["STUDENT", "TUTOR", "CENTER_ADMIN", "ADMIN"],
+  "/api/bookings":        ["STUDENT", "ADMIN"],
+  "/api/classes/create":  ["TUTOR", "CENTER_ADMIN", "ADMIN"],
+  "/api/reviews":         ["STUDENT", "ADMIN"],
 };
 
-export default auth((req) => {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const session = req.auth;
 
   for (const [route, allowedRoles] of Object.entries(PROTECTED_ROUTES)) {
     if (pathname.startsWith(route)) {
-      // Not logged in → send to login
-      if (!session) {
+      const token = await getToken({
+        req,
+        secret: process.env.AUTH_SECRET,
+      });
+
+      if (!token) {
         const loginUrl = new URL("/login", req.url);
         loginUrl.searchParams.set("callbackUrl", pathname);
         return NextResponse.redirect(loginUrl);
       }
 
-      // Logged in but wrong role → send to unauthorized
-      const userRole = (session.user as any)?.role;
+      const userRole = token.role as string;
       if (!allowedRoles.includes(userRole)) {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
@@ -34,7 +34,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
@@ -44,6 +44,5 @@ export const config = {
     "/api/bookings/:path*",
     "/api/classes/create/:path*",
     "/api/reviews/:path*",
-    "/api/stripe/:path*",
   ],
 };
