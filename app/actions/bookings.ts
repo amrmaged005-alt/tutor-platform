@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited, bookingLimiter } from "@/lib/ratelimit";
 import { log } from "@/lib/audit";
