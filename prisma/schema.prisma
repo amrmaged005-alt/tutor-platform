@@ -9,6 +9,8 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
 enum Role {
   STUDENT
   TUTOR
@@ -25,13 +27,27 @@ enum BookingStatus {
 enum PaymentStatus {
   UNPAID
   PAID
+  FAILED
   REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
 }
 
 enum ClassFormat {
   IN_PERSON
   ONLINE
   HYBRID
+}
+
+enum PaymentType {
+  IN_PERSON
+  ONLINE
 }
 
 enum Curriculum {
@@ -44,33 +60,7 @@ enum Curriculum {
   OTHER
 }
 
-model User {
-  id            String    @id @default(cuid())
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-
-  role          Role      @default(STUDENT)
-  fullName      String?
-  phone         String?   @unique
-  bio           String?
-  photoUrl      String?
-  subjects      String[]
-
-  centerId      String?
-  center        LearningCenter? @relation(fields: [centerId], references: [id])
-
-  accounts      Account[]
-  sessions      Session[]
-  classTutors   ClassTutor[]
-  bookings      Booking[]
-  ownedClasses  Class[]   @relation("ClassOwner")
-}
+// ─── Auth Models (NextAuth required) ─────────────────────────────────────────
 
 model Account {
   id                String  @id @default(cuid())
@@ -108,95 +98,260 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// ─── Core Models ──────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+
+  role     Role    @default(STUDENT)
+  fullName String?
+  phone    String? @unique
+  bio      String?
+  photoUrl String?
+  subjects String[]
+
+  // Paymob (for tutors/centers receiving payouts)
+  paymobAccountId String?
+  paymobOnboarded Boolean @default(false)
+
+  // Trust & verification
+  isEmailVerified Boolean @default(false)
+  trustScore      Int     @default(50)
+  isSuspended     Boolean @default(false)
+
+  centerId String?
+  center   LearningCenter? @relation(fields: [centerId], references: [id])
+
+  accounts     Account[]
+  sessions     Session[]
+  classTutors  ClassTutor[]
+  bookings     Booking[]
+  ownedClasses Class[]      @relation("ClassOwner")
+  reviews      Review[]
+  payouts      Payout[]
+  auditLogs    AuditLog[]   @relation("AuditActor")
+
+  @@index([role])
+  @@index([centerId])
+  @@index([email])
+}
+
 model LearningCenter {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   name        String
   description String?
   logoUrl     String?
-  city        String   @default("Cairo")
+  city        String  @default("Cairo")
   location    String?
   phone       String?
   email       String?
 
-  tutors      User[]
-  classes     Class[]
+  // Paymob (for centers receiving payouts)
+  paymobAccountId String?
+  paymobOnboarded Boolean @default(false)
+
+  tutors  User[]
+  classes Class[]
 }
 
 model Class {
-  id          String      @id @default(cuid())
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   title       String
   subject     String
   description String?
-  city        String      @default("Cairo")
+  city        String  @default("Cairo")
   location    String?
-  priceEgp    Int         @default(0)
-  capacity    Int?
-  isOnline    Boolean     @default(false)
+  priceEgp    Int     @default(0)
+  capacity    Int     @default(20)
+  isOnline    Boolean @default(false)
+  isActive    Boolean @default(true)
   schedule    String?
 
-  // NEW FIELDS
   format      ClassFormat @default(IN_PERSON)
+  paymentType PaymentType @default(IN_PERSON)
   curriculum  Curriculum  @default(NATIONAL)
   gradeLevel  String?
   language    String      @default("Arabic")
   maxPrice    Int?
 
-  centerId    String?
-  center      LearningCenter? @relation(fields: [centerId], references: [id])
+  centerId String?
+  center   LearningCenter? @relation(fields: [centerId], references: [id])
 
-  ownerId     String?
-  owner       User?    @relation(fields: [ownerId], references: [id], name: "ClassOwner")
+  ownerId String?
+  owner   User?   @relation(fields: [ownerId], references: [id], name: "ClassOwner")
 
-  tutors      ClassTutor[]
-  bookings    Booking[]
-  materials   Material[]
+  tutors    ClassTutor[]
+  bookings  Booking[]
+  materials Material[]
+  reviews   Review[]
+
+  @@index([subject])
+  @@index([city])
+  @@index([format])
+  @@index([curriculum])
+  @@index([ownerId])
+  @@index([centerId])
+  @@index([priceEgp])
 }
 
 model ClassTutor {
-  id        String @id @default(cuid())
-  classId   String
-  tutorId   String
+  id      String @id @default(cuid())
+  classId String
+  tutorId String
 
-  class     Class  @relation(fields: [classId], references: [id])
-  tutor     User   @relation(fields: [tutorId], references: [id])
+  class Class @relation(fields: [classId], references: [id])
+  tutor User  @relation(fields: [tutorId], references: [id])
 
   @@unique([classId, tutorId])
 }
 
 model Booking {
-  id            String        @id @default(cuid())
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  classId       String
-  studentId     String
+  classId   String
+  studentId String
 
   status        BookingStatus @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
   paidAt        DateTime?
   notes         String?
 
-  class         Class         @relation(fields: [classId], references: [id])
-  student       User          @relation(fields: [studentId], references: [id])
+  // Payment tracking
+  amountEgp      Int? // Price snapshot at booking time
+  platformFeeEgp Int? // Coursaty's cut
+  tutorPayoutEgp Int? // Tutor/center receives this
+  paymobOrderId  String? @unique
+  paymobPaymentKey String?
+  idempotencyKey String? @unique
+
+  // Seat lock (prevents double-booking during checkout)
+  lockedAt    DateTime?
+  lockedUntil DateTime?
+
+  // Refund tracking
+  refundedAt   DateTime?
+  refundReason String?
+
+  class   Class @relation(fields: [classId], references: [id])
+  student User  @relation(fields: [studentId], references: [id])
+
+  webhookEvents WebhookEvent[]
+  payout        Payout?
 
   @@unique([classId, studentId])
+  @@index([studentId])
+  @@index([classId])
+  @@index([status])
+  @@index([lockedUntil])
 }
 
 model Material {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
 
-  classId   String
-  title     String
-  url       String?
-  fileUrl   String?
-  isLocked  Boolean  @default(true)
+  classId  String
+  title    String
+  url      String?
+  fileUrl  String?
+  isLocked Boolean @default(true)
 
-  class     Class    @relation(fields: [classId], references: [id])
+  class Class @relation(fields: [classId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classId   String
+  studentId String
+  rating    Int
+  comment   String?
+
+  class   Class @relation(fields: [classId], references: [id])
+  student User  @relation(fields: [studentId], references: [id])
+
+  @@unique([classId, studentId])
+}
+
+// ─── Payment Models ───────────────────────────────────────────────────────────
+
+model WebhookEvent {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  paymobTransactionId String  @unique
+  type                String
+  processed           Boolean @default(false)
+  processingError     String?
+
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+
+  payload Json
+
+  @@index([paymobTransactionId])
+  @@index([processed])
+  @@index([createdAt])
+}
+
+model Payout {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  recipientId   String
+  recipientType String // "tutor" | "center"
+  recipient     User   @relation(fields: [recipientId], references: [id])
+
+  bookingId String?  @unique
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+
+  paymobTransferId String? @unique
+  amountEgp        Int
+  status           PayoutStatus @default(PENDING)
+  failureReason    String?
+
+  @@index([recipientId])
+  @@index([status])
+}
+
+// ─── Security Models ──────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  actorId   String?
+  actorRole String?
+  actor     User?   @relation("AuditActor", fields: [actorId], references: [id])
+
+  action     String // e.g. "booking.confirmed", "user.suspended"
+  targetType String? // e.g. "Booking", "User", "Class"
+  targetId   String?
+
+  metadata  Json? // Extra context — NEVER put passwords/tokens here
+  ipAddress String?
+  userAgent String?
+
+  @@index([actorId])
+  @@index([action])
+  @@index([targetType, targetId])
+  @@index([createdAt])
 }

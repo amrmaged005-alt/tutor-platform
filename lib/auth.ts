@@ -2,7 +2,9 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
-import { compare, hash } from "bcryptjs";
+import { compare } from "bcryptjs";
+import { isRateLimited, authLimiter } from "./ratelimit";
+import { headers } from "next/headers";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -15,6 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.phone = (user as any).phone;
       }
       return token;
     },
@@ -22,6 +25,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         (session.user as any).role = token.role;
+        (session.user as any).phone = token.phone;
       }
       return session;
     },
@@ -35,6 +39,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
+
+        // Rate limit by IP address — max 5 login attempts per 15 minutes
+        // This prevents brute force password attacks
+        const headersList = await headers();
+        const ip =
+          headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+          headersList.get("x-real-ip") ??
+          "unknown";
+
+        const limited = await isRateLimited(authLimiter, `login:${ip}`);
+        if (limited) {
+          // Throwing an error shows a message on the login page
+          throw new Error("Too many login attempts. Please wait 15 minutes and try again.");
+        }
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },

@@ -1,0 +1,321 @@
+"use server";
+
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { isRateLimited, bookingLimiter } from "@/lib/ratelimit";
+import { log } from "@/lib/audit";
+
+const LOCK_DURATION_MINUTES = 10;
+
+// ─── Lock a seat and initiate payment ────────────────────────────────────────
+
+export async function lockSeat(
+  classId: string
+): Promise
+  | { success: true; bookingId: string; iframeUrl: string | null }
+  | { success: false; error: string }
+> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "You must be logged in to book a class." };
+  }
+
+  const studentId = session.user.id;
+
+  // Rate limit by user ID — max 10 booking attempts per hour
+  const limited = await isRateLimited(bookingLimiter, studentId);
+  if (limited) {
+    return {
+      success: false,
+      error: "Too many booking attempts. Please wait a while before trying again.",
+    };
+  }
+
+  // Check email is verified before allowing booking
+  const user = await prisma.user.findUnique({
+    where: { id: studentId },
+    select: { isEmailVerified: true },
+  });
+
+  if (!user?.isEmailVerified) {
+    return {
+      success: false,
+      error: "Please verify your email address before booking a class.",
+    };
+  }
+
+  try {
+    // 1. Get the class and make sure it exists
+    const classData = await prisma.class.findUnique({
+      where: { id: classId },
+      select: {
+        id: true,
+        capacity: true,
+        priceEgp: true,
+        isActive: true,
+        paymentType: true,
+        _count: {
+          select: {
+            bookings: {
+              where: {
+                OR: [
+                  { status: "CONFIRMED" },
+                  {
+                    status: "PENDING",
+                    lockedUntil: { gt: new Date() },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!classData) {
+      return { success: false, error: "Class not found." };
+    }
+
+    if (!classData.isActive) {
+      return { success: false, error: "This class is no longer available." };
+    }
+
+    // 2. Check if the student already booked this class
+    const existingBooking = await prisma.booking.findUnique({
+      where: { classId_studentId: { classId, studentId } },
+    });
+
+    if (existingBooking) {
+      return { success: false, error: "You have already booked this class." };
+    }
+
+    // 3. Check if there are seats available
+    const activeBookings = classData._count.bookings;
+    if (activeBookings >= classData.capacity) {
+      return { success: false, error: "Sorry, this class is fully booked." };
+    }
+
+    // 4. Calculate the commission (10% to platform, 90% to tutor)
+    const amountEgp = classData.priceEgp ?? 0;
+    const platformFeeEgp = Math.round(amountEgp * 0.1);
+    const tutorPayoutEgp = amountEgp - platformFeeEgp;
+
+    // 5. Create the booking with a 10-minute seat lock
+    const now = new Date();
+    const lockedUntil = new Date(
+      now.getTime() + LOCK_DURATION_MINUTES * 60 * 1000
+    );
+
+    const booking = await prisma.booking.create({
+      data: {
+        classId,
+        studentId,
+        status: "PENDING",
+        paymentStatus: "UNPAID",
+        amountEgp,
+        platformFeeEgp,
+        tutorPayoutEgp,
+        lockedAt: now,
+        lockedUntil,
+        idempotencyKey: `${studentId}-${classId}-${now.getTime()}`,
+      },
+    });
+
+    // Log the booking creation
+    await log({
+      action: "booking.created",
+      actorId: studentId,
+      targetType: "Booking",
+      targetId: booking.id,
+      metadata: { classId, amountEgp, paymentType: classData.paymentType },
+    });
+
+    // 6. If in-person, no payment needed — return early
+    if (classData.paymentType === "IN_PERSON") {
+      return { success: true, bookingId: booking.id, iframeUrl: null };
+    }
+
+    // 7. If online, create a Paymob payment link
+    const { createPaymobPayment } = await import("@/lib/paymob");
+
+    const iframeUrl = await createPaymobPayment({
+      amountEGP: amountEgp,
+      bookingId: booking.id,
+      user: {
+        email: session.user.email ?? "",
+        firstName: session.user.name?.split(" ")[0] ?? "Student",
+        lastName: session.user.name?.split(" ")[1] ?? ".",
+        phone: (session.user as any).phone ?? "01000000000",
+      },
+    });
+
+    return { success: true, bookingId: booking.id, iframeUrl };
+  } catch (error) {
+    console.error("lockSeat error:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+// ─── Update booking status (tutor / center admin / platform admin) ────────────
+
+export async function updateBookingStatus(
+  bookingId: string,
+  action: "MARK_PAID" | "CANCEL" | "NO_SHOW",
+  note?: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "You must be logged in." };
+  }
+
+  const role = (session.user as any).role as string;
+  const userId = session.user.id;
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      class: {
+        include: {
+          owner: true,
+          center: {
+            include: { tutors: true },
+          },
+          tutors: true,
+        },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { success: false, error: "Booking not found." };
+  }
+
+  const isAdmin = role === "ADMIN";
+  const isOwner = booking.class.ownerId === userId;
+  const isCenterTutor = booking.class.center?.tutors.some((t) => t.id === userId);
+  const isClassTutor = booking.class.tutors.some((t) => t.tutorId === userId);
+
+  if (!isAdmin && !isOwner && !isCenterTutor && !isClassTutor) {
+    return {
+      success: false,
+      error: "You are not authorized to manage this booking.",
+    };
+  }
+
+  if (booking.class.paymentType === "ONLINE" && action === "MARK_PAID") {
+    return {
+      success: false,
+      error: "Online payments are confirmed automatically.",
+    };
+  }
+
+  try {
+    if (action === "MARK_PAID") {
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: "CONFIRMED",
+          paymentStatus: "PAID",
+          paidAt: new Date(),
+          notes: note ?? booking.notes,
+        },
+      });
+    }
+
+    if (action === "CANCEL") {
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: "CANCELLED",
+          notes: note ?? booking.notes,
+        },
+      });
+    }
+
+    if (action === "NO_SHOW") {
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: "CANCELLED",
+          notes: note ? `[NO-SHOW] ${note}` : "[NO-SHOW]",
+        },
+      });
+    }
+
+    // Log the status change
+    const auditAction =
+      action === "MARK_PAID"
+        ? "booking.confirmed"
+        : action === "NO_SHOW"
+        ? "booking.no_show"
+        : "booking.cancelled";
+
+    await log({
+      action: auditAction,
+      actorId: userId,
+      actorRole: role,
+      targetType: "Booking",
+      targetId: bookingId,
+      metadata: { action, note },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("updateBookingStatus error:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+// ─── Add a note to a booking ──────────────────────────────────────────────────
+
+export async function addBookingNote(
+  bookingId: string,
+  note: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "You must be logged in." };
+  }
+
+  const userId = session.user.id;
+  const role = (session.user as any).role as string;
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      class: {
+        include: {
+          center: { include: { tutors: true } },
+          tutors: true,
+        },
+      },
+    },
+  });
+
+  if (!booking) return { success: false, error: "Booking not found." };
+
+  const isAdmin = role === "ADMIN";
+  const isOwner = booking.class.ownerId === userId;
+  const isCenterTutor = booking.class.center?.tutors.some((t) => t.id === userId);
+  const isClassTutor = booking.class.tutors.some((t) => t.tutorId === userId);
+
+  if (!isAdmin && !isOwner && !isCenterTutor && !isClassTutor) {
+    return { success: false, error: "Not authorized." };
+  }
+
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: { notes: note },
+  });
+
+  await log({
+    action: "booking.note_added",
+    actorId: userId,
+    actorRole: role,
+    targetType: "Booking",
+    targetId: bookingId,
+    metadata: { note },
+  });
+
+  return { success: true };
+}
