@@ -11,7 +11,7 @@ const LOCK_DURATION_MINUTES = 10;
 
 export async function lockSeat(
   classId: string
-): Promise
+): Promise<
   | { success: true; bookingId: string; iframeUrl: string | null }
   | { success: false; error: string }
 > {
