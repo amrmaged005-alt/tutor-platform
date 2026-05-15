@@ -1,10 +1,27 @@
 // lib/paymob.ts
 
+import { prisma } from "@/lib/prisma";
+
 // These come from your .env file — never hardcode them here
-const PAYMOB_API_KEY = process.env.PAYMOB_API_KEY!;
-const PAYMOB_INTEGRATION_ID = Number(process.env.PAYMOB_INTEGRATION_ID!);
-const PAYMOB_IFRAME_ID = process.env.PAYMOB_IFRAME_ID!;
-const PAYMOB_HMAC_SECRET = process.env.PAYMOB_HMAC_SECRET!;
+function requiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is required for Paymob payments.`);
+  return value;
+}
+
+function getPaymobConfig() {
+  const integrationId = Number(requiredEnv("PAYMOB_INTEGRATION_ID"));
+  if (!Number.isInteger(integrationId) || integrationId <= 0) {
+    throw new Error("PAYMOB_INTEGRATION_ID must be a positive integer.");
+  }
+
+  return {
+    apiKey: requiredEnv("PAYMOB_API_KEY"),
+    integrationId,
+    iframeId: requiredEnv("PAYMOB_IFRAME_ID"),
+    hmacSecret: requiredEnv("PAYMOB_HMAC_SECRET"),
+  };
+}
 
 // Paymob's base URL — all API calls go here
 const PAYMOB_BASE_URL = "https://accept.paymob.com/api";
@@ -13,10 +30,11 @@ const PAYMOB_BASE_URL = "https://accept.paymob.com/api";
 // Every time we want to do anything with Paymob, we first need to
 // authenticate and get a short-lived token. This function does that.
 async function getAuthToken(): Promise<string> {
+  const { apiKey } = getPaymobConfig();
   const response = await fetch(`${PAYMOB_BASE_URL}/auth/tokens`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ api_key: PAYMOB_API_KEY }),
+    body: JSON.stringify({ api_key: apiKey }),
   });
 
   const data = await response.json();
@@ -73,6 +91,7 @@ async function getPaymentKey(
     phone: string;
   }
 ): Promise<string> {
+  const { integrationId } = getPaymobConfig();
   const response = await fetch(`${PAYMOB_BASE_URL}/acceptance/payment_keys`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -82,7 +101,7 @@ async function getPaymentKey(
       expiration: 3600, // 1 hour in seconds
       order_id: paymobOrderId,
       currency: "EGP",
-      integration_id: PAYMOB_INTEGRATION_ID,
+      integration_id: integrationId,
       billing_data: {
         email: user.email,
         first_name: user.firstName,
@@ -129,13 +148,22 @@ export async function createPaymobPayment({
   };
 }): Promise<string> {
   const amountInPiasters = amountEGP * 100;
+  const { iframeId } = getPaymobConfig();
 
   const authToken = await getAuthToken();
   const paymobOrderId = await registerOrder(authToken, amountInPiasters, bookingId);
   const paymentKey = await getPaymentKey(authToken, paymobOrderId, amountInPiasters, user);
 
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: {
+      paymobOrderId: String(paymobOrderId),
+      paymobPaymentKey: paymentKey,
+    },
+  });
+
   // This is the URL you redirect your user to for payment
-  return `https://accept.paymob.com/api/acceptance/iframes/${PAYMOB_IFRAME_ID}?payment_token=${paymentKey}`;
+  return `https://accept.paymob.com/api/acceptance/iframes/${iframeId}?payment_token=${paymentKey}`;
 }
 
 // ─── HMAC verification ────────────────────────────────────────────────────────
@@ -143,5 +171,5 @@ export async function createPaymobPayment({
 // you need to verify it's really from Paymob and not a scammer faking it.
 // This function does that verification.
 export function getHmacSecret(): string {
-  return PAYMOB_HMAC_SECRET;
+  return getPaymobConfig().hmacSecret;
 }

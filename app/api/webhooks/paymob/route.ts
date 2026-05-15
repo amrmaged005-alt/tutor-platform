@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { log } from "@/lib/audit";
+import { getHmacSecret } from "@/lib/paymob";
 
 function verifyPaymobHmac(params: Record<string, string>, hmac: string): boolean {
-  const secret = process.env.PAYMOB_HMAC_SECRET!;
+  const secret = getHmacSecret();
 
   const hmacFields = [
     "amount_cents",
@@ -35,7 +36,13 @@ function verifyPaymobHmac(params: Record<string, string>, hmac: string): boolean
     .update(dataString)
     .digest("hex");
 
-  return computed === hmac;
+  const computedBuffer = Buffer.from(computed, "hex");
+  const receivedBuffer = Buffer.from(hmac, "hex");
+
+  return (
+    computedBuffer.length === receivedBuffer.length &&
+    timingSafeEqual(computedBuffer, receivedBuffer)
+  );
 }
 
 export async function POST(req: NextRequest) {

@@ -1,20 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 import { hash } from "bcryptjs";
+import { UserRegisterSchema } from "@/schemas/user";
 
 export async function POST(req: Request) {
   try {
-    const { fullName, email, password, role } = await req.json();
+    const parsed = UserRegisterSchema.safeParse(await req.json());
 
-    if (!fullName || !email || !password || !role) {
-      return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid signup details" },
+        { status: 400 }
+      );
     }
 
-    if (password.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
-    }
+    const { fullName, email, password, role } = parsed.data;
+    const normalizedEmail = email.toLowerCase();
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
       return NextResponse.json({ error: "Email already registered" }, { status: 400 });
     }
@@ -25,7 +28,7 @@ export async function POST(req: Request) {
       data: {
         fullName,
         name: fullName,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         role,
       },

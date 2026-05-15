@@ -45,6 +45,8 @@ export async function lockSeat(
   // }
 
   try {
+    const now = new Date();
+
     // 1. Get the class and make sure it exists
     const classData = await prisma.class.findUnique({
       where: { id: classId },
@@ -62,7 +64,7 @@ export async function lockSeat(
                   { status: "CONFIRMED" },
                   {
                     status: "PENDING",
-                    lockedUntil: { gt: new Date() },
+                    lockedUntil: { gt: now },
                   },
                 ],
               },
@@ -86,7 +88,20 @@ export async function lockSeat(
     });
 
     if (existingBooking) {
-      return { success: false, error: "You have already booked this class." };
+      if (existingBooking.status === "CONFIRMED") {
+        return { success: false, error: "You have already booked this class." };
+      }
+
+      if (
+        existingBooking.status === "PENDING" &&
+        existingBooking.lockedUntil &&
+        existingBooking.lockedUntil > now
+      ) {
+        return {
+          success: false,
+          error: "You already have a pending booking for this class.",
+        };
+      }
     }
 
     // 3. Check if there are seats available
@@ -100,16 +115,12 @@ export async function lockSeat(
     const platformFeeEgp = Math.round(amountEgp * 0.1);
     const tutorPayoutEgp = amountEgp - platformFeeEgp;
 
-    // 5. Create the booking with a 10-minute seat lock
-    const now = new Date();
+    // 5. Create or refresh the booking with a 10-minute seat lock
     const lockedUntil = new Date(
       now.getTime() + LOCK_DURATION_MINUTES * 60 * 1000
     );
 
-    const booking = await prisma.booking.create({
-      data: {
-        classId,
-        studentId,
+    const bookingData = {
         status: "PENDING",
         paymentStatus: "UNPAID",
         amountEgp,
@@ -118,17 +129,43 @@ export async function lockSeat(
         lockedAt: now,
         lockedUntil,
         idempotencyKey: `${studentId}-${classId}-${now.getTime()}`,
-      },
-    });
+        paidAt: null,
+        refundedAt: null,
+        refundReason: null,
+        paymobOrderId: null,
+        paymobPaymentKey: null,
+      } as const;
 
-    // Log the booking creation
-    await log({
-      action: "booking.created",
-      actorId: studentId,
-      targetType: "Booking",
-      targetId: booking.id,
-      metadata: { classId, amountEgp, paymentType: classData.paymentType },
-    });
+    const booking = existingBooking
+      ? await prisma.booking.update({
+        where: { id: existingBooking.id },
+        data: bookingData,
+      })
+      : await prisma.booking.create({
+        data: {
+          classId,
+          studentId,
+          ...bookingData,
+        },
+      });
+
+    if (existingBooking) {
+      await log({
+        action: "booking.created",
+        actorId: studentId,
+        targetType: "Booking",
+        targetId: booking.id,
+        metadata: { classId, amountEgp, paymentType: classData.paymentType, refreshed: true },
+      });
+    } else {
+      await log({
+        action: "booking.created",
+        actorId: studentId,
+        targetType: "Booking",
+        targetId: booking.id,
+        metadata: { classId, amountEgp, paymentType: classData.paymentType },
+      });
+    }
 
     // 6. If in-person, no payment needed — return early
     if (classData.paymentType === "IN_PERSON") {
@@ -138,16 +175,34 @@ export async function lockSeat(
     // 7. If online, create a Paymob payment link
     const { createPaymobPayment } = await import("@/lib/paymob");
 
-    const iframeUrl = await createPaymobPayment({
-      amountEGP: amountEgp,
-      bookingId: booking.id,
-      user: {
-        email: session.user.email ?? "",
-        firstName: session.user.name?.split(" ")[0] ?? "Student",
-        lastName: session.user.name?.split(" ")[1] ?? ".",
-        phone: (session.user as any).phone ?? "01000000000",
-      },
-    });
+    let iframeUrl: string;
+    try {
+      iframeUrl = await createPaymobPayment({
+        amountEGP: amountEgp,
+        bookingId: booking.id,
+        user: {
+          email: session.user.email ?? "",
+          firstName: session.user.name?.split(" ")[0] ?? "Student",
+          lastName: session.user.name?.split(" ")[1] ?? ".",
+          phone: (session.user as any).phone ?? "01000000000",
+        },
+      });
+    } catch (error) {
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          status: "CANCELLED",
+          paymentStatus: "FAILED",
+          lockedAt: null,
+          lockedUntil: null,
+        },
+      });
+      console.error("Paymob setup error:", error);
+      return {
+        success: false,
+        error: "Could not start online payment. Please try again.",
+      };
+    }
 
     return { success: true, bookingId: booking.id, iframeUrl };
   } catch (error) {

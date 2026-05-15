@@ -50,6 +50,11 @@ export async function isRateLimited(
   limiter: Ratelimit,
   identifier: string
 ): Promise<boolean> {
-  const { success } = await limiter.limit(identifier);
-  return !success;
+  try {
+    const { success } = await limiter.limit(identifier);
+    return !success;
+  } catch (error) {
+    console.error("Rate limiter unavailable; allowing request:", error);
+    return false;
+  }
 }

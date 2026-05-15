@@ -16,8 +16,14 @@ export default function LoginPage() {
     setError("");
 
     const form = e.currentTarget;
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value.trim().toLowerCase();
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    if (!email || !password) {
+      setError("Email and password are required");
+      setLoading(false);
+      return;
+    }
 
     const result = await signIn("credentials", {
       email,

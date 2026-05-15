@@ -45,6 +45,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        const email = String(credentials.email).trim().toLowerCase();
+        const password = String(credentials.password);
+
+        if (!email || !password) return null;
+
         // Rate limit by IP address — max 5 login attempts per 15 minutes
         // This prevents brute force password attacks
         const headersList = await headers();
@@ -59,15 +64,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email },
         });
 
         if (!user || !user.password) return null;
 
-        const isValid = await compare(
-          credentials.password as string,
-          user.password
-        );
+        const isValid = await compare(password, user.password);
 
         if (!isValid) return null;
 

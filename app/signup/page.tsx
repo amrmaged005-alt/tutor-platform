@@ -82,7 +82,7 @@ export default function SignupPage() {
                 name="password"
                 type="password"
                 required
-                placeholder="Min 6 characters"
+                placeholder="Min 8 characters"
                 style={{ width: "100%", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "0.75rem 1rem", color: "#f1f5f9", fontSize: 14, boxSizing: "border-box" }}
               />
             </div>

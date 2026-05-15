@@ -6,7 +6,7 @@ export const UserRegisterSchema = z.object({
     .min(8, "Password must be at least 8 characters")
     .max(72, "Password too long"),
   fullName: z.string().min(2, "Name too short").max(100, "Name too long"),
-  role:     z.enum(["STUDENT", "TUTOR"]).default("STUDENT"),
+  role:     z.enum(["STUDENT", "TUTOR", "CENTER_ADMIN"]).default("STUDENT"),
 });
 
 export const UserUpdateSchema = z.object({

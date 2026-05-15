@@ -3,6 +3,7 @@ import { auth } from "../../../lib/auth";
 import { redirect } from "next/navigation";
 import ClassDetailClient from "./ClassDetailClient";
 import type { Metadata } from "next";
+import { lockSeat } from "@/app/actions/bookings";
 
 export async function generateMetadata({
   params,
@@ -55,6 +56,7 @@ export default async function ClassDetailPage({
 }) {
   const session = await auth();
   const { id } = await params;
+  const now = new Date();
 
   const cls = await prisma.class.findUnique({
     where: { id },
@@ -64,7 +66,16 @@ export default async function ClassDetailPage({
       owner: true,
       materials: true,
       _count: {
-        select: { bookings: { where: { status: { not: "CANCELLED" } } } },
+        select: {
+          bookings: {
+            where: {
+              OR: [
+                { status: "CONFIRMED" },
+                { status: "PENDING", lockedUntil: { gt: now } },
+              ],
+            },
+          },
+        },
       },
     },
   });
@@ -111,7 +122,10 @@ export default async function ClassDetailPage({
         where: {
           classId: cls.id,
           studentId: currentUser.id,
-          status: { not: "CANCELLED" },
+          OR: [
+            { status: "CONFIRMED" },
+            { status: "PENDING", lockedUntil: { gt: now } },
+          ],
         },
       });
       alreadyBooked = !!existing;
@@ -138,39 +152,10 @@ export default async function ClassDetailPage({
 
   async function bookClass() {
     "use server";
-    const session = await auth();
-    if (!session?.user?.email) redirect("/login");
-
-    const currentUser = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-    if (!currentUser) redirect("/login");
-
-    const existingCancelled = await prisma.booking.findFirst({
-      where: {
-        classId: cls!.id,
-        studentId: currentUser.id,
-        status: "CANCELLED",
-      },
-    });
-
-    if (existingCancelled) {
-      await prisma.booking.update({
-        where: { id: existingCancelled.id },
-        data: { status: "PENDING", paymentStatus: "UNPAID" },
-      });
-    } else {
-      await prisma.booking.create({
-        data: {
-          classId: cls!.id,
-          studentId: currentUser.id,
-          status: "PENDING",
-          paymentStatus: "UNPAID",
-        },
-      });
-    }
-
-    redirect("/booking-confirmed?classId=" + cls!.id);
+    const result = await lockSeat(cls!.id);
+    if (!result.success) redirect(`/classes/${cls!.id}?bookingError=1`);
+    if (result.iframeUrl) redirect(result.iframeUrl);
+    redirect("/booking-confirmed?bookingId=" + result.bookingId);
   }
 
   const classData = {
