@@ -10,6 +10,7 @@ export type AuditAction =
   | "booking.confirmed"
   | "booking.cancelled"
   | "booking.no_show"
+  | "booking.attended"
   | "booking.note_added"
   // Payments
   | "payment.received"

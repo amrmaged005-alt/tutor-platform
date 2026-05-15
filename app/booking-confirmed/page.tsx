@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "../../lib/prisma";
 import { auth } from "../../lib/auth";
 import { redirect } from "next/navigation";
+import { BookOpen } from "lucide-react";
 
 export default async function BookingConfirmedPage({
   searchParams,
@@ -42,13 +43,13 @@ export default async function BookingConfirmedPage({
   const isFailed = booking.paymentStatus === "FAILED";
 
   const statusConfig = isFailed
-    ? { label: "PAYMENT FAILED", bg: "#1c0a0a", color: "#f87171" }
+    ? { label: "PAYMENT FAILED", bg: "var(--text)", color: "var(--error)" }
     : isPaid
-    ? { label: "CONFIRMED", bg: "#052e16", color: "#4ade80" }
-    : { label: "PENDING", bg: "#1c1917", color: "#fbbf24" };
+    ? { label: "CONFIRMED", bg: "var(--text)", color: "var(--success)" }
+    : { label: "PENDING", bg: "var(--text)", color: "var(--rating)" };
 
   const heading = isFailed
-    ? "Payment Failed ❌"
+    ? "Payment Failed"
     : isPaid
     ? "Payment Confirmed! 🎉"
     : "Booking Received! 🎉";
@@ -62,65 +63,81 @@ export default async function BookingConfirmedPage({
     : `Your booking for ${cls.title} is received. Please pay the tutor directly at the class.`;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0f172a", fontFamily: "system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ maxWidth: 520, width: "100%", textAlign: "center" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "var(--font-sans, system-ui)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", position: "relative", overflow: "hidden" }}>
+      {/* Background orbs */}
+      <div style={{ position: "absolute", top: "10%", left: "5%", width: 350, height: 350, borderRadius: "50%", background: isFailed ? "radial-gradient(circle, rgba(248,113,113,0.06) 0%, transparent 70%)" : "radial-gradient(circle, rgba(74,222,128,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: "10%", right: "5%", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-        <div style={{ width: 80, height: 80, borderRadius: "50%", backgroundColor: isFailed ? "#1c0a0a" : "#052e16", border: `2px solid ${isFailed ? "#f87171" : "#4ade80"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, margin: "0 auto 1.5rem" }}>
+      <div style={{ maxWidth: 520, width: "100%", textAlign: "center", position: "relative", zIndex: 1 }}>
+
+        <div style={{
+          width: 88,
+          height: 88,
+          borderRadius: "50%",
+          backgroundColor: isFailed ? "var(--text)" : "var(--text)",
+          border: `2px solid ${isFailed ? "var(--error)" : "var(--success)"}`,
+          boxShadow: `0 0 40px ${isFailed ? "rgba(248,113,113,0.2)" : "rgba(74,222,128,0.2)"}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 40,
+          margin: "0 auto 1.5rem",
+        }}>
           {isFailed ? "✗" : "✓"}
         </div>
 
-        <h1 style={{ color: "#f1f5f9", fontSize: "1.75rem", fontWeight: 800, marginBottom: "0.5rem" }}>
+        <h1 style={{ color: "var(--text)", fontSize: "clamp(1.4rem, 4vw, 1.9rem)", fontWeight: 800, marginBottom: "0.75rem", letterSpacing: -0.5 }}>
           {heading}
         </h1>
-        <p style={{ color: "#94a3b8", fontSize: 15, marginBottom: "2rem", lineHeight: 1.6 }}>
+        <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: "2rem", lineHeight: 1.7, maxWidth: 400, margin: "0 auto 2rem" }}>
           {subheading}
         </p>
 
-        <div style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 16, padding: "1.25rem 1.5rem", marginBottom: "1.5rem", textAlign: "left" }}>
-          <div style={{ color: "#64748b", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>
+        <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 20, padding: "1.5rem", marginBottom: "1.5rem", textAlign: "left", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
+          <div style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 12 }}>
             Booking Details
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "#64748b", fontSize: 13 }}>Class</span>
-              <span style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600 }}>{cls.title}</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Class</span>
+              <span style={{ color: "var(--text)", fontSize: 13, fontWeight: 600 }}>{cls.title}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "#64748b", fontSize: 13 }}>Subject</span>
-              <span style={{ color: "#3b82f6", fontSize: 13, fontWeight: 600 }}>{cls.subject}</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Subject</span>
+              <span style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600 }}>{cls.subject}</span>
             </div>
             {cls.schedule && (
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#64748b", fontSize: 13 }}>Schedule</span>
-                <span style={{ color: "#f1f5f9", fontSize: 13 }}>{cls.schedule}</span>
+                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Schedule</span>
+                <span style={{ color: "var(--text)", fontSize: 13 }}>{cls.schedule}</span>
               </div>
             )}
             {cls.location && (
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#64748b", fontSize: 13 }}>Location</span>
-                <span style={{ color: "#f1f5f9", fontSize: 13 }}>{cls.location}</span>
+                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Location</span>
+                <span style={{ color: "var(--text)", fontSize: 13 }}>{cls.location}</span>
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "#64748b", fontSize: 13 }}>Price</span>
-              <span style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600 }}>
+              <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Price</span>
+              <span style={{ color: "var(--text)", fontSize: 13, fontWeight: 600 }}>
                 {booking.amountEgp === 0 ? "Free" : booking.amountEgp + " EGP"}
               </span>
             </div>
             {isOnline && isPaid && (
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#64748b", fontSize: 13 }}>Platform fee</span>
-                <span style={{ color: "#64748b", fontSize: 13 }}>{booking.platformFeeEgp} EGP</span>
+                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Platform fee</span>
+                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{booking.platformFeeEgp} EGP</span>
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "#64748b", fontSize: 13 }}>Payment method</span>
-              <span style={{ color: "#f1f5f9", fontSize: 13 }}>
+              <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Payment method</span>
+              <span style={{ color: "var(--text)", fontSize: 13 }}>
                 {isOnline ? "Online (Paymob)" : "Cash (in person)"}
               </span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "#64748b", fontSize: 13 }}>Status</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Status</span>
               <span style={{ backgroundColor: statusConfig.bg, color: statusConfig.color, fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 20 }}>
                 {statusConfig.label}
               </span>
@@ -135,27 +152,69 @@ export default async function BookingConfirmedPage({
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ backgroundColor: "#16a34a", color: "white", padding: "0.85rem", borderRadius: 10, fontWeight: 700, fontSize: 15, textDecoration: "none", display: "block" }}
+                style={{
+                  background: "linear-gradient(135deg, var(--success), var(--success))",
+                  color: "var(--accent-fg)",
+                  padding: "0.9rem",
+                  borderRadius: 12,
+                  fontWeight: 700,
+                  fontSize: 15,
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  boxShadow: "0 4px 20px rgba(22,163,74,0.4)",
+                }}
               >
-                Message {contactName} on WhatsApp
+                💬 Message {contactName} on WhatsApp
               </a>
             )}
-            <Link href="/dashboard" style={{ backgroundColor: "#1e293b", color: "#f1f5f9", border: "1px solid #334155", padding: "0.85rem", borderRadius: 10, fontWeight: 600, fontSize: 15, textDecoration: "none", display: "block" }}>
-              View My Bookings
+            <Link
+              href="/dashboard"
+              style={{
+                backgroundColor: "var(--bg-card)",
+                color: "var(--text)",
+                border: "1px solid var(--border-light)",
+                padding: "0.9rem",
+                borderRadius: 12,
+                fontWeight: 600,
+                fontSize: 15,
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            >
+              <BookOpen size={17} strokeWidth={1.8} /> View My Bookings
             </Link>
-            <Link href="/" style={{ color: "#64748b", fontSize: 14, textDecoration: "none" }}>
-              Browse more classes
+            <Link href="/classes" style={{ color: "var(--text-secondary)", fontSize: 13, textDecoration: "none" }}>
+              Browse more classes →
             </Link>
           </div>
         )}
 
         {isFailed && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Link href={`/classes/${cls.id}`} style={{ backgroundColor: "#3b82f6", color: "white", padding: "0.85rem", borderRadius: 10, fontWeight: 700, fontSize: 15, textDecoration: "none", display: "block" }}>
+            <Link
+              href={`/classes/${cls.id}`}
+              style={{
+                background: "linear-gradient(135deg, var(--accent), var(--accent-hover))",
+                color: "var(--accent-fg)",
+                padding: "0.9rem",
+                borderRadius: 12,
+                fontWeight: 700,
+                fontSize: 15,
+                textDecoration: "none",
+                display: "block",
+                boxShadow: "0 4px 20px rgba(59,130,246,0.4)",
+              }}
+            >
               Try Booking Again
             </Link>
-            <Link href="/" style={{ color: "#64748b", fontSize: 14, textDecoration: "none" }}>
-              Browse other classes
+            <Link href="/classes" style={{ color: "var(--text-secondary)", fontSize: 13, textDecoration: "none" }}>
+              Browse other classes →
             </Link>
           </div>
         )}

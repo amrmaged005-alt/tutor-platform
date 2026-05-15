@@ -7,8 +7,8 @@ export default function SignOutButton() {
         <button
             onClick={() => signOut({ callbackUrl: "/", redirect: true })}
             style={{
-                backgroundColor: "#334155",
-                color: "#94a3b8",
+                backgroundColor: "var(--text-secondary)",
+                color: "var(--text-muted)",
                 padding: "6px 14px",
                 borderRadius: 8,
                 fontSize: 13,

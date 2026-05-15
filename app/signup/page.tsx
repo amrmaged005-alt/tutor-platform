@@ -4,10 +4,42 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  backgroundColor: "var(--bg-alt)",
+  border: "1px solid var(--border-light)",
+  borderRadius: 8,
+  padding: "11px 14px",
+  color: "var(--text)",
+  fontSize: 14,
+  boxSizing: "border-box",
+  outline: "none",
+  transition: "border-color 0.15s, box-shadow 0.15s",
+  fontFamily: "inherit",
+};
+
+function focusInput(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) {
+  e.target.style.borderColor = "var(--accent)";
+  e.target.style.boxShadow = "0 0 0 3px rgba(13,89,70,0.10)";
+  e.target.style.backgroundColor = "var(--bg-card)";
+}
+function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) {
+  e.target.style.borderColor = "var(--border-light)";
+  e.target.style.boxShadow = "none";
+  e.target.style.backgroundColor = "var(--bg-alt)";
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [defaultRole, setDefaultRole] = useState(() => {
+    if (typeof window === "undefined") return "STUDENT";
+    const role = new URLSearchParams(window.location.search).get("role");
+    if (role === "tutor") return "TUTOR";
+    if (role === "center") return "CENTER_ADMIN";
+    return "STUDENT";
+  });
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,75 +66,158 @@ export default function SignupPage() {
       return;
     }
 
-    router.push("/login?registered=true");
+    const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
+    const next = new URLSearchParams({ registered: "true" });
+    if (callbackUrl && callbackUrl.startsWith("/")) next.set("callbackUrl", callbackUrl);
+    router.push(`/login?${next.toString()}`);
   }
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui, sans-serif" }}>
-      <div style={{ width: "100%", maxWidth: 420, padding: "0 1.5rem" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "var(--bg-alt)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "var(--font-sans)",
+        padding: "2rem 1.5rem",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: 420 }}>
 
+        {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <Link href="/" style={{ fontSize: "1.5rem", fontWeight: 800, color: "#f8fafc", textDecoration: "none" }}>
-            📖 Coursaty
+          <Link
+            href="/"
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: 800,
+              textDecoration: "none",
+              color: "var(--text)",
+              letterSpacing: "-0.02em",
+              display: "inline-block",
+            }}
+          >
+            Coursaty
           </Link>
-          <p style={{ color: "#64748b", marginTop: "0.5rem" }}>Create your account</p>
+          <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem", fontSize: 14 }}>
+            Join Egypt&apos;s tutoring marketplace — free forever
+          </p>
         </div>
 
-        <div style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 16, padding: "2rem" }}>
+        {/* Card */}
+        <div
+          style={{
+            backgroundColor: "var(--bg-card)",
+            border: "1px solid var(--border-light)",
+            borderRadius: 16,
+            padding: "2rem",
+            boxShadow: "var(--shadow-md)",
+          }}
+        >
           <form onSubmit={handleSubmit}>
 
             <div style={{ marginBottom: "1rem" }}>
-              <label htmlFor="fullName" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Full Name</label>
+              <label
+                htmlFor="fullName"
+                style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
+              >
+                Full name
+              </label>
               <input
                 id="fullName"
                 name="fullName"
                 type="text"
                 required
                 placeholder="Ahmed Hassan"
-                style={{ width: "100%", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "0.75rem 1rem", color: "#f1f5f9", fontSize: 14, boxSizing: "border-box" }}
+                style={inputStyle}
+                onFocus={focusInput}
+                onBlur={blurInput}
               />
             </div>
 
             <div style={{ marginBottom: "1rem" }}>
-              <label htmlFor="email" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Email</label>
+              <label
+                htmlFor="email"
+                style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
+              >
+                Email address
+              </label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 required
                 placeholder="you@example.com"
-                style={{ width: "100%", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "0.75rem 1rem", color: "#f1f5f9", fontSize: 14, boxSizing: "border-box" }}
+                style={inputStyle}
+                onFocus={focusInput}
+                onBlur={blurInput}
               />
             </div>
 
             <div style={{ marginBottom: "1rem" }}>
-              <label htmlFor="password" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>Password</label>
+              <label
+                htmlFor="password"
+                style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
+              >
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 required
                 placeholder="Min 8 characters"
-                style={{ width: "100%", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "0.75rem 1rem", color: "#f1f5f9", fontSize: 14, boxSizing: "border-box" }}
+                style={inputStyle}
+                onFocus={focusInput}
+                onBlur={blurInput}
               />
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <label htmlFor="role" style={{ display: "block", color: "#94a3b8", fontSize: 13, marginBottom: "0.4rem" }}>I am a...</label>
+              <label
+                htmlFor="role"
+                style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
+              >
+                I am a…
+              </label>
               <select
                 id="role"
                 name="role"
                 required
-                style={{ width: "100%", backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "0.75rem 1rem", color: "#f1f5f9", fontSize: 14, boxSizing: "border-box" }}
+                value={defaultRole}
+                onChange={(e) => setDefaultRole(e.target.value)}
+                style={{ ...inputStyle, cursor: "pointer" }}
+                onFocus={focusInput}
+                onBlur={blurInput}
               >
                 <option value="STUDENT">Student</option>
-                <option value="TUTOR">Tutor</option>
+                <option value="TUTOR">Tutor / Instructor</option>
                 <option value="CENTER_ADMIN">Learning Center</option>
               </select>
             </div>
 
             {error && (
-              <div style={{ backgroundColor: "#450a0a", color: "#fca5a5", padding: "0.75rem 1rem", borderRadius: 8, fontSize: 13, marginBottom: "1rem" }}>
+              <div
+                style={{
+                  backgroundColor: "var(--error-bg)",
+                  border: "1px solid var(--error-border)",
+                  color: "var(--error)",
+                  padding: "0.75rem 1rem",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  marginBottom: "1rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
                 {error}
               </div>
             )}
@@ -110,17 +225,43 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              style={{ width: "100%", backgroundColor: "#3b82f6", color: "white", padding: "0.875rem", fontSize: "1rem", fontWeight: 700, border: "none", borderRadius: 10, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}
+              style={{
+                width: "100%",
+                backgroundColor: loading ? "var(--accent-border)" : "var(--accent)",
+                color: "var(--accent-fg)",
+                padding: "11px",
+                fontSize: 14,
+                fontWeight: 600,
+                border: "none",
+                borderRadius: 8,
+                cursor: loading ? "not-allowed" : "pointer",
+                transition: "background 0.15s",
+              }}
             >
-              {loading ? "Creating account..." : "Create Account"}
+              {loading ? "Creating account…" : "Create Free Account"}
             </button>
-
           </form>
 
-          <p style={{ textAlign: "center", color: "#64748b", fontSize: 13, marginTop: "1.5rem" }}>
+          <div style={{ borderTop: "1px solid var(--bg-subtle)", margin: "1.5rem 0" }} />
+
+          <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
             Already have an account?{" "}
-            <Link href="/login" style={{ color: "#38bdf8", textDecoration: "none" }}>Sign in</Link>
+            <Link href="/login" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
+              Sign in
+            </Link>
           </p>
+        </div>
+
+        {/* Trust badges */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
+          {["Free to join", "No credit card", "Instant access"].map((badge) => (
+            <span key={badge} style={{ color: "var(--text-muted)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              {badge}
+            </span>
+          ))}
         </div>
       </div>
     </div>

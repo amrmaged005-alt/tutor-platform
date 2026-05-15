@@ -30,9 +30,9 @@ interface Booking {
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const config = {
-    PENDING:   { label: "Pending",   bg: "#1c1917", color: "#fbbf24" },
-    CONFIRMED: { label: "Confirmed", bg: "#052e16", color: "#4ade80" },
-    CANCELLED: { label: "Cancelled", bg: "#1c0a0a", color: "#f87171" },
+    PENDING:   { label: "Pending",   bg: "var(--text)", color: "var(--rating)" },
+    CONFIRMED: { label: "Confirmed", bg: "var(--text)", color: "var(--success)" },
+    CANCELLED: { label: "Cancelled", bg: "var(--text)", color: "var(--error)" },
   }[status];
 
   return (
@@ -44,11 +44,11 @@ function StatusBadge({ status }: { status: BookingStatus }) {
 
 function PaymentBadge({ status }: { status: PaymentStatus }) {
   const config = {
-    UNPAID:             { label: "Unpaid",          bg: "#1c1917", color: "#fbbf24" },
-    PAID:               { label: "Paid",            bg: "#052e16", color: "#4ade80" },
-    FAILED:             { label: "Failed",          bg: "#1c0a0a", color: "#f87171" },
-    REFUNDED:           { label: "Refunded",        bg: "#0f172a", color: "#94a3b8" },
-    PARTIALLY_REFUNDED: { label: "Part. Refunded",  bg: "#0f172a", color: "#94a3b8" },
+    UNPAID:             { label: "Unpaid",          bg: "var(--text)", color: "var(--rating)" },
+    PAID:               { label: "Paid",            bg: "var(--text)", color: "var(--success)" },
+    FAILED:             { label: "Failed",          bg: "var(--text)", color: "var(--error)" },
+    REFUNDED:           { label: "Refunded",        bg: "var(--text)", color: "var(--text-muted)" },
+    PARTIALLY_REFUNDED: { label: "Part. Refunded",  bg: "var(--text)", color: "var(--text-muted)" },
   }[status];
 
   return (
@@ -68,7 +68,7 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
   const isPending_ = booking.status === "PENDING";
   const isConfirmed = booking.status === "CONFIRMED";
 
-  async function handleAction(action: "MARK_PAID" | "CANCEL" | "NO_SHOW") {
+  async function handleAction(action: "MARK_PAID" | "CANCEL" | "NO_SHOW" | "MARK_ATTENDED") {
     setError("");
     startTransition(async () => {
       const result = await updateBookingStatus(booking.id, action, note || undefined);
@@ -87,12 +87,12 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
   }
 
   return (
-    <div style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 16, padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16, padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: 12 }}>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
         <div>
-          <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 15 }}>{booking.class.title}</div>
-          <div style={{ color: "#64748b", fontSize: 12, marginTop: 2 }}>
+          <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 15 }}>{booking.class.title}</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 2 }}>
             {booking.class.subject} · {isInPerson ? "Cash / In person" : "Online · Paymob"}
           </div>
         </div>
@@ -102,8 +102,8 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 4, backgroundColor: "#0f172a", borderRadius: 10, padding: "0.75rem 1rem" }}>
-        <div style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, backgroundColor: "var(--bg-card)", borderRadius: 10, padding: "0.75rem 1rem" }}>
+        <div style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>
           {booking.student.fullName ?? booking.student.email ?? "Unknown student"}
         </div>
         {booking.student.phone && (
@@ -111,34 +111,34 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
             href={"https://wa.me/" + booking.student.phone.replace(/\D/g, "")}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "#4ade80", fontSize: 12, textDecoration: "none" }}
+            style={{ color: "var(--success)", fontSize: 12, textDecoration: "none" }}
           >
             📱 WhatsApp {booking.student.phone}
           </a>
         )}
         {booking.student.email && (
-          <div style={{ color: "#64748b", fontSize: 12 }}>✉️ {booking.student.email}</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12 }}>✉️ {booking.student.email}</div>
         )}
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-        <span style={{ color: "#64748b" }}>Amount</span>
-        <span style={{ color: "#f1f5f9", fontWeight: 600 }}>
+        <span style={{ color: "var(--text-muted)" }}>Amount</span>
+        <span style={{ color: "var(--text)", fontWeight: 600 }}>
           {booking.amountEgp ? booking.amountEgp + " EGP" : "Free"}
         </span>
       </div>
 
       {booking.paidAt && (
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-          <span style={{ color: "#64748b" }}>Paid at</span>
-          <span style={{ color: "#4ade80", fontSize: 12 }}>
+          <span style={{ color: "var(--text-muted)" }}>Paid at</span>
+          <span style={{ color: "var(--success)", fontSize: 12 }}>
             {new Date(booking.paidAt).toLocaleString("en-EG")}
           </span>
         </div>
       )}
 
       {booking.notes && !showNoteInput && (
-        <div style={{ backgroundColor: "#0f172a", borderRadius: 8, padding: "0.5rem 0.75rem", color: "#94a3b8", fontSize: 12 }}>
+        <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 8, padding: "0.5rem 0.75rem", color: "var(--text-muted)", fontSize: 12 }}>
           📝 {booking.notes}
         </div>
       )}
@@ -150,39 +150,44 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
             onChange={(e) => setNote(e.target.value)}
             placeholder="Add a note..."
             rows={3}
-            style={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: 8, padding: "0.5rem 0.75rem", color: "#f1f5f9", fontSize: 13, resize: "vertical", outline: "none" }}
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "0.5rem 0.75rem", color: "var(--text)", fontSize: 13, resize: "vertical", outline: "none" }}
           />
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={handleSaveNote} disabled={isPending} style={{ backgroundColor: "#3b82f6", color: "white", border: "none", borderRadius: 8, padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            <button onClick={handleSaveNote} disabled={isPending} style={{ backgroundColor: "var(--accent)", color: "var(--accent-fg)", border: "none", borderRadius: 8, padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               Save Note
             </button>
-            <button onClick={() => setShowNoteInput(false)} style={{ backgroundColor: "transparent", color: "#64748b", border: "1px solid #334155", borderRadius: 8, padding: "0.4rem 1rem", fontSize: 13, cursor: "pointer" }}>
+            <button onClick={() => setShowNoteInput(false)} style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "0.4rem 1rem", fontSize: 13, cursor: "pointer" }}>
               Cancel
             </button>
           </div>
         </div>
       )}
 
-      {error && <div style={{ color: "#f87171", fontSize: 13 }}>{error}</div>}
+      {error && <div style={{ color: "var(--error)", fontSize: 13 }}>{error}</div>}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
         {isInPerson && isPending_ && (
-          <button onClick={() => handleAction("MARK_PAID")} disabled={isPending} style={{ backgroundColor: "#16a34a", color: "white", border: "none", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: isPending ? 0.6 : 1 }}>
+          <button onClick={() => handleAction("MARK_PAID")} disabled={isPending} style={{ backgroundColor: "var(--success)", color: "var(--accent-fg)", border: "none", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: isPending ? 0.6 : 1 }}>
             ✓ Mark as Paid
           </button>
         )}
+        {isConfirmed && !booking.notes?.includes("[ATTENDED]") && !booking.notes?.includes("[NO-SHOW]") && (
+          <button onClick={() => handleAction("MARK_ATTENDED")} disabled={isPending} style={{ backgroundColor: "var(--success-bg)", color: "var(--success)", border: "1px solid var(--accent-border)", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: isPending ? 0.6 : 1 }}>
+            Mark Attended
+          </button>
+        )}
         {isConfirmed && (
-          <button onClick={() => handleAction("NO_SHOW")} disabled={isPending} style={{ backgroundColor: "#92400e", color: "white", border: "none", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: isPending ? 0.6 : 1 }}>
+          <button onClick={() => handleAction("NO_SHOW")} disabled={isPending} style={{ backgroundColor: "var(--warning)", color: "var(--accent-fg)", border: "none", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: isPending ? 0.6 : 1 }}>
             ✗ No Show
           </button>
         )}
         {isPending_ && (
-          <button onClick={() => handleAction("CANCEL")} disabled={isPending} style={{ backgroundColor: "transparent", color: "#f87171", border: "1px solid #f87171", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: isPending ? 0.6 : 1 }}>
+          <button onClick={() => handleAction("CANCEL")} disabled={isPending} style={{ backgroundColor: "transparent", color: "var(--error)", border: "1px solid var(--error)", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer", opacity: isPending ? 0.6 : 1 }}>
             Cancel Booking
           </button>
         )}
         {!showNoteInput && (
-          <button onClick={() => setShowNoteInput(true)} style={{ backgroundColor: "transparent", color: "#64748b", border: "1px solid #334155", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, cursor: "pointer" }}>
+          <button onClick={() => setShowNoteInput(true)} style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, cursor: "pointer" }}>
             📝 {booking.notes ? "Edit Note" : "Add Note"}
           </button>
         )}
@@ -223,12 +228,12 @@ export default function BookingsManagementPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0f172a", fontFamily: "system-ui, sans-serif", padding: "2rem" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "system-ui, sans-serif", padding: "2rem" }}>
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
 
         <div style={{ marginBottom: "2rem" }}>
-          <h1 style={{ color: "#f1f5f9", fontSize: "1.5rem", fontWeight: 800, marginBottom: 4 }}>Bookings</h1>
-          <p style={{ color: "#64748b", fontSize: 14 }}>Manage student bookings for your classes</p>
+          <h1 style={{ color: "var(--text)", fontSize: "1.5rem", fontWeight: 800, marginBottom: 4 }}>Bookings</h1>
+          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Manage student bookings for your classes</p>
         </div>
 
         <div style={{ display: "flex", gap: 8, marginBottom: "1.5rem", flexWrap: "wrap" }}>
@@ -236,17 +241,17 @@ export default function BookingsManagementPage() {
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              style={{ backgroundColor: filter === tab ? "#3b82f6" : "#1e293b", color: filter === tab ? "white" : "#94a3b8", border: "1px solid", borderColor: filter === tab ? "#3b82f6" : "#334155", borderRadius: 8, padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              style={{ backgroundColor: filter === tab ? "var(--accent)" : "var(--text)", color: filter === tab ? "white" : "var(--text-muted)", border: "1px solid", borderColor: filter === tab ? "var(--accent)" : "var(--text-secondary)", borderRadius: 8, padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
             >
               {tab} ({counts[tab]})
             </button>
           ))}
         </div>
 
-        {loading && <div style={{ color: "#64748b", textAlign: "center", padding: "3rem" }}>Loading bookings...</div>}
-        {error && <div style={{ color: "#f87171", textAlign: "center", padding: "3rem" }}>{error}</div>}
+        {loading && <div style={{ color: "var(--text-muted)", textAlign: "center", padding: "3rem" }}>Loading bookings...</div>}
+        {error && <div style={{ color: "var(--error)", textAlign: "center", padding: "3rem" }}>{error}</div>}
         {!loading && !error && filtered.length === 0 && (
-          <div style={{ color: "#64748b", textAlign: "center", padding: "3rem" }}>No bookings found.</div>
+          <div style={{ color: "var(--text-muted)", textAlign: "center", padding: "3rem" }}>No bookings found.</div>
         )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

@@ -14,8 +14,8 @@ export default function CentersLoading() {
                         key={i}
                         className="fade-in"
                         style={{
-                            backgroundColor: "#1e293b",
-                            border: "1px solid #334155",
+                            backgroundColor: "var(--bg-card)",
+                            border: "1px solid var(--border-light)",
                             borderRadius: 20,
                             padding: "1.75rem",
                             animationDelay: `${i * 0.08}s`,

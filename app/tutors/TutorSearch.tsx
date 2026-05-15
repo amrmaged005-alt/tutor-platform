@@ -48,10 +48,10 @@ export default function TutorSearch({ tutors, centers }: Props) {
   });
 
   const inputStyle = {
-    background: "#0f172a",
-    border: "1px solid #334155",
+    background: "var(--text)",
+    border: "1px solid var(--border-light)",
     borderRadius: "8px",
-    color: "#f1f5f9",
+    color: "var(--text)",
     padding: "10px 14px",
     fontSize: "14px",
     outline: "none",
@@ -59,8 +59,8 @@ export default function TutorSearch({ tutors, centers }: Props) {
   };
 
   const cardStyle = {
-    background: "#1e293b",
-    border: "1px solid #334155",
+    background: "var(--text)",
+    border: "1px solid var(--border-light)",
     borderRadius: "16px",
     padding: "24px",
     display: "flex",
@@ -80,41 +80,41 @@ export default function TutorSearch({ tutors, centers }: Props) {
       </div>
 
       <div style={{ display: "flex", gap: "12px", marginBottom: "28px" }}>
-        <button onClick={() => setTab("tutors")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "tutors" ? "#3b82f6" : "#1e293b", color: tab === "tutors" ? "#fff" : "#94a3b8" }}>
+        <button onClick={() => setTab("tutors")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "tutors" ? "var(--accent)" : "var(--text)", color: tab === "tutors" ? "#fff" : "var(--text-muted)" }}>
           {"Tutors (" + filteredTutors.length + ")"}
         </button>
-        <button onClick={() => setTab("centers")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "centers" ? "#3b82f6" : "#1e293b", color: tab === "centers" ? "#fff" : "#94a3b8" }}>
+        <button onClick={() => setTab("centers")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "centers" ? "var(--accent)" : "var(--text)", color: tab === "centers" ? "#fff" : "var(--text-muted)" }}>
           {"Centers (" + filteredCenters.length + ")"}
         </button>
       </div>
 
       {tab === "tutors" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
-          {filteredTutors.length === 0 && (<p style={{ color: "#64748b" }}>No tutors found.</p>)}
+          {filteredTutors.length === 0 && (<p style={{ color: "var(--text-muted)" }}>No tutors found.</p>)}
           {filteredTutors.map((tutor) => {
             const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
             const bio = tutor.bio ? (tutor.bio.length > 100 ? tutor.bio.slice(0, 100) + "..." : tutor.bio) : "No bio provided.";
             return (
               <div key={tutor.id} style={cardStyle}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "20px", color: "#fff", flexShrink: 0 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "20px", color: "#fff", flexShrink: 0 }}>
                     {displayName[0]?.toUpperCase()}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 700, color: "#f1f5f9", fontSize: "16px" }}>{displayName}</div>
-                    <div style={{ color: "#64748b", fontSize: "13px" }}>{tutor.city || "Cairo"}</div>
+                    <div style={{ fontWeight: 700, color: "var(--text)", fontSize: "16px" }}>{displayName}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>{tutor.city || "Cairo"}</div>
                   </div>
                 </div>
                 {tutor.subjects.length > 0 && (
                   <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "6px" }}>
                     {tutor.subjects.map((s) => (
-                      <span key={s} style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: "6px", padding: "2px 10px", fontSize: "12px", color: "#94a3b8" }}>{s}</span>
+                      <span key={s} style={{ background: "var(--text)", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "2px 10px", fontSize: "12px", color: "var(--text-muted)" }}>{s}</span>
                     ))}
                   </div>
                 )}
-                <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0 }}>{bio}</p>
-                <div style={{ color: "#64748b", fontSize: "13px" }}>{tutor._count.ownedClasses} class{tutor._count.ownedClasses !== 1 ? "es" : ""}</div>
-                <a href={"/tutors/" + tutor.id} style={{ marginTop: "auto", display: "inline-block", background: "#3b82f6", color: "#fff", borderRadius: "8px", padding: "10px 18px", textDecoration: "none", fontWeight: 600, fontSize: "14px", textAlign: "center" as const }}>
+                <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0 }}>{bio}</p>
+                <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>{tutor._count.ownedClasses} class{tutor._count.ownedClasses !== 1 ? "es" : ""}</div>
+                <a href={"/tutors/" + tutor.id} style={{ marginTop: "auto", display: "inline-block", background: "var(--accent)", color: "#fff", borderRadius: "8px", padding: "10px 18px", textDecoration: "none", fontWeight: 600, fontSize: "14px", textAlign: "center" as const }}>
                   View Profile
                 </a>
               </div>
@@ -125,19 +125,19 @@ export default function TutorSearch({ tutors, centers }: Props) {
 
       {tab === "centers" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
-          {filteredCenters.length === 0 && (<p style={{ color: "#64748b" }}>No centers found.</p>)}
+          {filteredCenters.length === 0 && (<p style={{ color: "var(--text-muted)" }}>No centers found.</p>)}
           {filteredCenters.map((center) => {
             const desc = center.description ? (center.description.length > 100 ? center.description.slice(0, 100) + "..." : center.description) : "No description provided.";
             return (
               <div key={center.id} style={cardStyle}>
-                <div style={{ width: 48, height: 48, borderRadius: "12px", background: "#1d4ed8", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "20px", color: "#fff" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "12px", background: "var(--accent-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "20px", color: "#fff" }}>
                   {center.name[0]?.toUpperCase()}
                 </div>
-                <div style={{ fontWeight: 700, color: "#f1f5f9", fontSize: "16px" }}>{center.name}</div>
-                <div style={{ color: "#64748b", fontSize: "13px" }}>{center.city}{center.location ? " - " + center.location : ""}</div>
-                <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0 }}>{desc}</p>
-                <div style={{ color: "#64748b", fontSize: "13px" }}>{center._count.classes} class{center._count.classes !== 1 ? "es" : ""}</div>
-                <a href={"/centers/" + center.id} style={{ marginTop: "auto", display: "inline-block", background: "#3b82f6", color: "#fff", borderRadius: "8px", padding: "10px 18px", textDecoration: "none", fontWeight: 600, fontSize: "14px", textAlign: "center" as const }}>
+                <div style={{ fontWeight: 700, color: "var(--text)", fontSize: "16px" }}>{center.name}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>{center.city}{center.location ? " - " + center.location : ""}</div>
+                <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0 }}>{desc}</p>
+                <div style={{ color: "var(--text-muted)", fontSize: "13px" }}>{center._count.classes} class{center._count.classes !== 1 ? "es" : ""}</div>
+                <a href={"/centers/" + center.id} style={{ marginTop: "auto", display: "inline-block", background: "var(--accent)", color: "#fff", borderRadius: "8px", padding: "10px 18px", textDecoration: "none", fontWeight: 600, fontSize: "14px", textAlign: "center" as const }}>
                   View Center
                 </a>
               </div>

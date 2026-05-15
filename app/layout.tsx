@@ -1,8 +1,25 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "./Navbar";
-import Link from "next/link";
-import LangToggle from "@/app/components/LangToggle";
+import { I18nProvider } from "@/app/components/i18n";
+import { ThemeProvider } from "@/app/components/Theme";
+import FooterContent from "@/app/components/FooterContent";
+
+// Runs before React hydration to prevent flash-of-wrong-theme / wrong-lang.
+const PREFS_BOOTSTRAP = `
+(function(){
+  try {
+    var t = localStorage.getItem("coursaty-theme");
+    if (!t) { t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
+    document.documentElement.setAttribute("data-theme", t);
+    var l = localStorage.getItem("coursaty-lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+  } catch (e) {}
+})();
+`;
 
 // ─── SEO Metadata ─────────────────────────────────────────────────────────────
 export const metadata: Metadata = {
@@ -29,83 +46,10 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   other: {
-    "theme-color": "#0f172a",
+    "theme-color": "#181715",
   },
 };
 
-// ─── Footer ───────────────────────────────────────────────────────────────────
-function Footer() {
-  const footerLinks = [
-    { label: "Classes", href: "/classes" },
-    { label: "Tutors", href: "/tutors" },
-    { label: "Centers", href: "/centers" },
-    { label: "Sign Up", href: "/signup" },
-    { label: "Login", href: "/login" },
-  ];
-
-  return (
-    <footer
-      role="contentinfo"
-      style={{
-        borderTop: "1px solid #1e293b",
-        padding: "3rem 1.5rem",
-        backgroundColor: "#060d18",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "2rem",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: "1.3rem",
-              fontWeight: 800,
-              background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              marginBottom: 4,
-            }}
-          >
-            Coursaty
-          </div>
-          <div style={{ color: "#334155", fontSize: 13 }}>
-            Egypt&apos;s Tutoring Marketplace
-          </div>
-        </div>
-        <nav
-          aria-label="Footer navigation"
-          className="footer-links"
-          style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}
-        >
-          {footerLinks.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              style={{
-                color: "#64748b",
-                fontSize: 14,
-                textDecoration: "none",
-              }}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <div style={{ color: "#334155", fontSize: 13 }}>
-          © {new Date().getFullYear()} Coursaty. All rights reserved.
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 // ─── Root Layout ──────────────────────────────────────────────────────────────
 export default function RootLayout({
@@ -123,12 +67,16 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap"
           rel="stylesheet"
         />
+        <script dangerouslySetInnerHTML={{ __html: PREFS_BOOTSTRAP }} />
       </head>
-      <body style={{ margin: 0, padding: 0, backgroundColor: "#0f172a" }}>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-        <LangToggle />
+      <body style={{ margin: 0, padding: 0, backgroundColor: "var(--bg)", color: "var(--text)" }}>
+        <ThemeProvider>
+          <I18nProvider>
+            <Navbar />
+            <main>{children}</main>
+            <FooterContent />
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

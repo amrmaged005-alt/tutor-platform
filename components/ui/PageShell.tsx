@@ -33,8 +33,8 @@ export default function PageShell({
         <div
             style={{
                 minHeight: "100vh",
-                backgroundColor: "#0f172a",
-                color: "#f1f5f9",
+                backgroundColor: "var(--bg-card)",
+                color: "var(--text)",
                 position: "relative",
             }}
         >
@@ -48,7 +48,7 @@ export default function PageShell({
                         inset: 0,
                         zIndex: 0,
                         pointerEvents: "none",
-                        backgroundImage: `linear-gradient(#ffffff03 1px, transparent 1px), linear-gradient(90deg, #ffffff03 1px, transparent 1px)`,
+                        backgroundImage: `linear-gradient(rgba(24,23,21,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,21,0.03) 1px, transparent 1px)`,
                         backgroundSize: "48px 48px",
                     }}
                 />

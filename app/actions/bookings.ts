@@ -215,7 +215,7 @@ export async function lockSeat(
 
 export async function updateBookingStatus(
   bookingId: string,
-  action: "MARK_PAID" | "CANCEL" | "NO_SHOW",
+  action: "MARK_PAID" | "CANCEL" | "NO_SHOW" | "MARK_ATTENDED",
   note?: string
 ): Promise<{ success: true } | { success: false; error: string }> {
   const session = await auth();
@@ -297,13 +297,33 @@ export async function updateBookingStatus(
       });
     }
 
+    if (action === "MARK_ATTENDED") {
+      const nextNote = note
+        ? `[ATTENDED] ${note}`
+        : booking.notes?.includes("[ATTENDED]")
+          ? booking.notes
+          : booking.notes
+            ? `[ATTENDED] ${booking.notes}`
+            : "[ATTENDED]";
+
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: "CONFIRMED",
+          notes: nextNote,
+        },
+      });
+    }
+
     // Log the status change
     const auditAction =
       action === "MARK_PAID"
         ? "booking.confirmed"
-        : action === "NO_SHOW"
-          ? "booking.no_show"
-          : "booking.cancelled";
+        : action === "MARK_ATTENDED"
+          ? "booking.attended"
+          : action === "NO_SHOW"
+            ? "booking.no_show"
+            : "booking.cancelled";
 
     await log({
       action: auditAction,

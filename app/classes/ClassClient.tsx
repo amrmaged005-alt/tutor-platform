@@ -3,8 +3,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import BackgroundFloaters from "../../components/ui/BackgroundFloaters";
-import SectionHeader from "../../components/ui/SectionHeader";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
 export interface ClassCardData {
@@ -29,28 +27,18 @@ export interface ClassCardData {
   owner: { id: string; fullName: string | null; name: string | null; photoUrl: string | null } | null;
 }
 
-// ─── CONSTANTS ─────────────────────────────────────────────────────────────────
-const SUBJECT_META: Record<string, { color: string; bg: string; emoji: string }> = {
-  Math:             { color: "#60a5fa", bg: "#1e3a5f", emoji: "📐" },
-  Mathematics:      { color: "#60a5fa", bg: "#1e3a5f", emoji: "📐" },
-  Physics:          { color: "#c084fc", bg: "#2e1065", emoji: "⚡" },
-  Chemistry:        { color: "#34d399", bg: "#064e3b", emoji: "🧪" },
-  Biology:          { color: "#4ade80", bg: "#052e16", emoji: "🧬" },
-  English:          { color: "#fb923c", bg: "#422006", emoji: "📝" },
-  Arabic:           { color: "#f87171", bg: "#450a0a", emoji: "✍️" },
-  History:          { color: "#a8a29e", bg: "#1c1917", emoji: "📜" },
-  Geography:        { color: "#2dd4bf", bg: "#042f2e", emoji: "🌍" },
-  "Computer Science": { color: "#38bdf8", bg: "#0c1a2e", emoji: "💻" },
-  Science:          { color: "#34d399", bg: "#052e16", emoji: "🔬" },
-  French:           { color: "#a78bfa", bg: "#1e1b4b", emoji: "🇫🇷" },
-  Economics:        { color: "#fbbf24", bg: "#1c1400", emoji: "📊" },
-  Business:         { color: "#e879f9", bg: "#2d0a3f", emoji: "💼" },
+// ─── SUBJECT COLOR SYSTEM (muted, professional) ─────────────────────────────
+const SUBJECT_COLORS: Record<string, string> = {
+  Math: "var(--accent)", Mathematics: "var(--accent)", Physics: "var(--accent)",
+  Chemistry: "var(--success)", Biology: "var(--accent)", English: "var(--warning)",
+  Arabic: "var(--error)", History: "var(--warning)", Geography: "var(--accent)",
+  "Computer Science": "var(--accent)", Science: "var(--success)", French: "var(--accent)",
+  Economics: "var(--warning)", Business: "var(--accent)",
 };
+function subjectColor(s: string) { return SUBJECT_COLORS[s] ?? "var(--text-secondary)"; }
 
-const FORMAT_META: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  IN_PERSON: { label: "In-Person", color: "#4ade80", bg: "#052e16", icon: "📍" },
-  ONLINE:    { label: "Online",    color: "#38bdf8", bg: "#0c2a3f", icon: "💻" },
-  HYBRID:    { label: "Hybrid",    color: "#c084fc", bg: "#1e1040", icon: "🔀" },
+const FORMAT_LABELS: Record<string, string> = {
+  IN_PERSON: "In-Person", ONLINE: "Online", HYBRID: "Hybrid",
 };
 
 const CURRICULUM_LABELS: Record<string, string> = {
@@ -58,35 +46,31 @@ const CURRICULUM_LABELS: Record<string, string> = {
   IB: "IB", FRENCH: "French", STEM: "STEM", OTHER: "Other",
 };
 
-const ALL_SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English", "Arabic", "History", "Geography", "Computer Science", "Science", "French", "Economics", "Business"];
+const ALL_SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English", "Arabic", "History", "Geography", "Computer Science", "Science", "French", "Economics"];
 const ALL_CURRICULA = ["NATIONAL", "IGCSE", "AMERICAN", "IB", "FRENCH", "STEM"];
 const ALL_FORMATS = ["IN_PERSON", "ONLINE", "HYBRID"];
 const ALL_GRADES = ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "Thanaweya Amma", "IGCSE", "AS Level", "A Level", "SAT", "ACT"];
-const TRENDING = ["Math", "Physics", "IGCSE", "Online", "Thanaweya Amma", "Chemistry", "Grade 11"];
-
-function getSubjectMeta(subject: string) {
-  return SUBJECT_META[subject] ?? { color: "#94a3b8", bg: "#1e293b", emoji: "📚" };
-}
+const QUICK_PILLS = ["Math", "Physics", "IGCSE", "Online", "Grade 11", "Chemistry"];
 
 // ─── SPOTS BAR ─────────────────────────────────────────────────────────────────
 function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
   const pct = Math.min((booked / capacity) * 100, 100);
   const left = capacity - booked;
-  const color = pct > 80 ? "#ef4444" : pct > 50 ? "#f59e0b" : "#22c55e";
+  const barColor = pct > 80 ? "var(--error)" : pct > 50 ? "var(--warning)" : "var(--success)";
   return (
     <div style={{ marginTop: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 11, color: "#64748b" }}>{booked} enrolled</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: left <= 3 ? "#ef4444" : left <= 5 ? "#f59e0b" : "#64748b" }}>
-          {left <= 0 ? "FULL" : left <= 5 ? `⚡ ${left} left!` : `${left} spots`}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{booked} enrolled</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: left <= 3 ? "var(--error)" : left <= 5 ? "var(--warning)" : "var(--text-secondary)" }}>
+          {left <= 0 ? "Full" : left <= 5 ? `${left} spots left` : `${left} spots`}
         </span>
       </div>
-      <div style={{ height: 4, backgroundColor: "#334155", borderRadius: 99, overflow: "hidden" }}>
+      <div style={{ height: 4, backgroundColor: "var(--bg-subtle)", borderRadius: 99, overflow: "hidden" }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          style={{ height: "100%", background: color, borderRadius: 99 }}
+          style={{ height: "100%", backgroundColor: barColor, borderRadius: 99 }}
         />
       </div>
     </div>
@@ -95,8 +79,7 @@ function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
 
 // ─── CLASS CARD ────────────────────────────────────────────────────────────────
 function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
-  const meta = getSubjectMeta(cls.subject);
-  const fmt = FORMAT_META[cls.format] ?? { label: cls.format, color: "#94a3b8", bg: "#1e293b", icon: "📍" };
+  const color = subjectColor(cls.subject);
   const isFull = cls.spotsLeft !== null && cls.spotsLeft <= 0;
   const isUrgent = cls.spotsLeft !== null && cls.spotsLeft > 0 && cls.spotsLeft <= 5;
   const displayName = cls.center?.name ?? cls.owner?.fullName ?? cls.owner?.name ?? "Coursaty Tutor";
@@ -104,87 +87,80 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
-      whileHover={{ y: -6, boxShadow: `0 20px 48px ${meta.color}20` }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = `${meta.color}50`; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "#334155"; }}
-      style={{
-        backgroundColor: "#1e293b",
-        border: "1px solid #334155",
-        borderRadius: 20,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        cursor: "pointer",
-        transition: "border-color 0.2s",
-        position: "relative",
-      }}
+      transition={{ duration: 0.35, delay: index * 0.04 }}
     >
-      {/* Urgency top bar */}
-      {isUrgent && (
-        <motion.div
-          animate={{ opacity: [1, 0.6, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          style={{ height: 3, background: "linear-gradient(90deg, #ef4444, #f59e0b)", flexShrink: 0 }}
-        />
-      )}
+      <Link
+        href={`/classes/${cls.id}`}
+        style={{
+          textDecoration: "none",
+          color: "inherit",
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "var(--bg-card)",
+          border: "1px solid var(--border-light)",
+          borderRadius: 14,
+          overflow: "hidden",
+          transition: "box-shadow 0.2s, border-color 0.2s, transform 0.2s",
+          height: "100%",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLAnchorElement).style.boxShadow = "var(--shadow-md)";
+          (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--border)";
+          (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none";
+          (e.currentTarget as HTMLAnchorElement).style.borderColor = "var(--border-light)";
+          (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+        }}
+      >
+      {/* Subject color top bar */}
+      <div style={{ height: 3, backgroundColor: color, flexShrink: 0 }} />
 
-      {/* Subject color accent bar */}
-      {!isUrgent && (
-        <div style={{ height: 3, background: `linear-gradient(90deg, ${meta.color}, ${meta.color}44)`, flexShrink: 0 }} />
-      )}
-
-      <div style={{ padding: "18px 18px 0" }}>
-        {/* Top row */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-          {/* Subject badge */}
+      <div style={{ padding: "16px 16px 0" }}>
+        {/* Subject + format row */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <span style={{
-            backgroundColor: meta.bg, color: meta.color,
-            fontSize: 12, fontWeight: 700, padding: "4px 12px",
-            borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 5,
+            color: "var(--accent-fg)",
+            fontSize: 12, fontWeight: 700,
+            backgroundColor: color,
+            border: `1px solid ${color}`,
+            padding: "3px 10px", borderRadius: 99,
+            letterSpacing: 0.2,
           }}>
-            <span>{meta.emoji}</span> {cls.subject}
+            {cls.subject}
           </span>
-
-          {/* Format badge */}
-          <span style={{
-            backgroundColor: fmt.bg, color: fmt.color,
-            fontSize: 11, fontWeight: 600, padding: "3px 10px",
-            borderRadius: 999, border: `1px solid ${fmt.color}30`,
-          }}>
-            {fmt.icon} {fmt.label}
+          <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
+            {FORMAT_LABELS[cls.format] ?? cls.format}
           </span>
         </div>
 
         {/* Title */}
-        <h3 style={{
-          fontSize: 15, fontWeight: 700, color: "#f1f5f9",
-          margin: "0 0 8px", lineHeight: 1.3,
-        }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", margin: "0 0 6px", lineHeight: 1.35 }}>
           {cls.title}
         </h3>
 
-        {/* Tags row */}
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-          <span style={{ backgroundColor: "#0f172a", color: "#64748b", fontSize: 11, padding: "2px 8px", borderRadius: 999, border: "1px solid #334155" }}>
+        {/* Curriculum + grade */}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+          <span style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)", fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 500 }}>
             {CURRICULUM_LABELS[cls.curriculum] ?? cls.curriculum}
           </span>
           {cls.gradeLevel && (
-            <span style={{ backgroundColor: "#0f172a", color: "#64748b", fontSize: 11, padding: "2px 8px", borderRadius: 999, border: "1px solid #334155" }}>
+            <span style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)", fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 500 }}>
               {cls.gradeLevel}
             </span>
           )}
           {isFull && (
-            <span style={{ backgroundColor: "#450a0a", color: "#fca5a5", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>
-              FULL
+            <span style={{ backgroundColor: "var(--error-bg)", color: "var(--error)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 4 }}>
+              Full
             </span>
           )}
           {isUrgent && !isFull && (
-            <span style={{ backgroundColor: "#451a03", color: "#fdba74", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>
-              🔥 {cls.spotsLeft} left
+            <span style={{ backgroundColor: "var(--warning-bg)", color: "var(--warning)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 4 }}>
+              {cls.spotsLeft} left
             </span>
           )}
         </div>
@@ -192,44 +168,39 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
         {/* Description */}
         {cls.description && (
           <p style={{
-            color: "#64748b", fontSize: 13, lineHeight: 1.6,
-            margin: "0 0 10px",
-            display: "-webkit-box", WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical", overflow: "hidden",
+            color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.55, margin: "0 0 8px",
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
           }}>
             {cls.description}
           </p>
         )}
 
-        {/* Info rows */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
+        {/* Meta info */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
           {(cls.location || cls.city) && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#94a3b8" }}>
-              <span>📍</span><span>{cls.location ?? cls.city}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.25 3 7 3 7s3-4.75 3-7c0-1.66-1.34-3-3-3zm0 4.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="currentColor"/></svg>
+              <span>{cls.location ?? cls.city}</span>
             </div>
           )}
           {cls.schedule && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#94a3b8" }}>
-              <span>🕐</span><span>{cls.schedule}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2"/><path d="M6 3v3l2 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+              <span>{cls.schedule}</span>
             </div>
           )}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#94a3b8" }}>
-            <span>{isCenter ? "🏫" : "👤"}</span>
-            <span>{displayName}</span>
-            {isCenter && (
-              <span style={{ backgroundColor: "#1d4ed820", color: "#60a5fa", fontSize: 10, padding: "1px 6px", borderRadius: 6, fontWeight: 600, border: "1px solid #1d4ed840" }}>
-                CENTER
-              </span>
-            )}
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="3.5" r="2.5" stroke="currentColor" strokeWidth="1.2"/><path d="M1.5 10.5c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+            <span>{displayName}{isCenter && " · Center"}</span>
           </div>
         </div>
 
         {/* Rating */}
         {cls.avgRating !== null && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-            <span style={{ color: "#f59e0b", fontSize: 13 }}>{"★".repeat(Math.round(cls.avgRating))}{"☆".repeat(5 - Math.round(cls.avgRating))}</span>
-            <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 13 }}>{cls.avgRating.toFixed(1)}</span>
-            <span style={{ color: "#64748b", fontSize: 12 }}>({cls.reviewCount})</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 8 }}>
+            <span style={{ color: "var(--rating)", fontSize: 12 }}>{"★".repeat(Math.round(cls.avgRating))}{"☆".repeat(5 - Math.round(cls.avgRating))}</span>
+            <span style={{ fontWeight: 600, color: "var(--text)", fontSize: 12 }}>{cls.avgRating.toFixed(1)}</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 12 }}>({cls.reviewCount})</span>
           </div>
         )}
 
@@ -240,30 +211,29 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
       </div>
 
       {/* Footer */}
-      <div style={{ padding: "14px 18px 18px", marginTop: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: "1px solid #334155" }}>
+      <div style={{ padding: "12px 16px 16px", marginTop: "auto", borderTop: "1px solid var(--bg-subtle)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <div>
-            <div style={{ fontSize: "1.2rem", fontWeight: 900, color: cls.priceEgp === 0 ? "#4ade80" : "#38bdf8" }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: cls.priceEgp === 0 ? "var(--success)" : "var(--text)", letterSpacing: "-0.02em" }}>
               {cls.priceEgp === 0 ? "Free" : cls.priceEgp.toLocaleString() + " EGP"}
             </div>
-            {cls.priceEgp > 0 && <div style={{ fontSize: 10, color: "#64748b" }}>per month</div>}
+            {cls.priceEgp > 0 && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>per month</div>}
           </div>
-          <Link
-            href={`/classes/${cls.id}`}
-            style={{
-              backgroundColor: isFull ? "#1e293b" : `${meta.color}20`,
-              color: isFull ? "#64748b" : meta.color,
-              border: `1px solid ${isFull ? "#334155" : `${meta.color}40`}`,
-              borderRadius: 10, padding: "7px 16px",
-              fontSize: 13, fontWeight: 700,
-              textDecoration: "none", whiteSpace: "nowrap",
-              transition: "all 0.2s",
-            }}
-          >
-            {isFull ? "Full" : "View Class →"}
-          </Link>
         </div>
+        <span
+          style={{
+            display: "block",
+            textAlign: "center",
+            backgroundColor: isFull ? "var(--bg-subtle)" : "var(--accent)",
+            color: isFull ? "var(--text-muted)" : "var(--accent-fg)",
+            borderRadius: 8, padding: "9px",
+            fontSize: 13, fontWeight: 600,
+          }}
+        >
+          {isFull ? "View Details" : "View Class"}
+        </span>
       </div>
+      </Link>
     </motion.div>
   );
 }
@@ -285,34 +255,31 @@ function FilterSidebar({
   onClear: () => void; hasFilters: boolean;
 }) {
   function toggleSubject(s: string) {
-    setSelectedSubjects(selectedSubjects.includes(s)
-      ? selectedSubjects.filter(x => x !== s)
-      : [...selectedSubjects, s]);
+    setSelectedSubjects(selectedSubjects.includes(s) ? selectedSubjects.filter(x => x !== s) : [...selectedSubjects, s]);
   }
   function toggleFormat(f: string) {
-    setSelectedFormats(selectedFormats.includes(f)
-      ? selectedFormats.filter(x => x !== f)
-      : [...selectedFormats, f]);
+    setSelectedFormats(selectedFormats.includes(f) ? selectedFormats.filter(x => x !== f) : [...selectedFormats, f]);
   }
 
   const sectionLabel: React.CSSProperties = {
-    fontSize: 11, fontWeight: 700, color: "#64748b",
+    fontSize: 11, fontWeight: 700, color: "var(--text-muted)",
     letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10,
   };
 
   return (
     <div style={{
-      width: 256, flexShrink: 0,
-      position: "sticky", top: 24, alignSelf: "flex-start",
-      backgroundColor: "#1e293b", border: "1px solid #334155",
-      borderRadius: 20, padding: "20px 18px",
-      display: "flex", flexDirection: "column", gap: 22,
+      width: 240, flexShrink: 0,
+      position: "sticky", top: 80, alignSelf: "flex-start",
+      backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)",
+      borderRadius: 14, padding: "18px 16px",
+      display: "flex", flexDirection: "column", gap: 20,
+      boxShadow: "var(--shadow-sm)",
     }}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: "#f1f5f9" }}>🎯 Filters</span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 14, borderBottom: "1px solid var(--bg-subtle)" }}>
+        <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text)" }}>Filters</span>
         {hasFilters && (
-          <button onClick={onClear} style={{ background: "none", border: "none", color: "#3b82f6", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0 }}>
+          <button onClick={onClear} style={{ background: "var(--accent-bg)", border: "1px solid var(--accent-border)", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", padding: "3px 10px", borderRadius: 99 }}>
             Clear all
           </button>
         )}
@@ -321,21 +288,20 @@ function FilterSidebar({
       {/* Format */}
       <div>
         <div style={sectionLabel}>Format</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           {ALL_FORMATS.map(f => {
-            const fmt = FORMAT_META[f];
             const active = selectedFormats.includes(f);
             return (
               <button key={f} onClick={() => toggleFormat(f)} style={{
                 display: "flex", alignItems: "center", gap: 8,
-                background: active ? `${fmt.color}12` : "none",
-                border: `1px solid ${active ? fmt.color + "40" : "transparent"}`,
-                borderRadius: 8, padding: "7px 10px", textAlign: "left",
-                color: active ? fmt.color : "#94a3b8",
-                fontWeight: active ? 600 : 400, fontSize: 14, cursor: "pointer",
-                transition: "all 0.15s",
+                background: active ? "var(--accent-bg)" : "none",
+                border: `1px solid ${active ? "var(--accent-border)" : "transparent"}`,
+                borderRadius: 7, padding: "7px 10px", textAlign: "left",
+                color: active ? "var(--accent)" : "var(--text-secondary)",
+                fontWeight: active ? 600 : 400, fontSize: 13, cursor: "pointer",
+                transition: "all 0.12s",
               }}>
-                <span>{fmt.icon}</span> {fmt.label}
+                {FORMAT_LABELS[f]}
               </button>
             );
           })}
@@ -345,18 +311,18 @@ function FilterSidebar({
       {/* Subjects */}
       <div>
         <div style={sectionLabel}>Subject</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
           {ALL_SUBJECTS.map(s => {
             const active = selectedSubjects.includes(s);
-            const meta = getSubjectMeta(s);
+            const c = subjectColor(s);
             return (
               <button key={s} onClick={() => toggleSubject(s)} style={{
-                padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                padding: "3px 9px", borderRadius: 5, fontSize: 11, fontWeight: 600,
                 cursor: "pointer",
-                border: `1px solid ${active ? meta.color : "#334155"}`,
-                backgroundColor: active ? meta.bg : "transparent",
-                color: active ? meta.color : "#64748b",
-                transition: "all 0.15s",
+                border: `1px solid ${active ? c + "40" : "var(--border-light)"}`,
+                backgroundColor: active ? c + "10" : "var(--bg-alt)",
+                color: active ? c : "var(--text-secondary)",
+                transition: "all 0.12s",
               }}>
                 {s}
               </button>
@@ -368,22 +334,15 @@ function FilterSidebar({
       {/* Curriculum */}
       <div>
         <div style={sectionLabel}>Curriculum</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <button onClick={() => setSelectedCurriculum("")} style={{
-            background: selectedCurriculum === "" ? "#3b82f615" : "none",
-            border: selectedCurriculum === "" ? "1px solid #3b82f640" : "1px solid transparent",
-            borderRadius: 8, padding: "6px 10px", textAlign: "left",
-            color: selectedCurriculum === "" ? "#3b82f6" : "#94a3b8",
-            fontSize: 13, fontWeight: selectedCurriculum === "" ? 600 : 400, cursor: "pointer",
-          }}>All Curricula</button>
-          {ALL_CURRICULA.map(c => (
-            <button key={c} onClick={() => setSelectedCurriculum(c === selectedCurriculum ? "" : c)} style={{
-              background: selectedCurriculum === c ? "#3b82f615" : "none",
-              border: selectedCurriculum === c ? "1px solid #3b82f640" : "1px solid transparent",
-              borderRadius: 8, padding: "6px 10px", textAlign: "left",
-              color: selectedCurriculum === c ? "#3b82f6" : "#94a3b8",
-              fontSize: 13, fontWeight: selectedCurriculum === c ? 600 : 400, cursor: "pointer",
-            }}>{CURRICULUM_LABELS[c]}</button>
+        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          {[{ key: "", label: "All Curricula" }, ...ALL_CURRICULA.map(c => ({ key: c, label: CURRICULUM_LABELS[c] }))].map(opt => (
+            <button key={opt.key} onClick={() => setSelectedCurriculum(opt.key === selectedCurriculum ? "" : opt.key)} style={{
+              background: selectedCurriculum === opt.key ? "var(--accent-bg)" : "none",
+              border: `1px solid ${selectedCurriculum === opt.key ? "var(--accent-border)" : "transparent"}`,
+              borderRadius: 7, padding: "6px 10px", textAlign: "left",
+              color: selectedCurriculum === opt.key ? "var(--accent)" : "var(--text-secondary)",
+              fontSize: 13, fontWeight: selectedCurriculum === opt.key ? 600 : 400, cursor: "pointer",
+            }}>{opt.label}</button>
           ))}
         </div>
       </div>
@@ -395,9 +354,9 @@ function FilterSidebar({
           value={selectedGrade}
           onChange={e => setSelectedGrade(e.target.value)}
           style={{
-            width: "100%", backgroundColor: "#0f172a", color: "#cbd5e1",
-            border: "1px solid #334155", borderRadius: 10,
-            padding: "8px 12px", fontSize: 13, cursor: "pointer", outline: "none",
+            width: "100%", backgroundColor: "var(--bg-alt)", color: "var(--text)",
+            border: "1px solid var(--border-light)", borderRadius: 8,
+            padding: "8px 10px", fontSize: 13, cursor: "pointer", outline: "none",
           }}
         >
           <option value="">All Grades</option>
@@ -408,15 +367,15 @@ function FilterSidebar({
       {/* Max Price */}
       <div>
         <div style={{ ...sectionLabel, marginBottom: 8 }}>
-          Max Price: <span style={{ color: "#f1f5f9", fontWeight: 700 }}>{maxPrice === 2000 ? "Any" : `${maxPrice} EGP`}</span>
+          Max Price: <span style={{ color: "var(--text)", fontWeight: 700 }}>{maxPrice === 2000 ? "Any" : `${maxPrice} EGP`}</span>
         </div>
         <input
           type="range" min={0} max={2000} step={50}
           value={maxPrice}
           onChange={e => setMaxPrice(Number(e.target.value))}
-          style={{ width: "100%", accentColor: "#3b82f6" }}
+          style={{ width: "100%", accentColor: "var(--accent)" }}
         />
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#64748b", marginTop: 4 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
           <span>Free</span><span>2000 EGP</span>
         </div>
       </div>
@@ -424,7 +383,17 @@ function FilterSidebar({
   );
 }
 
-// ─── MAIN CLIENT COMPONENT ─────────────────────────────────────────────────────
+// ─── SECTION HEADER ────────────────────────────────────────────────────────────
+function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <h2 style={{ fontSize: 17, fontWeight: 700, color: "var(--text)", margin: "0 0 4px" }}>{title}</h2>
+      {subtitle && <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>{subtitle}</p>}
+    </div>
+  );
+}
+
+// ─── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 export default function ClassesClient({ classes }: { classes: ClassCardData[] }) {
   const [search, setSearch] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
@@ -434,8 +403,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
   const [maxPrice, setMaxPrice] = useState(2000);
   const [sortBy, setSortBy] = useState<"newest" | "price_asc" | "price_desc" | "popular" | "rating">("newest");
 
-  // Quick toggle for trending pills
-  function toggleTrending(tag: string) {
+  function toggleQuickPill(tag: string) {
     if (ALL_SUBJECTS.includes(tag)) {
       setSelectedSubjects(prev => prev.includes(tag) ? prev.filter(x => x !== tag) : [...prev, tag]);
     } else if (tag === "Online") {
@@ -449,23 +417,19 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
 
   function clearFilters() {
     setSearch(""); setSelectedSubjects([]); setSelectedFormats([]);
-    setSelectedCurriculum(""); setSelectedGrade(""); setMaxPrice(2000);
-    setSortBy("newest");
+    setSelectedCurriculum(""); setSelectedGrade(""); setMaxPrice(2000); setSortBy("newest");
   }
 
   const hasFilters = selectedSubjects.length > 0 || selectedFormats.length > 0 || !!selectedCurriculum || !!selectedGrade || maxPrice < 2000 || !!search;
 
-  // Filter + sort
   const filtered = useMemo(() => {
     let result = classes.filter(c => {
       if (search) {
         const q = search.toLowerCase();
-        const match = c.title.toLowerCase().includes(q)
-          || c.subject.toLowerCase().includes(q)
-          || (c.description ?? "").toLowerCase().includes(q)
-          || (c.owner?.fullName ?? c.owner?.name ?? "").toLowerCase().includes(q)
-          || (c.center?.name ?? "").toLowerCase().includes(q);
-        if (!match) return false;
+        if (!c.title.toLowerCase().includes(q) && !c.subject.toLowerCase().includes(q)
+          && !(c.description ?? "").toLowerCase().includes(q)
+          && !(c.owner?.fullName ?? c.owner?.name ?? "").toLowerCase().includes(q)
+          && !(c.center?.name ?? "").toLowerCase().includes(q)) return false;
       }
       if (selectedSubjects.length > 0 && !selectedSubjects.includes(c.subject)) return false;
       if (selectedFormats.length > 0 && !selectedFormats.includes(c.format)) return false;
@@ -475,159 +439,105 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
       return true;
     });
 
-    // Sort
     if (sortBy === "price_asc") result = [...result].sort((a, b) => a.priceEgp - b.priceEgp);
     else if (sortBy === "price_desc") result = [...result].sort((a, b) => b.priceEgp - a.priceEgp);
     else if (sortBy === "popular") result = [...result].sort((a, b) => b.bookingsCount - a.bookingsCount);
     else if (sortBy === "rating") result = [...result].sort((a, b) => (b.avgRating ?? 0) - (a.avgRating ?? 0));
-
     return result;
   }, [classes, search, selectedSubjects, selectedFormats, selectedCurriculum, selectedGrade, maxPrice, sortBy]);
 
-  // Segments (only when not filtering)
   const isFiltering = hasFilters;
-  const freeClasses = filtered.filter(c => c.priceEgp === 0);
   const topRated = filtered.filter(c => c.avgRating !== null && c.avgRating >= 4.5);
-  const onlineClasses = filtered.filter(c => c.format === "ONLINE");
   const urgentClasses = filtered.filter(c => c.spotsLeft !== null && c.spotsLeft > 0 && c.spotsLeft <= 5);
-  const allOthers = filtered.filter(c =>
-    !topRated.includes(c) &&
-    !urgentClasses.includes(c)
-  );
+  const allOthers = filtered.filter(c => !topRated.includes(c) && !urgentClasses.includes(c));
 
   return (
-    <div style={{
-      minHeight: "100vh", backgroundColor: "#0f172a",
-      fontFamily: "system-ui, -apple-system, sans-serif",
-      color: "#f1f5f9", position: "relative",
-    }}>
-      <BackgroundFloaters count={4} />
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-alt)", fontFamily: "var(--font-sans)", color: "var(--text)" }}>
 
-      {/* ── HERO ── */}
+      {/* Hero / Page Header */}
       <div style={{
-        position: "relative", overflow: "hidden",
-        background: "linear-gradient(135deg, #0f172a 0%, #0c1a2e 50%, #0f172a 100%)",
-        borderBottom: "1px solid #334155",
-        padding: "52px 24px 44px", zIndex: 1,
+        backgroundColor: "var(--bg-card)",
+        borderBottom: "1px solid var(--border-light)",
+        padding: "2.5rem 1.5rem 2rem",
       }}>
-        {/* Grid texture */}
-        <div style={{
-          position: "absolute", inset: 0, pointerEvents: "none",
-          backgroundImage: `linear-gradient(#ffffff05 1px, transparent 1px), linear-gradient(90deg, #ffffff05 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-        }} />
-        {/* Glow orb */}
-        <div style={{
-          position: "absolute", top: -120, right: -80,
-          width: 500, height: 500, borderRadius: "50%",
-          background: "radial-gradient(circle, #38bdf820 0%, transparent 65%)",
-          pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", bottom: -80, left: -60,
-          width: 400, height: 400, borderRadius: "50%",
-          background: "radial-gradient(circle, #3b82f615 0%, transparent 65%)",
-          pointerEvents: "none",
-        }} />
-
-        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
-          <Link href="/" style={{ color: "#64748b", fontSize: 13, textDecoration: "none" }}>← Home</Link>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <Link href="/" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: "1rem" }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Home
+          </Link>
 
           <motion.h1
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            style={{
-              fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 900,
-              margin: "20px 0 10px", letterSpacing: "-0.03em", lineHeight: 1.15,
-            }}
+            style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.2rem)", fontWeight: 800, color: "var(--text)", margin: "0 0 0.5rem", letterSpacing: "-0.025em" }}
           >
-            Browse{" "}
-            <span style={{ background: "linear-gradient(90deg, #38bdf8, #3b82f6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              Classes
-            </span>
+            Browse Classes
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.13 }}
-            style={{ color: "#94a3b8", fontSize: 17, marginBottom: 24, maxWidth: 460 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.08 }}
+            style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 1.5rem" }}
           >
-            {classes.length} classes across all subjects and curricula. Find yours in seconds.
+            {classes.length} classes across all subjects and curricula
           </motion.p>
 
           {/* Search */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.18 }}
-            style={{ position: "relative", maxWidth: 560, marginBottom: 20 }}
-          >
-            <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 18, pointerEvents: "none" }}>🔍</span>
+          <div style={{ position: "relative", maxWidth: 520, marginBottom: "1rem" }}>
+            <svg style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }} width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
             <input
               type="text"
-              placeholder="Search by name, subject, tutor, or keyword..."
+              placeholder="Search by subject, tutor, or keyword..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{
-                width: "100%", backgroundColor: "#1e293b",
-                border: "1px solid #334155", borderRadius: 14,
-                padding: "13px 16px 13px 48px", color: "#f1f5f9",
-                fontSize: 15, outline: "none", boxSizing: "border-box",
-                fontFamily: "inherit", transition: "border-color 0.2s",
+                width: "100%", backgroundColor: "var(--bg-alt)",
+                border: "1px solid var(--border-light)", borderRadius: 10,
+                padding: "11px 14px 11px 40px", color: "var(--text)",
+                fontSize: 14, outline: "none", boxSizing: "border-box",
+                fontFamily: "inherit", transition: "border-color 0.15s, box-shadow 0.15s",
               }}
-              onFocus={e => (e.target.style.borderColor = "#38bdf8")}
-              onBlur={e => (e.target.style.borderColor = "#334155")}
+              onFocus={e => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+              onBlur={e => { e.target.style.borderColor = "var(--border-light)"; e.target.style.boxShadow = "none"; }}
             />
             {search && (
-              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: 18 }}>×</button>
+              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>×</button>
             )}
-          </motion.div>
+          </div>
 
-          {/* Trending pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.22 }}
-            style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}
-          >
-            <span style={{ color: "#64748b", fontSize: 12, fontWeight: 600 }}>🔥 Trending:</span>
-            {TRENDING.map(tag => {
-              const isActive = selectedSubjects.includes(tag)
-                || (tag === "Online" && selectedFormats.includes("ONLINE"))
-                || (tag === "IGCSE" && selectedCurriculum === "IGCSE")
-                || selectedGrade === tag;
-              const meta = getSubjectMeta(tag);
+          {/* Quick pills */}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, marginRight: 2 }}>Quick:</span>
+            {QUICK_PILLS.map(tag => {
+              const isActive = selectedSubjects.includes(tag) || (tag === "Online" && selectedFormats.includes("ONLINE")) || (tag === "IGCSE" && selectedCurriculum === "IGCSE") || selectedGrade === tag;
               return (
-                <motion.button
+                <button
                   key={tag}
-                  whileTap={{ scale: 0.94 }}
-                  onClick={() => toggleTrending(tag)}
+                  onClick={() => toggleQuickPill(tag)}
                   style={{
-                    padding: "5px 14px", borderRadius: 999, fontSize: 13,
-                    fontWeight: 600, cursor: "pointer",
-                    border: `1px solid ${isActive ? meta.color : "#334155"}`,
-                    backgroundColor: isActive ? meta.bg : "#1e293b",
-                    color: isActive ? meta.color : "#64748b",
-                    transition: "all 0.15s",
+                    padding: "4px 12px", borderRadius: 99, fontSize: 12,
+                    fontWeight: 500, cursor: "pointer",
+                    border: `1px solid ${isActive ? "var(--accent-border)" : "var(--border-light)"}`,
+                    backgroundColor: isActive ? "var(--accent-bg)" : "var(--bg-card)",
+                    color: isActive ? "var(--accent)" : "var(--text-secondary)",
+                    transition: "all 0.12s",
                   }}
                 >
                   {tag}
-                </motion.button>
+                </button>
               );
             })}
-          </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* ── MAIN CONTENT ── */}
-      <div style={{
-        maxWidth: 1100, margin: "0 auto",
-        padding: "36px 24px 80px",
-        position: "relative", zIndex: 1,
-        display: "flex", gap: 28, alignItems: "flex-start",
-      }}>
+      {/* Main content */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "2rem 1.5rem 5rem", display: "flex", gap: 24, alignItems: "flex-start" }}>
+
         {/* Sidebar */}
         <FilterSidebar
           selectedSubjects={selectedSubjects} setSelectedSubjects={setSelectedSubjects}
@@ -640,31 +550,30 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
 
         {/* Cards area */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Controls row */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-            <span style={{ color: "#64748b", fontSize: 14 }}>
-              Showing{" "}
-              <span style={{ color: "#f1f5f9", fontWeight: 700 }}>{filtered.length}</span>
-              {" "}class{filtered.length !== 1 ? "es" : ""}
+          {/* Controls */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
+            <span style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+              <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span>{" "}
+              class{filtered.length !== 1 ? "es" : ""}
               {hasFilters && " matching filters"}
             </span>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {hasFilters && (
                 <button onClick={clearFilters} style={{
-                  background: "none", border: "1px solid #334155", color: "#94a3b8",
-                  borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                }}>✕ Clear</button>
+                  background: "var(--accent-bg)", border: "1px solid var(--accent-border)", color: "var(--accent)",
+                  borderRadius: 99, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                }}>Clear filters</button>
               )}
               <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)} style={{
-                backgroundColor: "#1e293b", color: "#cbd5e1",
-                border: "1px solid #334155", borderRadius: 10,
-                padding: "7px 12px", fontSize: 13, cursor: "pointer", outline: "none",
+                backgroundColor: "var(--bg-card)", color: "var(--text)",
+                border: "1px solid var(--border-light)", borderRadius: 8,
+                padding: "7px 10px", fontSize: 13, cursor: "pointer", outline: "none",
               }}>
                 <option value="newest">Newest first</option>
-                <option value="price_asc">Price: Low → High</option>
-                <option value="price_desc">Price: High → Low</option>
-                <option value="popular">Most popular</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="popular">Most enrolled</option>
                 <option value="rating">Top rated</option>
               </select>
             </div>
@@ -673,79 +582,56 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
           <AnimatePresence mode="wait">
             {filtered.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: "64px 32px", textAlign: "center" }}>
-                <div style={{ fontSize: "3rem", marginBottom: 16 }}>🔍</div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 18, marginBottom: 8 }}>No classes found</div>
-                <div style={{ color: "#64748b", fontSize: 14, marginBottom: 24 }}>Try adjusting your filters</div>
-                <button onClick={clearFilters} style={{ backgroundColor: "#3b82f6", color: "#fff", border: "none", borderRadius: 10, padding: "10px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 14, padding: "4rem 2rem", textAlign: "center" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", backgroundColor: "var(--bg-subtle)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="10" cy="10" r="8.5" stroke="var(--text-muted)" strokeWidth="1.5"/><path d="M17 17l3.5 3.5" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                </div>
+                <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 16, marginBottom: 6 }}>No classes found</div>
+                <div style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 20 }}>Try adjusting your search or filters</div>
+                <button onClick={clearFilters} style={{ backgroundColor: "var(--accent)", color: "var(--bg-card)", border: "none", borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                   Clear all filters
                 </button>
               </motion.div>
             ) : isFiltering ? (
-              // Flat list when filtering
               <motion.div key="filtered" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
                   {filtered.map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
                 </div>
               </motion.div>
             ) : (
-              // Segmented view
               <motion.div key="segments" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+                style={{ display: "flex", flexDirection: "column", gap: 40 }}>
 
-                {/* 🔥 Almost Full */}
                 {urgentClasses.length > 0 && (
                   <section>
-                    <SectionHeader title="Filling Up Fast" subtitle="These classes have very few spots remaining" badge="🔥 Act Now" badgeColor="#ef4444" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
+                    <SectionTitle title="Filling Up Fast" subtitle="Few spots remaining — book soon" />
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
                       {urgentClasses.slice(0, 4).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
                     </div>
                   </section>
                 )}
 
-                {/* ⭐ Top Rated */}
                 {topRated.length > 0 && (
                   <section>
-                    <SectionHeader title="Top Rated Classes" subtitle="Highly reviewed by enrolled students" badge="⭐ Highest Rated" badgeColor="#f59e0b" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
+                    <SectionTitle title="Top Rated" subtitle="Highly reviewed by enrolled students" />
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
                       {topRated.slice(0, 8).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
                     </div>
                   </section>
                 )}
 
-                {/* 💻 Online Classes */}
-                {onlineClasses.length > 0 && (
-                  <section>
-                    <SectionHeader title="Learn From Anywhere" subtitle="Online classes — join from home" badge="💻 Online" badgeColor="#38bdf8" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {onlineClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
-                    </div>
-                  </section>
-                )}
-
-                {/* 💚 Free Classes */}
-                {freeClasses.length > 0 && (
-                  <section>
-                    <SectionHeader title="Free Classes" subtitle="Start learning at zero cost" badge="💚 Free" badgeColor="#22c55e" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {freeClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
-                    </div>
-                  </section>
-                )}
-
-                {/* 📚 All Classes */}
                 {allOthers.length > 0 && (
                   <section>
-                    <SectionHeader title="All Classes" subtitle="Browse the full catalogue" badge="📚 All" badgeColor="#94a3b8" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
+                    <SectionTitle title="All Classes" subtitle={`${allOthers.length} classes available`} />
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
                       {allOthers.map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
                     </div>
                   </section>
                 )}
 
                 {filtered.length === 0 && (
-                  <div style={{ textAlign: "center", color: "#64748b", padding: "48px 0", fontSize: 15 }}>
-                    No classes available yet. Check back soon!
+                  <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "3rem 0", fontSize: 15 }}>
+                    No classes available yet. Check back soon.
                   </div>
                 )}
               </motion.div>

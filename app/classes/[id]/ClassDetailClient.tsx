@@ -4,25 +4,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import ReviewSection from "../../components/ReviewSection";
+import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
 
 // ─── Subject color map ───────────────────────────────────────────────────────
 const SUBJECT_COLORS: Record<string, { glow: string; badge: string; bg: string }> = {
-  Math: { glow: "#3b82f6", badge: "#3b82f6", bg: "#1e3a5f" },
-  Mathematics: { glow: "#3b82f6", badge: "#3b82f6", bg: "#1e3a5f" },
-  Physics: { glow: "#8b5cf6", badge: "#8b5cf6", bg: "#2e1a4f" },
-  Chemistry: { glow: "#22c55e", badge: "#22c55e", bg: "#052e16" },
-  Biology: { glow: "#10b981", badge: "#10b981", bg: "#022c22" },
-  English: { glow: "#f59e0b", badge: "#f59e0b", bg: "#1c1400" },
-  Arabic: { glow: "#ef4444", badge: "#ef4444", bg: "#2d0000" },
-  History: { glow: "#f97316", badge: "#f97316", bg: "#1c0d00" },
-  Geography: { glow: "#06b6d4", badge: "#06b6d4", bg: "#002f3a" },
-  French: { glow: "#a78bfa", badge: "#a78bfa", bg: "#1e1b4b" },
-  Computer: { glow: "#38bdf8", badge: "#38bdf8", bg: "#0c2a3f" },
-  Science: { glow: "#34d399", badge: "#34d399", bg: "#052e16" },
+  Math: { glow: "var(--accent)", badge: "var(--accent)", bg: "var(--text)" },
+  Mathematics: { glow: "var(--accent)", badge: "var(--accent)", bg: "var(--text)" },
+  Physics: { glow: "#5d3a5f", badge: "#5d3a5f", bg: "var(--text)" },
+  Chemistry: { glow: "var(--success)", badge: "var(--success)", bg: "var(--text)" },
+  Biology: { glow: "var(--success)", badge: "var(--success)", bg: "var(--text)" },
+  English: { glow: "var(--rating)", badge: "var(--rating)", bg: "var(--text)" },
+  Arabic: { glow: "var(--error)", badge: "var(--error)", bg: "var(--text)" },
+  History: { glow: "#8a5e1a", badge: "#8a5e1a", bg: "var(--text)" },
+  Geography: { glow: "#1c6e7a", badge: "#1c6e7a", bg: "var(--text)" },
+  French: { glow: "#5d3a5f", badge: "#5d3a5f", bg: "var(--text)" },
+  Computer: { glow: "#1c6e7a", badge: "#1c6e7a", bg: "var(--text)" },
+  Science: { glow: "var(--success)", badge: "var(--success)", bg: "var(--text)" },
 };
 
 function getSubjectColor(subject: string) {
-  return SUBJECT_COLORS[subject] ?? { glow: "#3b82f6", badge: "#38bdf8", bg: "#0c2a3f" };
+  return SUBJECT_COLORS[subject] ?? { glow: "var(--accent)", badge: "#1c6e7a", bg: "var(--text)" };
 }
 
 // ─── Animated progress bar ───────────────────────────────────────────────────
@@ -34,14 +35,14 @@ function SpotsBar({ capacity, spotsLeft }: { capacity: number; spotsLeft: number
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>
+        <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>
           {capacity - spotsLeft} enrolled
         </span>
         <span
           style={{
             fontSize: 12,
             fontWeight: 700,
-            color: isCritical ? "#ef4444" : isLow ? "#f59e0b" : "#22c55e",
+            color: isCritical ? "var(--error)" : isLow ? "var(--rating)" : "var(--success)",
           }}
         >
           {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left
@@ -50,7 +51,7 @@ function SpotsBar({ capacity, spotsLeft }: { capacity: number; spotsLeft: number
       <div
         style={{
           height: 6,
-          backgroundColor: "#334155",
+          backgroundColor: "var(--text-secondary)",
           borderRadius: 99,
           overflow: "hidden",
         }}
@@ -63,10 +64,10 @@ function SpotsBar({ capacity, spotsLeft }: { capacity: number; spotsLeft: number
             height: "100%",
             borderRadius: 99,
             background: isCritical
-              ? "linear-gradient(90deg, #ef4444, #f97316)"
+              ? "linear-gradient(90deg, var(--error), #8a5e1a)"
               : isLow
-                ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
-                : "linear-gradient(90deg, #22c55e, #34d399)",
+                ? "linear-gradient(90deg, var(--rating), var(--rating))"
+                : "linear-gradient(90deg, var(--success), var(--success))",
           }}
         />
       </div>
@@ -108,8 +109,8 @@ function StatTile({ label, value, icon }: { label: string; value: string; icon: 
   return (
     <div
       style={{
-        backgroundColor: "#0f172a",
-        border: "1px solid #334155",
+        backgroundColor: "var(--bg-card)",
+        border: "1px solid var(--border-light)",
         borderRadius: 12,
         padding: "14px 16px",
         display: "flex",
@@ -123,7 +124,7 @@ function StatTile({ label, value, icon }: { label: string; value: string; icon: 
           style={{
             fontSize: 10,
             fontWeight: 700,
-            color: "#64748b",
+            color: "var(--text-muted)",
             textTransform: "uppercase" as const,
             letterSpacing: 0.8,
             marginBottom: 2,
@@ -131,7 +132,7 @@ function StatTile({ label, value, icon }: { label: string; value: string; icon: 
         >
           {label}
         </div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#f1f5f9" }}>{value}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{value}</div>
       </div>
     </div>
   );
@@ -191,6 +192,7 @@ interface Props {
   existingUserReview: { rating: number; comment: string | null } | null;
   bookClass: () => Promise<void>;
   classId: string;
+  bookingError: boolean;
 }
 
 // ─── Main client component ────────────────────────────────────────────────────
@@ -203,6 +205,7 @@ export default function ClassDetailClient({
   existingUserReview,
   bookClass,
   classId,
+  bookingError,
 }: Props) {
   const subjectColor = getSubjectColor(cls.subject);
   const tutor = cls.owner;
@@ -210,6 +213,7 @@ export default function ClassDetailClient({
   const centerWhatsapp = cls.center?.phone?.replace(/\D/g, "") ?? "";
 
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   // Show sticky bottom bar on mobile after scrolling past hero
@@ -230,24 +234,27 @@ export default function ClassDetailClient({
   const bookingCTA = () => {
     if (!session?.user) {
       return (
-        <Link
-          href="/login"
+        <button
+          type="button"
+          onClick={() => setShowSignInModal(true)}
           style={{
             display: "block",
+            width: "100%",
             textAlign: "center" as const,
-            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            color: "white",
+            background: "linear-gradient(135deg, var(--accent), var(--accent-hover))",
+            color: "var(--accent-fg)",
             padding: "14px",
             borderRadius: 12,
             fontWeight: 700,
             fontSize: "1rem",
-            textDecoration: "none",
-            boxShadow: "0 4px 20px #3b82f640",
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(13,89,70,0.25)",
             transition: "opacity 0.2s",
           }}
         >
           Sign in to Book
-        </Link>
+        </button>
       );
     }
     if (isTutor) {
@@ -255,9 +262,9 @@ export default function ClassDetailClient({
         <div
           style={{
             textAlign: "center" as const,
-            backgroundColor: "#1e293b",
-            border: "1px solid #334155",
-            color: "#64748b",
+            backgroundColor: "var(--bg-card)",
+            border: "1px solid var(--border-light)",
+            color: "var(--text-muted)",
             padding: "14px",
             borderRadius: 12,
             fontWeight: 600,
@@ -273,9 +280,9 @@ export default function ClassDetailClient({
         <div
           style={{
             textAlign: "center" as const,
-            backgroundColor: "#052e16",
-            border: "1px solid #166534",
-            color: "#4ade80",
+            backgroundColor: "var(--bg-card)",
+            border: "1px solid var(--success)",
+            color: "var(--success)",
             padding: "14px",
             borderRadius: 12,
             fontWeight: 700,
@@ -291,9 +298,9 @@ export default function ClassDetailClient({
         <div
           style={{
             textAlign: "center" as const,
-            backgroundColor: "#450a0a",
-            border: "1px solid #7f1d1d",
-            color: "#fca5a5",
+            backgroundColor: "var(--bg-card)",
+            border: "1px solid var(--error)",
+            color: "var(--error-border)",
             padding: "14px",
             borderRadius: 12,
             fontWeight: 700,
@@ -309,24 +316,24 @@ export default function ClassDetailClient({
           type="submit"
           style={{
             width: "100%",
-            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            color: "white",
+            background: "linear-gradient(135deg, var(--accent), var(--accent-hover))",
+            color: "var(--accent-fg)",
             padding: "14px",
             borderRadius: 12,
             fontWeight: 700,
             fontSize: "1rem",
             border: "none",
             cursor: "pointer",
-            boxShadow: "0 4px 24px #3b82f650",
+            boxShadow: "0 4px 24px rgba(13,89,70,0.31)",
             transition: "transform 0.15s, box-shadow 0.15s",
           }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 32px #3b82f660";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 32px rgba(13,89,70,0.38)";
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 24px #3b82f650";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 24px rgba(13,89,70,0.31)";
           }}
         >
           {cls.priceEgp === 0 ? "Book Free — Get Started" : `Book Now — ${cls.priceEgp} EGP`}
@@ -340,9 +347,9 @@ export default function ClassDetailClient({
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#0f172a",
+        backgroundColor: "var(--bg-card)",
         fontFamily: "system-ui, -apple-system, sans-serif",
-        color: "#f1f5f9",
+        color: "var(--text)",
       }}
     >
       {/* ── Hero Banner ── */}
@@ -351,8 +358,8 @@ export default function ClassDetailClient({
         style={{
           position: "relative",
           overflow: "hidden",
-          background: `linear-gradient(135deg, #0f172a 0%, ${subjectColor.bg} 60%, #0f172a 100%)`,
-          borderBottom: "1px solid #334155",
+          background: `linear-gradient(135deg, var(--text) 0%, ${subjectColor.bg} 60%, var(--text) 100%)`,
+          borderBottom: "1px solid var(--border-light)",
           padding: "3rem 2rem 2.5rem",
         }}
       >
@@ -374,7 +381,7 @@ export default function ClassDetailClient({
           style={{
             position: "absolute",
             inset: 0,
-            backgroundImage: `linear-gradient(#ffffff06 1px, transparent 1px), linear-gradient(90deg, #ffffff06 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(rgba(24,23,21,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,21,0.06) 1px, transparent 1px)`,
             backgroundSize: "40px 40px",
             pointerEvents: "none",
           }}
@@ -391,7 +398,7 @@ export default function ClassDetailClient({
             <Link
               href="/classes"
               style={{
-                color: "#64748b",
+                color: "var(--text-muted)",
                 fontSize: 13,
                 textDecoration: "none",
                 display: "flex",
@@ -399,15 +406,15 @@ export default function ClassDetailClient({
                 gap: 4,
                 transition: "color 0.2s",
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#94a3b8")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#64748b")}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)")}
             >
               ← Browse Classes
             </Link>
-            <span style={{ color: "#475569", fontSize: 13 }}>/</span>
-            <span style={{ color: "#64748b", fontSize: 13 }}>{cls.subject}</span>
-            <span style={{ color: "#475569", fontSize: 13 }}>/</span>
-            <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600 }}>
+            <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{cls.subject}</span>
+            <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>
               {cls.title.length > 40 ? cls.title.slice(0, 40) + "…" : cls.title}
             </span>
           </motion.div>
@@ -422,22 +429,22 @@ export default function ClassDetailClient({
             <Badge color={subjectColor.badge} bg={subjectColor.bg}>
               {cls.subject}
             </Badge>
-            <Badge color="#a78bfa" bg="#1e1b4b">
+            <Badge color="#5d3a5f" bg="var(--text)">
               {cls.curriculum}
             </Badge>
             <Badge
-              color={cls.format === "ONLINE" ? "#38bdf8" : cls.format === "IN_PERSON" ? "#22c55e" : "#f59e0b"}
-              bg={cls.format === "ONLINE" ? "#0c2a3f" : cls.format === "IN_PERSON" ? "#052e16" : "#1c1000"}
+              color={cls.format === "ONLINE" ? "#1c6e7a" : cls.format === "IN_PERSON" ? "var(--success)" : "var(--rating)"}
+              bg={cls.format === "ONLINE" ? "var(--text)" : cls.format === "IN_PERSON" ? "var(--text)" : "var(--text)"}
             >
               {cls.format === "IN_PERSON" ? "📍 In-Person" : cls.format === "ONLINE" ? "💻 Online" : "🔀 Hybrid"}
             </Badge>
             {cls.gradeLevel && (
-              <Badge color="#fbbf24" bg="#1c1200">
+              <Badge color="var(--rating)" bg="var(--text)">
                 Grade {cls.gradeLevel}
               </Badge>
             )}
             {cls.language && (
-              <Badge color="#94a3b8" bg="#1e293b">
+              <Badge color="var(--text-muted)" bg="var(--text)">
                 🌐 {cls.language}
               </Badge>
             )}
@@ -451,7 +458,7 @@ export default function ClassDetailClient({
             style={{
               fontSize: "clamp(1.6rem, 4vw, 2.4rem)",
               fontWeight: 800,
-              color: "#f1f5f9",
+              color: "var(--text)",
               margin: "0 0 1rem",
               letterSpacing: -0.5,
               maxWidth: 700,
@@ -468,18 +475,18 @@ export default function ClassDetailClient({
             transition={{ duration: 0.4, delay: 0.2 }}
             style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" as const }}
           >
-            <span style={{ color: "#94a3b8", fontSize: 14 }}>
-              👥 <strong style={{ color: "#f1f5f9" }}>{cls.bookingsCount}</strong> students enrolled
+            <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
+              👥 <strong style={{ color: "var(--text)" }}>{cls.bookingsCount}</strong> students enrolled
             </span>
             {cls.capacity && (
-              <span style={{ color: "#94a3b8", fontSize: 14 }}>
-                📋 Capacity: <strong style={{ color: "#f1f5f9" }}>{cls.capacity}</strong>
+              <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
+                📋 Capacity: <strong style={{ color: "var(--text)" }}>{cls.capacity}</strong>
               </span>
             )}
             {tutor && (
-              <span style={{ color: "#94a3b8", fontSize: 14 }}>
+              <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
                 👤 by{" "}
-                <strong style={{ color: "#f1f5f9" }}>
+                <strong style={{ color: "var(--text)" }}>
                   {tutor.fullName || tutor.name || "Tutor"}
                 </strong>
               </span>
@@ -510,8 +517,8 @@ export default function ClassDetailClient({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
               style={{
-                backgroundColor: "#1e293b",
-                border: "1px solid #334155",
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
                 borderRadius: 18,
                 padding: "1.75rem",
                 marginBottom: "1.5rem",
@@ -519,7 +526,7 @@ export default function ClassDetailClient({
             >
               <h2
                 style={{
-                  color: "#f1f5f9",
+                  color: "var(--text)",
                   fontWeight: 700,
                   fontSize: "1.05rem",
                   margin: "0 0 0.875rem",
@@ -541,7 +548,7 @@ export default function ClassDetailClient({
               </h2>
               <p
                 style={{
-                  color: "#94a3b8",
+                  color: "var(--text-muted)",
                   fontSize: 15,
                   lineHeight: 1.75,
                   margin: 0,
@@ -597,8 +604,8 @@ export default function ClassDetailClient({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.25 }}
               style={{
-                backgroundColor: "#1e293b",
-                border: `1px solid ${cls.spotsLeft <= 3 ? "#ef444440" : cls.spotsLeft <= 5 ? "#f59e0b40" : "#334155"}`,
+                backgroundColor: "var(--bg-card)",
+                border: `1px solid ${cls.spotsLeft <= 3 ? "rgba(163,48,40,0.25)" : cls.spotsLeft <= 5 ? "rgba(184,134,27,0.25)" : "var(--text-secondary)"}`,
                 borderRadius: 16,
                 padding: "1.25rem 1.5rem",
                 marginBottom: "1.5rem",
@@ -611,7 +618,7 @@ export default function ClassDetailClient({
                   style={{
                     fontSize: 13,
                     fontWeight: 700,
-                    color: cls.spotsLeft <= 3 ? "#ef4444" : "#f59e0b",
+                    color: cls.spotsLeft <= 3 ? "var(--error)" : "var(--rating)",
                     marginBottom: 10,
                     display: "flex",
                     alignItems: "center",
@@ -632,8 +639,8 @@ export default function ClassDetailClient({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
               style={{
-                backgroundColor: "#1e293b",
-                border: "1px solid #334155",
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
                 borderRadius: 18,
                 padding: "1.75rem",
                 marginBottom: "1.5rem",
@@ -641,7 +648,7 @@ export default function ClassDetailClient({
             >
               <h2
                 style={{
-                  color: "#f1f5f9",
+                  color: "var(--text)",
                   fontWeight: 700,
                   fontSize: "1.05rem",
                   margin: "0 0 1.25rem",
@@ -654,7 +661,7 @@ export default function ClassDetailClient({
                   style={{
                     width: 4,
                     height: 18,
-                    background: "linear-gradient(180deg, #3b82f6, transparent)",
+                    background: "linear-gradient(180deg, var(--accent), transparent)",
                     borderRadius: 2,
                     display: "inline-block",
                   }}
@@ -667,15 +674,15 @@ export default function ClassDetailClient({
                     width: 64,
                     height: 64,
                     borderRadius: "50%",
-                    background: `radial-gradient(circle at 40% 40%, #60a5fa, #1d4ed8)`,
+                    background: `radial-gradient(circle at 40% 40%, var(--accent), var(--accent-hover))`,
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontWeight: 800,
                     fontSize: 24,
-                    color: "#fff",
-                    boxShadow: "0 0 0 3px #1e293b, 0 0 0 5px #3b82f640",
+                    color: "var(--bg-card)",
+                    boxShadow: "0 0 0 3px var(--text), 0 0 0 5px rgba(13,89,70,0.25)",
                   }}
                 >
                   {((tutor.fullName || tutor.name || "T")[0] || "T").toUpperCase()}
@@ -684,7 +691,7 @@ export default function ClassDetailClient({
                   <div
                     style={{
                       fontWeight: 700,
-                      color: "#f1f5f9",
+                      color: "var(--text)",
                       fontSize: 16,
                       marginBottom: 4,
                       display: "flex",
@@ -700,9 +707,9 @@ export default function ClassDetailClient({
                           fontWeight: 700,
                           padding: "2px 8px",
                           borderRadius: 99,
-                          backgroundColor: "#1e3a5f",
-                          color: "#38bdf8",
-                          border: "1px solid #38bdf820",
+                          backgroundColor: "var(--bg-card)",
+                          color: "#1c6e7a",
+                          border: "1px solid #1c6e7a20",
                         }}
                       >
                         ✓ Verified
@@ -722,12 +729,12 @@ export default function ClassDetailClient({
                         <span
                           key={s}
                           style={{
-                            background: "#0f172a",
-                            border: "1px solid #334155",
+                            background: "var(--text)",
+                            border: "1px solid var(--border-light)",
                             borderRadius: 6,
                             padding: "2px 10px",
                             fontSize: 12,
-                            color: "#94a3b8",
+                            color: "var(--text-muted)",
                           }}
                         >
                           {s}
@@ -738,7 +745,7 @@ export default function ClassDetailClient({
                   {tutor.bio && (
                     <p
                       style={{
-                        color: "#94a3b8",
+                        color: "var(--text-muted)",
                         fontSize: 14,
                         lineHeight: 1.65,
                         margin: "0 0 14px",
@@ -751,12 +758,12 @@ export default function ClassDetailClient({
                     <Link
                       href={"/tutors/" + tutor.id}
                       style={{
-                        color: "#3b82f6",
+                        color: "var(--accent)",
                         fontSize: 13,
                         textDecoration: "none",
                         fontWeight: 600,
                         padding: "6px 14px",
-                        border: "1px solid #3b82f640",
+                        border: "1px solid rgba(13,89,70,0.25)",
                         borderRadius: 8,
                         transition: "background 0.2s",
                       }}
@@ -769,8 +776,8 @@ export default function ClassDetailClient({
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
-                          backgroundColor: "#16a34a",
-                          color: "#fff",
+                          backgroundColor: "var(--success)",
+                          color: "var(--bg-card)",
                           borderRadius: 8,
                           padding: "6px 14px",
                           textDecoration: "none",
@@ -797,8 +804,8 @@ export default function ClassDetailClient({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.35 }}
               style={{
-                backgroundColor: "#1e293b",
-                border: "1px solid #334155",
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
                 borderRadius: 18,
                 padding: "1.75rem",
                 marginBottom: "1.5rem",
@@ -806,7 +813,7 @@ export default function ClassDetailClient({
             >
               <h2
                 style={{
-                  color: "#f1f5f9",
+                  color: "var(--text)",
                   fontWeight: 700,
                   fontSize: "1.05rem",
                   margin: "0 0 1.25rem",
@@ -819,7 +826,7 @@ export default function ClassDetailClient({
                   style={{
                     width: 4,
                     height: 18,
-                    background: "linear-gradient(180deg, #1d4ed8, transparent)",
+                    background: "linear-gradient(180deg, var(--accent-hover), transparent)",
                     borderRadius: 2,
                     display: "inline-block",
                   }}
@@ -832,15 +839,15 @@ export default function ClassDetailClient({
                     width: 64,
                     height: 64,
                     borderRadius: 14,
-                    background: "linear-gradient(135deg, #1d4ed8, #1e3a8a)",
+                    background: "linear-gradient(135deg, var(--accent-hover), var(--text))",
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontWeight: 800,
                     fontSize: 24,
-                    color: "#fff",
-                    boxShadow: "0 0 0 3px #1e293b, 0 0 0 5px #1d4ed840",
+                    color: "var(--bg-card)",
+                    boxShadow: "0 0 0 3px var(--text), 0 0 0 5px rgba(13,89,70,0.25)",
                   }}
                 >
                   {cls.center.name[0].toUpperCase()}
@@ -849,21 +856,21 @@ export default function ClassDetailClient({
                   <div
                     style={{
                       fontWeight: 700,
-                      color: "#f1f5f9",
+                      color: "var(--text)",
                       fontSize: 16,
                       marginBottom: 4,
                     }}
                   >
                     {cls.center.name}
                   </div>
-                  <div style={{ color: "#64748b", fontSize: 13, marginBottom: 10 }}>
+                  <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 10 }}>
                     {cls.center.city}
                     {cls.center.location ? " · " + cls.center.location : ""}
                   </div>
                   {cls.center.description && (
                     <p
                       style={{
-                        color: "#94a3b8",
+                        color: "var(--text-muted)",
                         fontSize: 14,
                         lineHeight: 1.65,
                         margin: "0 0 14px",
@@ -876,12 +883,12 @@ export default function ClassDetailClient({
                     <Link
                       href={"/centers/" + cls.center.id}
                       style={{
-                        color: "#3b82f6",
+                        color: "var(--accent)",
                         fontSize: 13,
                         textDecoration: "none",
                         fontWeight: 600,
                         padding: "6px 14px",
-                        border: "1px solid #3b82f640",
+                        border: "1px solid rgba(13,89,70,0.25)",
                         borderRadius: 8,
                       }}
                     >
@@ -893,8 +900,8 @@ export default function ClassDetailClient({
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
-                          backgroundColor: "#16a34a",
-                          color: "#fff",
+                          backgroundColor: "var(--success)",
+                          color: "var(--bg-card)",
                           borderRadius: 8,
                           padding: "6px 14px",
                           textDecoration: "none",
@@ -918,8 +925,8 @@ export default function ClassDetailClient({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
               style={{
-                backgroundColor: "#1e293b",
-                border: "1px solid #334155",
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
                 borderRadius: 18,
                 padding: "1.75rem",
                 marginBottom: "1.5rem",
@@ -927,7 +934,7 @@ export default function ClassDetailClient({
             >
               <h2
                 style={{
-                  color: "#f1f5f9",
+                  color: "var(--text)",
                   fontWeight: 700,
                   fontSize: "1.05rem",
                   margin: "0 0 1.25rem",
@@ -940,7 +947,7 @@ export default function ClassDetailClient({
                   style={{
                     width: 4,
                     height: 18,
-                    background: "linear-gradient(180deg, #f59e0b, transparent)",
+                    background: "linear-gradient(180deg, var(--rating), transparent)",
                     borderRadius: 2,
                     display: "inline-block",
                   }}
@@ -958,26 +965,26 @@ export default function ClassDetailClient({
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "0.875rem 1rem",
-                    backgroundColor: "#0f172a",
+                    backgroundColor: "var(--bg-card)",
                     borderRadius: 10,
                     marginBottom: 8,
-                    border: "1px solid #334155",
+                    border: "1px solid var(--border-light)",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 18 }}>
                       {m.isLocked ? "🔒" : "📄"}
                     </span>
-                    <span style={{ color: "#cbd5e1", fontSize: 14, fontWeight: 500 }}>
+                    <span style={{ color: "var(--border)", fontSize: 14, fontWeight: 500 }}>
                       {m.title}
                     </span>
                   </div>
                   {m.isLocked ? (
                     <span
                       style={{
-                        color: "#64748b",
+                        color: "var(--text-muted)",
                         fontSize: 12,
-                        backgroundColor: "#1e293b",
+                        backgroundColor: "var(--bg-card)",
                         padding: "4px 10px",
                         borderRadius: 6,
                       }}
@@ -988,14 +995,14 @@ export default function ClassDetailClient({
                     <a
                       href={m.fileUrl ?? "#"}
                       style={{
-                        color: "#38bdf8",
+                        color: "#1c6e7a",
                         fontSize: 13,
                         textDecoration: "none",
                         fontWeight: 600,
                         padding: "4px 12px",
-                        background: "#0c2a3f",
+                        background: "var(--text)",
                         borderRadius: 6,
-                        border: "1px solid #38bdf820",
+                        border: "1px solid #1c6e7a20",
                       }}
                     >
                       ↓ Download
@@ -1029,7 +1036,7 @@ export default function ClassDetailClient({
             style={{
               position: "sticky",
               top: "6rem",
-              backgroundColor: "#1e293b",
+              backgroundColor: "var(--bg-card)",
               border: `1px solid ${subjectColor.glow}30`,
               borderRadius: 20,
               padding: "1.75rem",
@@ -1042,22 +1049,22 @@ export default function ClassDetailClient({
                 style={{
                   fontSize: "2rem",
                   fontWeight: 800,
-                  color: "#f1f5f9",
+                  color: "var(--text)",
                   letterSpacing: -1,
                 }}
               >
                 {cls.priceEgp === 0 ? (
-                  <span style={{ color: "#22c55e" }}>Free</span>
+                  <span style={{ color: "var(--success)" }}>Free</span>
                 ) : (
                   <>
                     {cls.priceEgp}{" "}
-                    <span style={{ fontSize: "1rem", fontWeight: 600, color: "#64748b" }}>
+                    <span style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-muted)" }}>
                       EGP
                     </span>
                   </>
                 )}
               </div>
-              <div style={{ color: "#64748b", fontSize: 13, marginTop: 2 }}>
+              <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 2 }}>
                 per enrollment
               </div>
             </div>
@@ -1065,7 +1072,7 @@ export default function ClassDetailClient({
             {/* Quick stats */}
             <div
               style={{
-                backgroundColor: "#0f172a",
+                backgroundColor: "var(--bg-card)",
                 borderRadius: 12,
                 padding: "1rem",
                 marginBottom: "1.25rem",
@@ -1111,10 +1118,10 @@ export default function ClassDetailClient({
                     alignItems: "center",
                   }}
                 >
-                  <span style={{ color: "#64748b", fontSize: 13, display: "flex", gap: 6 }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: 13, display: "flex", gap: 6 }}>
                     {item.icon} {item.label}
                   </span>
-                  <span style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, textAlign: "right" as const, maxWidth: "55%" }}>
+                  <span style={{ color: "var(--text)", fontSize: 13, fontWeight: 600, textAlign: "right" as const, maxWidth: "55%" }}>
                     {item.value}
                   </span>
                 </div>
@@ -1134,13 +1141,13 @@ export default function ClassDetailClient({
                 animate={{ opacity: [1, 0.6, 1] }}
                 transition={{ repeat: Infinity, duration: 2.5 }}
                 style={{
-                  backgroundColor: "#1c0a00",
-                  border: "1px solid #92400e",
+                  backgroundColor: "var(--bg-card)",
+                  border: "1px solid var(--warning)",
                   borderRadius: 10,
                   padding: "10px 12px",
                   marginBottom: "1rem",
                   fontSize: 13,
-                  color: "#fdba74",
+                  color: "var(--warning-bg)",
                   fontWeight: 600,
                   textAlign: "center" as const,
                 }}
@@ -1150,6 +1157,23 @@ export default function ClassDetailClient({
             )}
 
             {/* CTA */}
+            {bookingError && (
+              <div
+                style={{
+                  backgroundColor: "var(--bg-card)",
+                  border: "1px solid var(--error)",
+                  color: "var(--error-border)",
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  marginBottom: "1rem",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textAlign: "center" as const,
+                }}
+              >
+                We could not complete this booking. Please try again or choose another class.
+              </div>
+            )}
             {bookingCTA()}
 
             {/* Trust badges */}
@@ -1160,7 +1184,7 @@ export default function ClassDetailClient({
                 gap: 20,
                 marginTop: "1.25rem",
                 paddingTop: "1.25rem",
-                borderTop: "1px solid #334155",
+                borderTop: "1px solid var(--border-light)",
               }}
             >
               {[
@@ -1178,7 +1202,7 @@ export default function ClassDetailClient({
                   }}
                 >
                   <span style={{ fontSize: 16 }}>{t.icon}</span>
-                  <span style={{ color: "#64748b", fontSize: 11, fontWeight: 600 }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>
                     {t.label}
                   </span>
                 </div>
@@ -1204,7 +1228,7 @@ export default function ClassDetailClient({
           >
             <h2
               style={{
-                color: "#f1f5f9",
+                color: "var(--text)",
                 fontWeight: 700,
                 fontSize: "1.1rem",
                 margin: "0 0 1.25rem",
@@ -1239,8 +1263,8 @@ export default function ClassDetailClient({
                   transition={{ delay: 0.65 + i * 0.07 }}
                   whileHover={{ y: -3, boxShadow: `0 12px 32px ${subjectColor.glow}20` }}
                   style={{
-                    backgroundColor: "#1e293b",
-                    border: "1px solid #334155",
+                    backgroundColor: "var(--bg-card)",
+                    border: "1px solid var(--border-light)",
                     borderRadius: 16,
                     padding: "1.25rem",
                     cursor: "pointer",
@@ -1266,7 +1290,7 @@ export default function ClassDetailClient({
                     <div
                       style={{
                         fontWeight: 700,
-                        color: "#f1f5f9",
+                        color: "var(--text)",
                         fontSize: 15,
                         marginBottom: 8,
                         lineHeight: 1.3,
@@ -1277,7 +1301,7 @@ export default function ClassDetailClient({
                     {r.description && (
                       <div
                         style={{
-                          color: "#64748b",
+                          color: "var(--text-muted)",
                           fontSize: 13,
                           lineHeight: 1.5,
                           marginBottom: 12,
@@ -1291,7 +1315,7 @@ export default function ClassDetailClient({
                     <div
                       style={{
                         fontWeight: 700,
-                        color: r.priceEgp === 0 ? "#22c55e" : "#f1f5f9",
+                        color: r.priceEgp === 0 ? "var(--success)" : "var(--bg-subtle)",
                         fontSize: 15,
                       }}
                     >
@@ -1318,8 +1342,8 @@ export default function ClassDetailClient({
               bottom: 0,
               left: 0,
               right: 0,
-              backgroundColor: "#1e293b",
-              borderTop: "1px solid #334155",
+              backgroundColor: "var(--bg-card)",
+              borderTop: "1px solid var(--border-light)",
               padding: "1rem 1.5rem",
               display: "flex",
               alignItems: "center",
@@ -1332,11 +1356,11 @@ export default function ClassDetailClient({
           >
             <div>
               <div
-                style={{ fontWeight: 800, color: "#f1f5f9", fontSize: "1.2rem" }}
+                style={{ fontWeight: 800, color: "var(--text)", fontSize: "1.2rem" }}
               >
                 {cls.priceEgp === 0 ? "Free" : cls.priceEgp + " EGP"}
               </div>
-              <div style={{ color: "#64748b", fontSize: 12 }}>
+              <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
                 {cls.spotsLeft !== null
                   ? cls.spotsLeft + " spots left"
                   : "Unlimited spots"}
@@ -1363,6 +1387,12 @@ export default function ClassDetailClient({
           }
         }
       `}</style>
+
+      <SignInRequiredModal
+        open={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
+        callbackUrl={`/classes/${classId}`}
+      />
     </div>
   );
 }

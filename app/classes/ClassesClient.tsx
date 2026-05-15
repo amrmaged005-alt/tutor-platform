@@ -3,8 +3,31 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
+import {
+  Atom,
+  BadgeDollarSign,
+  Beaker,
+  BookOpen,
+  BriefcaseBusiness,
+  Calculator,
+  Clock3,
+  Code2,
+  Flame,
+  Globe2,
+  GraduationCap,
+  Languages,
+  Laptop,
+  MapPin,
+  Monitor,
+  Search,
+  Target,
+  X,
+} from "lucide-react";
 import PageShell from "../../components/ui/PageShell";
 import SectionHeader from "../../components/ui/SectionHeader";
+import EmptyState from "../../components/ui/EmptyState";
+import { useI18n } from "../components/i18n";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
 export interface ClassCardData {
@@ -30,27 +53,27 @@ export interface ClassCardData {
 }
 
 // ─── CONSTANTS ─────────────────────────────────────────────────────────────────
-const SUBJECT_META: Record<string, { color: string; bg: string; emoji: string }> = {
-  Math: { color: "#60a5fa", bg: "#1e3a5f", emoji: "📐" },
-  Mathematics: { color: "#60a5fa", bg: "#1e3a5f", emoji: "📐" },
-  Physics: { color: "#c084fc", bg: "#2e1065", emoji: "⚡" },
-  Chemistry: { color: "#34d399", bg: "#064e3b", emoji: "🧪" },
-  Biology: { color: "#4ade80", bg: "#052e16", emoji: "🧬" },
-  English: { color: "#fb923c", bg: "#422006", emoji: "📝" },
-  Arabic: { color: "#f87171", bg: "#450a0a", emoji: "✍️" },
-  History: { color: "#a8a29e", bg: "#1c1917", emoji: "📜" },
-  Geography: { color: "#2dd4bf", bg: "#042f2e", emoji: "🌍" },
-  "Computer Science": { color: "#38bdf8", bg: "#0c1a2e", emoji: "💻" },
-  Science: { color: "#34d399", bg: "#052e16", emoji: "🔬" },
-  French: { color: "#a78bfa", bg: "#1e1b4b", emoji: "🇫🇷" },
-  Economics: { color: "#fbbf24", bg: "#1c1400", emoji: "📊" },
-  Business: { color: "#e879f9", bg: "#2d0a3f", emoji: "💼" },
+const SUBJECT_META: Record<string, { color: string; bg: string; Icon: LucideIcon }> = {
+  Math: { color: "var(--accent)", bg: "var(--accent-bg)", Icon: Calculator },
+  Mathematics: { color: "var(--accent)", bg: "var(--accent-bg)", Icon: Calculator },
+  Physics: { color: "#7b4d80", bg: "rgba(123,77,128,0.12)", Icon: Atom },
+  Chemistry: { color: "var(--success)", bg: "var(--success-bg)", Icon: Beaker },
+  Biology: { color: "var(--success)", bg: "var(--success-bg)", Icon: Atom },
+  English: { color: "#8a5e1a", bg: "rgba(138,94,26,0.12)", Icon: BookOpen },
+  Arabic: { color: "var(--error)", bg: "var(--error-bg)", Icon: Languages },
+  History: { color: "#8a5e1a", bg: "rgba(138,94,26,0.12)", Icon: BookOpen },
+  Geography: { color: "var(--accent)", bg: "var(--accent-bg)", Icon: Globe2 },
+  "Computer Science": { color: "#1c6e7a", bg: "rgba(28,110,122,0.12)", Icon: Code2 },
+  Science: { color: "var(--success)", bg: "var(--success-bg)", Icon: Beaker },
+  French: { color: "#7b4d80", bg: "rgba(123,77,128,0.12)", Icon: Languages },
+  Economics: { color: "var(--rating)", bg: "rgba(184,134,27,0.14)", Icon: BadgeDollarSign },
+  Business: { color: "#7b4d80", bg: "rgba(123,77,128,0.12)", Icon: BriefcaseBusiness },
 };
 
-const FORMAT_META: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  IN_PERSON: { label: "In-Person", color: "#4ade80", bg: "#052e16", icon: "📍" },
-  ONLINE: { label: "Online", color: "#38bdf8", bg: "#0c2a3f", icon: "💻" },
-  HYBRID: { label: "Hybrid", color: "#c084fc", bg: "#1e1040", icon: "🔀" },
+const FORMAT_META: Record<string, { label: string; color: string; bg: string; Icon: LucideIcon }> = {
+  IN_PERSON: { label: "In-Person", color: "var(--success)", bg: "var(--success-bg)", Icon: MapPin },
+  ONLINE: { label: "Online", color: "#1c6e7a", bg: "rgba(28,110,122,0.12)", Icon: Monitor },
+  HYBRID: { label: "Hybrid", color: "#7b4d80", bg: "rgba(123,77,128,0.12)", Icon: Laptop },
 };
 
 const CURRICULUM_LABELS: Record<string, string> = {
@@ -64,24 +87,137 @@ const ALL_FORMATS = ["IN_PERSON", "ONLINE", "HYBRID"];
 const ALL_GRADES = ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "Thanaweya Amma", "IGCSE", "AS Level", "A Level", "SAT", "ACT"];
 const TRENDING = ["Math", "Physics", "IGCSE", "Online", "Thanaweya Amma", "Chemistry", "Grade 11"];
 
+const COPY = {
+  en: {
+    home: "Back Home",
+    browse: "Browse",
+    classes: "Classes",
+    subtitle: (count: number) => `${count} classes across all subjects and curricula. Find yours in seconds.`,
+    searchPlaceholder: "Search by name, subject, tutor, or keyword...",
+    trending: "Trending:",
+    filters: "Filters",
+    clearAll: "Clear all",
+    clear: "Clear",
+    format: "Format",
+    subject: "Subject",
+    curriculum: "Curriculum",
+    allCurricula: "All Curricula",
+    grade: "Grade / Level",
+    allGrades: "All Grades",
+    maxPrice: "Max Price:",
+    any: "Any",
+    free: "Free",
+    showing: "Showing",
+    classWord: "class",
+    classesWord: "classes",
+    matchingFilters: "matching filters",
+    newest: "Newest first",
+    priceLowHigh: "Price: Low to High",
+    priceHighLow: "Price: High to Low",
+    popular: "Most popular",
+    topRatedSort: "Top rated",
+    noFound: "No classes found",
+    adjustFilters: "Try adjusting your filters.",
+    clearFilters: "Clear all filters",
+    filling: "Filling Up Fast",
+    fillingSub: "These classes have very few spots remaining",
+    actNow: "Act Now",
+    topRated: "Top Rated Classes",
+    topRatedSub: "Highly reviewed by enrolled students",
+    highestRated: "Highest Rated",
+    onlineTitle: "Learn From Anywhere",
+    onlineSub: "Online classes - join from home",
+    online: "Online",
+    freeTitle: "Free Classes",
+    freeSub: "Start learning at zero cost",
+    allTitle: "All Classes",
+    allSub: "Browse the full catalogue",
+    all: "All",
+    noAvailable: "No classes available yet. Check back soon!",
+    full: "Full",
+    center: "CENTER",
+    verifiedTutor: "Verified Tutor",
+    perMonth: "per month",
+    viewClass: "View Class",
+    inPerson: "In-Person",
+    hybrid: "Hybrid",
+  },
+  ar: {
+    home: "العودة للرئيسية",
+    browse: "تصفح",
+    classes: "الفصول",
+    subtitle: (count: number) => `${count} فصل عبر كل المواد والمناهج. اعثر على المناسب بسرعة.`,
+    searchPlaceholder: "ابحث باسم الفصل أو المادة أو المدرس أو كلمة مفتاحية...",
+    trending: "الأكثر بحثا:",
+    filters: "الفلاتر",
+    clearAll: "مسح الكل",
+    clear: "مسح",
+    format: "النظام",
+    subject: "المادة",
+    curriculum: "المنهج",
+    allCurricula: "كل المناهج",
+    grade: "الصف / المستوى",
+    allGrades: "كل الصفوف",
+    maxPrice: "أقصى سعر:",
+    any: "أي سعر",
+    free: "مجاني",
+    showing: "عرض",
+    classWord: "فصل",
+    classesWord: "فصول",
+    matchingFilters: "مطابقة للفلاتر",
+    newest: "الأحدث أولا",
+    priceLowHigh: "السعر: من الأقل للأعلى",
+    priceHighLow: "السعر: من الأعلى للأقل",
+    popular: "الأكثر طلبا",
+    topRatedSort: "الأعلى تقييما",
+    noFound: "لا توجد فصول",
+    adjustFilters: "جرب تعديل الفلاتر.",
+    clearFilters: "مسح كل الفلاتر",
+    filling: "أماكن محدودة",
+    fillingSub: "هذه الفصول بها عدد قليل من المقاعد المتاحة",
+    actNow: "احجز الآن",
+    topRated: "أعلى الفصول تقييما",
+    topRatedSub: "فصول حصلت على تقييمات عالية من الطلاب",
+    highestRated: "الأعلى تقييما",
+    onlineTitle: "تعلم من أي مكان",
+    onlineSub: "فصول أونلاين - انضم من المنزل",
+    online: "أونلاين",
+    freeTitle: "فصول مجانية",
+    freeSub: "ابدأ التعلم بدون تكلفة",
+    allTitle: "كل الفصول",
+    allSub: "تصفح الكتالوج الكامل",
+    all: "الكل",
+    noAvailable: "لا توجد فصول متاحة حاليا. تحقق لاحقا.",
+    full: "مكتمل",
+    center: "مركز",
+    verifiedTutor: "مدرس موثق",
+    perMonth: "شهريا",
+    viewClass: "عرض الفصل",
+    inPerson: "حضوري",
+    hybrid: "مختلط",
+  },
+} as const;
+
+type ClassesCopy = (typeof COPY)[keyof typeof COPY];
+
 function getSubjectMeta(subject: string) {
-  return SUBJECT_META[subject] ?? { color: "#94a3b8", bg: "#1e293b", emoji: "📚" };
+  return SUBJECT_META[subject] ?? { color: "var(--text-secondary)", bg: "var(--bg-alt)", Icon: BookOpen };
 }
 
 // ─── SPOTS BAR ─────────────────────────────────────────────────────────────────
 function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
   const pct = Math.min((booked / capacity) * 100, 100);
   const left = capacity - booked;
-  const color = pct > 80 ? "#ef4444" : pct > 50 ? "#f59e0b" : "#22c55e";
+  const color = pct > 80 ? "var(--error)" : pct > 50 ? "var(--rating)" : "var(--success)";
   return (
     <div style={{ marginTop: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 11, color: "#64748b" }}>{booked} enrolled</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: left <= 3 ? "#ef4444" : left <= 5 ? "#f59e0b" : "#64748b" }}>
-          {left <= 0 ? "FULL" : left <= 5 ? `⚡ ${left} left!` : `${left} spots`}
+        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{booked} enrolled</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: left <= 3 ? "var(--error)" : left <= 5 ? "var(--rating)" : "var(--text-muted)" }}>
+          {left <= 0 ? "FULL" : left <= 5 ? `${left} left` : `${left} spots`}
         </span>
       </div>
-      <div style={{ height: 4, backgroundColor: "#334155", borderRadius: 99, overflow: "hidden" }}>
+      <div style={{ height: 4, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden" }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -94,9 +230,11 @@ function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
 }
 
 // ─── CLASS CARD ────────────────────────────────────────────────────────────────
-function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
+function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: number; copy: ClassesCopy }) {
   const meta = getSubjectMeta(cls.subject);
-  const fmt = FORMAT_META[cls.format] ?? { label: cls.format, color: "#94a3b8", bg: "#1e293b", icon: "📍" };
+  const fmt = FORMAT_META[cls.format] ?? { label: cls.format, color: "var(--text-secondary)", bg: "var(--bg-alt)", Icon: MapPin };
+  const SubjectIcon = meta.Icon;
+  const FormatIcon = fmt.Icon;
   const isFull = cls.spotsLeft !== null && cls.spotsLeft <= 0;
   const isUrgent = cls.spotsLeft !== null && cls.spotsLeft > 0 && cls.spotsLeft <= 5;
   const displayName = cls.center?.name ?? cls.owner?.fullName ?? cls.owner?.name ?? "Coursaty Tutor";
@@ -110,10 +248,10 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
       transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
       whileHover={{ y: -6, boxShadow: `0 20px 48px ${meta.color}20` }}
       onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = `${meta.color}50`; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "#334155"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--text-secondary)"; }}
       style={{
-        backgroundColor: "#1e293b",
-        border: "1px solid #334155",
+        backgroundColor: "var(--bg-card)",
+        border: "1px solid var(--border-light)",
         borderRadius: 20,
         overflow: "hidden",
         display: "flex",
@@ -121,14 +259,21 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
         cursor: "pointer",
         transition: "border-color 0.2s",
         position: "relative",
+        textDecoration: "none",
+        color: "inherit",
       }}
     >
+      <Link
+        href={`/classes/${cls.id}`}
+        aria-label={`View ${cls.title}`}
+        style={{ position: "absolute", inset: 0, zIndex: 3 }}
+      />
       {/* Urgency top bar */}
       {isUrgent && (
         <motion.div
           animate={{ opacity: [1, 0.6, 1] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          style={{ height: 3, background: "linear-gradient(90deg, #ef4444, #f59e0b)", flexShrink: 0 }}
+          style={{ height: 3, background: "linear-gradient(90deg, var(--error), var(--rating))", flexShrink: 0 }}
         />
       )}
 
@@ -145,8 +290,9 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
             backgroundColor: meta.bg, color: meta.color,
             fontSize: 12, fontWeight: 700, padding: "4px 12px",
             borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 5,
+            border: `1px solid ${meta.color}2f`,
           }}>
-            <span>{meta.emoji}</span> {cls.subject}
+            <SubjectIcon size={13} strokeWidth={2} /> {cls.subject}
           </span>
 
           {/* Format badge */}
@@ -154,14 +300,15 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
             backgroundColor: fmt.bg, color: fmt.color,
             fontSize: 11, fontWeight: 600, padding: "3px 10px",
             borderRadius: 999, border: `1px solid ${fmt.color}30`,
+            display: "inline-flex", alignItems: "center", gap: 5,
           }}>
-            {fmt.icon} {fmt.label}
+            <FormatIcon size={12} strokeWidth={2} /> {cls.format === "IN_PERSON" ? copy.inPerson : cls.format === "ONLINE" ? copy.online : cls.format === "HYBRID" ? copy.hybrid : fmt.label}
           </span>
         </div>
 
         {/* Title */}
         <h3 style={{
-          fontSize: 15, fontWeight: 700, color: "#f1f5f9",
+          fontSize: 15, fontWeight: 700, color: "var(--text)",
           margin: "0 0 8px", lineHeight: 1.3,
         }}>
           {cls.title}
@@ -169,22 +316,22 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
 
         {/* Tags row */}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-          <span style={{ backgroundColor: "#0f172a", color: "#64748b", fontSize: 11, padding: "2px 8px", borderRadius: 999, border: "1px solid #334155" }}>
+          <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--border-light)" }}>
             {CURRICULUM_LABELS[cls.curriculum] ?? cls.curriculum}
           </span>
           {cls.gradeLevel && (
-            <span style={{ backgroundColor: "#0f172a", color: "#64748b", fontSize: 11, padding: "2px 8px", borderRadius: 999, border: "1px solid #334155" }}>
+            <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--border-light)" }}>
               {cls.gradeLevel}
             </span>
           )}
           {isFull && (
-            <span style={{ backgroundColor: "#450a0a", color: "#fca5a5", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>
-              FULL
+            <span style={{ backgroundColor: "var(--bg-card)", color: "var(--error-border)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>
+              {copy.full}
             </span>
           )}
           {isUrgent && !isFull && (
-            <span style={{ backgroundColor: "#451a03", color: "#fdba74", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>
-              🔥 {cls.spotsLeft} left
+            <span style={{ backgroundColor: "var(--bg-card)", color: "var(--warning-bg)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>
+              {cls.spotsLeft} left
             </span>
           )}
         </div>
@@ -192,7 +339,7 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
         {/* Description */}
         {cls.description && (
           <p style={{
-            color: "#64748b", fontSize: 13, lineHeight: 1.6,
+            color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6,
             margin: "0 0 10px",
             display: "-webkit-box", WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical", overflow: "hidden",
@@ -204,26 +351,26 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
         {/* Info rows */}
         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
           {(cls.location || cls.city) && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#94a3b8" }}>
-              <span>📍</span><span>{cls.location ?? cls.city}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)" }}>
+              <MapPin size={14} strokeWidth={1.8} /><span>{cls.location ?? cls.city}</span>
             </div>
           )}
           {cls.schedule && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#94a3b8" }}>
-              <span>🕐</span><span>{cls.schedule}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)" }}>
+              <Clock3 size={14} strokeWidth={1.8} /><span>{cls.schedule}</span>
             </div>
           )}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#94a3b8" }}>
-            <span>{isCenter ? "🏫" : "👤"}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)" }}>
+            {isCenter ? <GraduationCap size={14} strokeWidth={1.8} /> : <BookOpen size={14} strokeWidth={1.8} />}
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
               {displayName}
               {cls.owner?.isVerified && (
-                <span title="Verified Tutor" style={{ color: "#38bdf8", fontSize: 12 }}>✓</span>
+                <span title={copy.verifiedTutor} style={{ color: "#1c6e7a", fontSize: 12 }}>✓</span>
               )}
             </span>
             {isCenter && (
-              <span style={{ backgroundColor: "#1d4ed820", color: "#60a5fa", fontSize: 10, padding: "1px 6px", borderRadius: 6, fontWeight: 600, border: "1px solid #1d4ed840" }}>
-                CENTER
+              <span style={{ backgroundColor: "rgba(13,89,70,0.13)", color: "var(--accent)", fontSize: 10, padding: "1px 6px", borderRadius: 6, fontWeight: 600, border: "1px solid rgba(13,89,70,0.25)" }}>
+                {copy.center}
               </span>
             )}
           </div>
@@ -232,9 +379,9 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
         {/* Rating */}
         {cls.avgRating !== null && (
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-            <span style={{ color: "#f59e0b", fontSize: 13 }}>{"★".repeat(Math.round(cls.avgRating))}{"☆".repeat(5 - Math.round(cls.avgRating))}</span>
-            <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 13 }}>{cls.avgRating.toFixed(1)}</span>
-            <span style={{ color: "#64748b", fontSize: 12 }}>({cls.reviewCount})</span>
+            <span style={{ color: "var(--rating)", fontSize: 13 }}>{"★".repeat(Math.round(cls.avgRating))}{"☆".repeat(5 - Math.round(cls.avgRating))}</span>
+            <span style={{ fontWeight: 700, color: "var(--text)", fontSize: 13 }}>{cls.avgRating.toFixed(1)}</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 12 }}>({cls.reviewCount})</span>
           </div>
         )}
 
@@ -246,27 +393,26 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
 
       {/* Footer */}
       <div style={{ padding: "14px 18px 18px", marginTop: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: "1px solid #334155" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: "1px solid var(--border-light)" }}>
           <div>
-            <div style={{ fontSize: "1.2rem", fontWeight: 900, color: cls.priceEgp === 0 ? "#4ade80" : "#38bdf8" }}>
-              {cls.priceEgp === 0 ? "Free" : cls.priceEgp.toLocaleString() + " EGP"}
+            <div style={{ fontSize: "1.2rem", fontWeight: 900, color: cls.priceEgp === 0 ? "var(--success)" : "#1c6e7a" }}>
+              {cls.priceEgp === 0 ? copy.free : cls.priceEgp.toLocaleString() + " EGP"}
             </div>
-            {cls.priceEgp > 0 && <div style={{ fontSize: 10, color: "#64748b" }}>per month</div>}
+            {cls.priceEgp > 0 && <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{copy.perMonth}</div>}
           </div>
-          <Link
-            href={`/classes/${cls.id}`}
+          <span
             style={{
-              backgroundColor: isFull ? "#1e293b" : `${meta.color}20`,
-              color: isFull ? "#64748b" : meta.color,
-              border: `1px solid ${isFull ? "#334155" : `${meta.color}40`}`,
+              backgroundColor: isFull ? "var(--text)" : `${meta.color}20`,
+              color: isFull ? "var(--text-muted)" : meta.color,
+              border: `1px solid ${isFull ? "var(--text-secondary)" : `${meta.color}40`}`,
               borderRadius: 10, padding: "7px 16px",
               fontSize: 13, fontWeight: 700,
               textDecoration: "none", whiteSpace: "nowrap",
               transition: "all 0.2s",
             }}
           >
-            {isFull ? "Full" : "View Class →"}
-          </Link>
+            {isFull ? copy.full : copy.viewClass}
+          </span>
         </div>
       </div>
     </motion.div>
@@ -280,7 +426,7 @@ function FilterSidebar({
   selectedCurriculum, setSelectedCurriculum,
   selectedGrade, setSelectedGrade,
   maxPrice, setMaxPrice,
-  onClear, hasFilters,
+  onClear, hasFilters, copy,
 }: {
   selectedSubjects: string[]; setSelectedSubjects: (s: string[]) => void;
   selectedFormats: string[]; setSelectedFormats: (f: string[]) => void;
@@ -288,6 +434,7 @@ function FilterSidebar({
   selectedGrade: string; setSelectedGrade: (g: string) => void;
   maxPrice: number; setMaxPrice: (p: number) => void;
   onClear: () => void; hasFilters: boolean;
+  copy: ClassesCopy;
 }) {
   function toggleSubject(s: string) {
     setSelectedSubjects(selectedSubjects.includes(s)
@@ -301,7 +448,7 @@ function FilterSidebar({
   }
 
   const sectionLabel: React.CSSProperties = {
-    fontSize: 11, fontWeight: 700, color: "#64748b",
+    fontSize: 11, fontWeight: 700, color: "var(--text-muted)",
     letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10,
   };
 
@@ -309,26 +456,29 @@ function FilterSidebar({
     <div style={{
       width: 256, flexShrink: 0,
       position: "sticky", top: 24, alignSelf: "flex-start",
-      backgroundColor: "#1e293b", border: "1px solid #334155",
+      backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)",
       borderRadius: 20, padding: "20px 18px",
       display: "flex", flexDirection: "column", gap: 22,
     }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: "#f1f5f9" }}>🎯 Filters</span>
+        <span style={{ fontWeight: 700, fontSize: 15, color: "var(--text)", display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <Target size={16} strokeWidth={2} /> {copy.filters}
+        </span>
         {hasFilters && (
-          <button onClick={onClear} style={{ background: "none", border: "none", color: "#3b82f6", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0 }}>
-            Clear all
+          <button onClick={onClear} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0 }}>
+            {copy.clearAll}
           </button>
         )}
       </div>
 
       {/* Format */}
       <div>
-        <div style={sectionLabel}>Format</div>
+        <div style={sectionLabel}>{copy.format}</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {ALL_FORMATS.map(f => {
             const fmt = FORMAT_META[f];
+            const FormatIcon = fmt.Icon;
             const active = selectedFormats.includes(f);
             return (
               <button key={f} onClick={() => toggleFormat(f)} style={{
@@ -336,11 +486,11 @@ function FilterSidebar({
                 background: active ? `${fmt.color}12` : "none",
                 border: `1px solid ${active ? fmt.color + "40" : "transparent"}`,
                 borderRadius: 8, padding: "7px 10px", textAlign: "left",
-                color: active ? fmt.color : "#94a3b8",
+                color: active ? fmt.color : "var(--text-muted)",
                 fontWeight: active ? 600 : 400, fontSize: 14, cursor: "pointer",
                 transition: "all 0.15s",
               }}>
-                <span>{fmt.icon}</span> {fmt.label}
+                <FormatIcon size={14} strokeWidth={1.9} /> {f === "IN_PERSON" ? copy.inPerson : f === "ONLINE" ? copy.online : f === "HYBRID" ? copy.hybrid : fmt.label}
               </button>
             );
           })}
@@ -349,7 +499,7 @@ function FilterSidebar({
 
       {/* Subjects */}
       <div>
-        <div style={sectionLabel}>Subject</div>
+        <div style={sectionLabel}>{copy.subject}</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {ALL_SUBJECTS.map(s => {
             const active = selectedSubjects.includes(s);
@@ -358,9 +508,9 @@ function FilterSidebar({
               <button key={s} onClick={() => toggleSubject(s)} style={{
                 padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600,
                 cursor: "pointer",
-                border: `1px solid ${active ? meta.color : "#334155"}`,
+                border: `1px solid ${active ? meta.color : "var(--text-secondary)"}`,
                 backgroundColor: active ? meta.bg : "transparent",
-                color: active ? meta.color : "#64748b",
+                color: active ? meta.color : "var(--text-muted)",
                 transition: "all 0.15s",
               }}>
                 {s}
@@ -372,21 +522,21 @@ function FilterSidebar({
 
       {/* Curriculum */}
       <div>
-        <div style={sectionLabel}>Curriculum</div>
+        <div style={sectionLabel}>{copy.curriculum}</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <button onClick={() => setSelectedCurriculum("")} style={{
-            background: selectedCurriculum === "" ? "#3b82f615" : "none",
-            border: selectedCurriculum === "" ? "1px solid #3b82f640" : "1px solid transparent",
+            background: selectedCurriculum === "" ? "rgba(13,89,70,0.08)" : "none",
+            border: selectedCurriculum === "" ? "1px solid rgba(13,89,70,0.25)" : "1px solid transparent",
             borderRadius: 8, padding: "6px 10px", textAlign: "left",
-            color: selectedCurriculum === "" ? "#3b82f6" : "#94a3b8",
+            color: selectedCurriculum === "" ? "var(--accent)" : "var(--text-muted)",
             fontSize: 13, fontWeight: selectedCurriculum === "" ? 600 : 400, cursor: "pointer",
-          }}>All Curricula</button>
+          }}>{copy.allCurricula}</button>
           {ALL_CURRICULA.map(c => (
             <button key={c} onClick={() => setSelectedCurriculum(c === selectedCurriculum ? "" : c)} style={{
-              background: selectedCurriculum === c ? "#3b82f615" : "none",
-              border: selectedCurriculum === c ? "1px solid #3b82f640" : "1px solid transparent",
+              background: selectedCurriculum === c ? "rgba(13,89,70,0.08)" : "none",
+              border: selectedCurriculum === c ? "1px solid rgba(13,89,70,0.25)" : "1px solid transparent",
               borderRadius: 8, padding: "6px 10px", textAlign: "left",
-              color: selectedCurriculum === c ? "#3b82f6" : "#94a3b8",
+              color: selectedCurriculum === c ? "var(--accent)" : "var(--text-muted)",
               fontSize: 13, fontWeight: selectedCurriculum === c ? 600 : 400, cursor: "pointer",
             }}>{CURRICULUM_LABELS[c]}</button>
           ))}
@@ -395,17 +545,17 @@ function FilterSidebar({
 
       {/* Grade */}
       <div>
-        <div style={sectionLabel}>Grade / Level</div>
+        <div style={sectionLabel}>{copy.grade}</div>
         <select
           value={selectedGrade}
           onChange={e => setSelectedGrade(e.target.value)}
           style={{
-            width: "100%", backgroundColor: "#0f172a", color: "#cbd5e1",
-            border: "1px solid #334155", borderRadius: 10,
+            width: "100%", backgroundColor: "var(--bg-card)", color: "var(--border)",
+            border: "1px solid var(--border-light)", borderRadius: 10,
             padding: "8px 12px", fontSize: 13, cursor: "pointer", outline: "none",
           }}
         >
-          <option value="">All Grades</option>
+          <option value="">{copy.allGrades}</option>
           {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
         </select>
       </div>
@@ -413,16 +563,16 @@ function FilterSidebar({
       {/* Max Price */}
       <div>
         <div style={{ ...sectionLabel, marginBottom: 8 }}>
-          Max Price: <span style={{ color: "#f1f5f9", fontWeight: 700 }}>{maxPrice === 2000 ? "Any" : `${maxPrice} EGP`}</span>
+          {copy.maxPrice} <span style={{ color: "var(--text)", fontWeight: 700 }}>{maxPrice === 2000 ? copy.any : `${maxPrice} EGP`}</span>
         </div>
         <input
           type="range" min={0} max={2000} step={50}
           value={maxPrice}
           onChange={e => setMaxPrice(Number(e.target.value))}
-          style={{ width: "100%", accentColor: "#3b82f6" }}
+          style={{ width: "100%", accentColor: "var(--accent)" }}
         />
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#64748b", marginTop: 4 }}>
-          <span>Free</span><span>2000 EGP</span>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+          <span>{copy.free}</span><span>2000 EGP</span>
         </div>
       </div>
     </div>
@@ -431,6 +581,8 @@ function FilterSidebar({
 
 // ─── MAIN CLIENT COMPONENT ─────────────────────────────────────────────────────
 export default function ClassesClient({ classes }: { classes: ClassCardData[] }) {
+  const { lang } = useI18n();
+  const copy = COPY[lang];
   const [search, setSearch] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
@@ -506,32 +658,32 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
       {/* ── HERO ── */}
       <div style={{
         position: "relative", overflow: "hidden",
-        background: "linear-gradient(135deg, #0f172a 0%, #0c1a2e 50%, #0f172a 100%)",
-        borderBottom: "1px solid #334155",
+        background: "linear-gradient(135deg, var(--text) 0%, var(--text) 50%, var(--text) 100%)",
+        borderBottom: "1px solid var(--border-light)",
         padding: "52px 24px 44px", zIndex: 1,
       }}>
         {/* Grid texture */}
         <div style={{
           position: "absolute", inset: 0, pointerEvents: "none",
-          backgroundImage: `linear-gradient(#ffffff05 1px, transparent 1px), linear-gradient(90deg, #ffffff05 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(251,250,246,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(251,250,246,0.02) 1px, transparent 1px)`,
           backgroundSize: "40px 40px",
         }} />
         {/* Glow orb */}
         <div style={{
           position: "absolute", top: -120, right: -80,
           width: 500, height: 500, borderRadius: "50%",
-          background: "radial-gradient(circle, #38bdf820 0%, transparent 65%)",
+          background: "radial-gradient(circle, #1c6e7a20 0%, transparent 65%)",
           pointerEvents: "none",
         }} />
         <div style={{
           position: "absolute", bottom: -80, left: -60,
           width: 400, height: 400, borderRadius: "50%",
-          background: "radial-gradient(circle, #3b82f615 0%, transparent 65%)",
+          background: "radial-gradient(circle, rgba(13,89,70,0.08) 0%, transparent 65%)",
           pointerEvents: "none",
         }} />
 
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
-          <Link href="/" style={{ color: "#64748b", fontSize: 13, textDecoration: "none" }}>← Home</Link>
+          <Link href="/" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>{copy.home}</Link>
 
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
@@ -542,9 +694,9 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
               margin: "20px 0 10px", letterSpacing: "-0.03em", lineHeight: 1.15,
             }}
           >
-            Browse{" "}
-            <span style={{ background: "linear-gradient(90deg, #38bdf8, #3b82f6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              Classes
+            {copy.browse}{" "}
+            <span style={{ background: "linear-gradient(90deg, #1c6e7a, var(--accent))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              {copy.classes}
             </span>
           </motion.h1>
 
@@ -552,9 +704,9 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.13 }}
-            style={{ color: "#94a3b8", fontSize: 17, marginBottom: 24, maxWidth: 460 }}
+            style={{ color: "var(--text-muted)", fontSize: 17, marginBottom: 24, maxWidth: 460 }}
           >
-            {classes.length} classes across all subjects and curricula. Find yours in seconds.
+            {copy.subtitle(classes.length)}
           </motion.p>
 
           {/* Search */}
@@ -564,24 +716,24 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             transition={{ delay: 0.18 }}
             style={{ position: "relative", maxWidth: 560, marginBottom: 20 }}
           >
-            <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 18, pointerEvents: "none" }}>🔍</span>
+            <Search size={18} strokeWidth={1.8} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }} />
             <input
               type="text"
-              placeholder="Search by name, subject, tutor, or keyword..."
+              placeholder={copy.searchPlaceholder}
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{
-                width: "100%", backgroundColor: "#1e293b",
-                border: "1px solid #334155", borderRadius: 14,
-                padding: "13px 16px 13px 48px", color: "#f1f5f9",
+                width: "100%", backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)", borderRadius: 14,
+                padding: "13px 16px 13px 48px", color: "var(--text)",
                 fontSize: 15, outline: "none", boxSizing: "border-box",
                 fontFamily: "inherit", transition: "border-color 0.2s",
               }}
-              onFocus={e => (e.target.style.borderColor = "#38bdf8")}
-              onBlur={e => (e.target.style.borderColor = "#334155")}
+              onFocus={e => (e.target.style.borderColor = "#1c6e7a")}
+              onBlur={e => (e.target.style.borderColor = "var(--text-secondary)")}
             />
             {search && (
-              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: 18 }}>×</button>
+              <button onClick={() => setSearch("")} aria-label="Clear search" style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "inline-flex", padding: 4 }}><X size={16} strokeWidth={2} /></button>
             )}
           </motion.div>
 
@@ -592,7 +744,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             transition={{ delay: 0.22 }}
             style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}
           >
-            <span style={{ color: "#64748b", fontSize: 12, fontWeight: 600 }}>🔥 Trending:</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 5 }}><Flame size={14} strokeWidth={2} /> {copy.trending}</span>
             {TRENDING.map(tag => {
               const isActive = selectedSubjects.includes(tag)
                 || (tag === "Online" && selectedFormats.includes("ONLINE"))
@@ -607,9 +759,9 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                   style={{
                     padding: "5px 14px", borderRadius: 999, fontSize: 13,
                     fontWeight: 600, cursor: "pointer",
-                    border: `1px solid ${isActive ? meta.color : "#334155"}`,
-                    backgroundColor: isActive ? meta.bg : "#1e293b",
-                    color: isActive ? meta.color : "#64748b",
+                    border: `1px solid ${isActive ? meta.color : "var(--text-secondary)"}`,
+                    backgroundColor: isActive ? meta.bg : "var(--text)",
+                    color: isActive ? meta.color : "var(--text-muted)",
                     transition: "all 0.15s",
                   }}
                 >
@@ -636,56 +788,56 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
           selectedGrade={selectedGrade} setSelectedGrade={setSelectedGrade}
           maxPrice={maxPrice} setMaxPrice={setMaxPrice}
           onClear={clearFilters} hasFilters={hasFilters}
+          copy={copy}
         />
 
         {/* Cards area */}
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Controls row */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-            <span style={{ color: "#64748b", fontSize: 14 }}>
-              Showing{" "}
-              <span style={{ color: "#f1f5f9", fontWeight: 700 }}>{filtered.length}</span>
-              {" "}class{filtered.length !== 1 ? "es" : ""}
-              {hasFilters && " matching filters"}
+            <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
+              {copy.showing}{" "}
+              <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span>
+              {" "}{filtered.length === 1 ? copy.classWord : copy.classesWord}
+              {hasFilters && ` ${copy.matchingFilters}`}
             </span>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {hasFilters && (
                 <button onClick={clearFilters} style={{
-                  background: "none", border: "1px solid #334155", color: "#94a3b8",
+                  background: "none", border: "1px solid var(--border-light)", color: "var(--text-muted)",
                   borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                }}>✕ Clear</button>
+                }}><X size={13} strokeWidth={2} /> {copy.clear}</button>
               )}
               <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)} style={{
-                backgroundColor: "#1e293b", color: "#cbd5e1",
-                border: "1px solid #334155", borderRadius: 10,
+                backgroundColor: "var(--bg-card)", color: "var(--border)",
+                border: "1px solid var(--border-light)", borderRadius: 10,
                 padding: "7px 12px", fontSize: 13, cursor: "pointer", outline: "none",
               }}>
-                <option value="newest">Newest first</option>
-                <option value="price_asc">Price: Low → High</option>
-                <option value="price_desc">Price: High → Low</option>
-                <option value="popular">Most popular</option>
-                <option value="rating">Top rated</option>
+                <option value="newest">{copy.newest}</option>
+                <option value="price_asc">{copy.priceLowHigh}</option>
+                <option value="price_desc">{copy.priceHighLow}</option>
+                <option value="popular">{copy.popular}</option>
+                <option value="rating">{copy.topRatedSort}</option>
               </select>
             </div>
           </div>
 
           <AnimatePresence mode="wait">
             {filtered.length === 0 ? (
-              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: "64px 32px", textAlign: "center" }}>
-                <div style={{ fontSize: "3rem", marginBottom: 16 }}>🔍</div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 18, marginBottom: 8 }}>No classes found</div>
-                <div style={{ color: "#64748b", fontSize: 14, marginBottom: 24 }}>Try adjusting your filters</div>
-                <button onClick={clearFilters} style={{ backgroundColor: "#3b82f6", color: "#fff", border: "none", borderRadius: 10, padding: "10px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                  Clear all filters
-                </button>
+              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <EmptyState
+                  title={copy.noFound}
+                  description={copy.adjustFilters}
+                  icon={<Search size={26} strokeWidth={1.8} />}
+                  action={{ label: copy.clearFilters, onClick: clearFilters }}
+                />
               </motion.div>
             ) : isFiltering ? (
               // Flat list when filtering
               <motion.div key="filtered" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                  {filtered.map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                  {filtered.map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
                 </div>
               </motion.div>
             ) : (
@@ -693,59 +845,54 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
               <motion.div key="segments" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 style={{ display: "flex", flexDirection: "column", gap: 48 }}>
 
-                {/* 🔥 Almost Full */}
                 {urgentClasses.length > 0 && (
                   <section>
-                    <SectionHeader title="Filling Up Fast" subtitle="These classes have very few spots remaining" badge="🔥 Act Now" badgeColor="#ef4444" />
+                    <SectionHeader title={copy.filling} subtitle={copy.fillingSub} badge={copy.actNow} badgeColor="var(--error)" />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {urgentClasses.slice(0, 4).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                      {urgentClasses.slice(0, 4).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
                     </div>
                   </section>
                 )}
 
-                {/* ⭐ Top Rated */}
                 {topRated.length > 0 && (
                   <section>
-                    <SectionHeader title="Top Rated Classes" subtitle="Highly reviewed by enrolled students" badge="⭐ Highest Rated" badgeColor="#f59e0b" />
+                    <SectionHeader title={copy.topRated} subtitle={copy.topRatedSub} badge={copy.highestRated} badgeColor="var(--rating)" />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {topRated.slice(0, 8).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                      {topRated.slice(0, 8).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
                     </div>
                   </section>
                 )}
 
-                {/* 💻 Online Classes */}
                 {onlineClasses.length > 0 && (
                   <section>
-                    <SectionHeader title="Learn From Anywhere" subtitle="Online classes — join from home" badge="💻 Online" badgeColor="#38bdf8" />
+                    <SectionHeader title={copy.onlineTitle} subtitle={copy.onlineSub} badge={copy.online} badgeColor="#1c6e7a" />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {onlineClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                      {onlineClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
                     </div>
                   </section>
                 )}
 
-                {/* 💚 Free Classes */}
                 {freeClasses.length > 0 && (
                   <section>
-                    <SectionHeader title="Free Classes" subtitle="Start learning at zero cost" badge="💚 Free" badgeColor="#22c55e" />
+                    <SectionHeader title={copy.freeTitle} subtitle={copy.freeSub} badge={copy.free} badgeColor="var(--success)" />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {freeClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                      {freeClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
                     </div>
                   </section>
                 )}
 
-                {/* 📚 All Classes */}
                 {allOthers.length > 0 && (
                   <section>
-                    <SectionHeader title="All Classes" subtitle="Browse the full catalogue" badge="📚 All" badgeColor="#94a3b8" />
+                    <SectionHeader title={copy.allTitle} subtitle={copy.allSub} badge={copy.all} badgeColor="var(--text-muted)" />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {allOthers.map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                      {allOthers.map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
                     </div>
                   </section>
                 )}
 
                 {filtered.length === 0 && (
-                  <div style={{ textAlign: "center", color: "#64748b", padding: "48px 0", fontSize: 15 }}>
-                    No classes available yet. Check back soon!
+                  <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "48px 0", fontSize: 15 }}>
+                    {copy.noAvailable}
                   </div>
                 )}
               </motion.div>

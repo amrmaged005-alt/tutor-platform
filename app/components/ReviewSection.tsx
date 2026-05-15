@@ -46,7 +46,7 @@ function StarRating({
           style={{
             fontSize: readonly ? "20px" : "32px",
             cursor: readonly ? "default" : "pointer",
-            color: star <= (hovered || value) ? "#fbbf24" : "#334155",
+            color: star <= (hovered || value) ? "var(--rating)" : "var(--text-secondary)",
             transition: "color 0.15s, transform 0.1s",
             lineHeight: 1,
             textShadow: star <= (hovered || value) ? "0 0 12px rgba(251, 191, 36, 0.4)" : "none",
@@ -123,7 +123,7 @@ export default function ReviewSection({
         }}
       >
         <div>
-          <h2 style={{ color: "#f1f5f9", fontSize: "22px", margin: 0 }}>
+          <h2 style={{ color: "var(--text)", fontSize: "22px", margin: 0 }}>
             Reviews
           </h2>
           {reviews.length > 0 && (
@@ -136,7 +136,7 @@ export default function ReviewSection({
               }}
             >
               <StarRating value={Math.round(avgRating)} readonly />
-              <span style={{ color: "#94a3b8", fontSize: "14px" }}>
+              <span style={{ color: "var(--text-muted)", fontSize: "14px" }}>
                 {avgRating.toFixed(1)} out of 5 ({reviews.length} review
                 {reviews.length !== 1 ? "s" : ""})
               </span>
@@ -150,7 +150,7 @@ export default function ReviewSection({
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowForm(true)}
             style={{
-              background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+              background: "linear-gradient(135deg, var(--accent), var(--accent-hover))",
               color: "#fff",
               border: "none",
               borderRadius: "10px",
@@ -158,7 +158,7 @@ export default function ReviewSection({
               cursor: "pointer",
               fontSize: "14px",
               fontWeight: 700,
-              boxShadow: "0 4px 12px #3b82f640",
+              boxShadow: "0 4px 12px rgba(13,89,70,0.25)",
             }}
           >
             {existingUserReview || submitted ? "Edit Your Review" : "Write a Review"}
@@ -173,8 +173,8 @@ export default function ReviewSection({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             style={{
-              background: "linear-gradient(to bottom right, #1e293b, #0f172a)",
-              border: "1px solid #3b82f640",
+              background: "linear-gradient(to bottom right, var(--text), var(--text))",
+              border: "1px solid rgba(13,89,70,0.25)",
               borderRadius: "16px",
               padding: "24px",
               marginBottom: "24px",
@@ -182,14 +182,14 @@ export default function ReviewSection({
               overflow: "hidden"
             }}
           >
-            <h3 style={{ color: "#f1f5f9", marginTop: 0, marginBottom: "16px" }}>
+            <h3 style={{ color: "var(--text)", marginTop: 0, marginBottom: "16px" }}>
               {existingUserReview || submitted ? "Update Your Review" : "Your Review"}
             </h3>
 
             <div style={{ marginBottom: "16px" }}>
               <label
                 style={{
-                  color: "#94a3b8",
+                  color: "var(--text-muted)",
                   fontSize: "14px",
                   display: "block",
                   marginBottom: "8px",
@@ -203,7 +203,7 @@ export default function ReviewSection({
             <div style={{ marginBottom: "16px" }}>
               <label
                 style={{
-                  color: "#94a3b8",
+                  color: "var(--text-muted)",
                   fontSize: "14px",
                   display: "block",
                   marginBottom: "8px",
@@ -218,10 +218,10 @@ export default function ReviewSection({
                 placeholder="Share your experience..."
                 style={{
                   width: "100%",
-                  background: "#0f172a",
-                  border: "1px solid #334155",
+                  background: "var(--text)",
+                  border: "1px solid var(--border-light)",
                   borderRadius: "10px",
-                  color: "#f1f5f9",
+                  color: "var(--text)",
                   padding: "12px",
                   fontSize: "14px",
                   resize: "vertical",
@@ -231,7 +231,7 @@ export default function ReviewSection({
             </div>
 
             {error && (
-              <p style={{ color: "#ef4444", fontSize: "14px", marginBottom: "12px" }}>
+              <p style={{ color: "var(--error)", fontSize: "14px", marginBottom: "12px" }}>
                 {error}
               </p>
             )}
@@ -241,7 +241,7 @@ export default function ReviewSection({
                 onClick={handleSubmit}
                 disabled={submitting}
                 style={{
-                  background: "#3b82f6",
+                  background: "var(--accent)",
                   color: "#fff",
                   border: "none",
                   borderRadius: "10px",
@@ -257,8 +257,8 @@ export default function ReviewSection({
                 onClick={() => setShowForm(false)}
                 style={{
                   background: "transparent",
-                  color: "#94a3b8",
-                  border: "1px solid #334155",
+                  color: "var(--text-muted)",
+                  border: "1px solid var(--border-light)",
                   borderRadius: "10px",
                   padding: "10px 24px",
                   cursor: "pointer",
@@ -272,9 +272,9 @@ export default function ReviewSection({
       </AnimatePresence>
 
       {loading ? (
-        <p style={{ color: "#94a3b8" }}>Loading reviews...</p>
+        <p style={{ color: "var(--text-muted)" }}>Loading reviews...</p>
       ) : reviews.length === 0 ? (
-        <p style={{ color: "#94a3b8" }}>
+        <p style={{ color: "var(--text-muted)" }}>
           No reviews yet.{isEligible ? " Be the first to leave one!" : ""}
         </p>
       ) : (
@@ -286,8 +286,8 @@ export default function ReviewSection({
               transition={{ delay: i * 0.05 }}
               key={review.id}
               style={{
-                background: "#1e293b",
-                border: "1px solid #334155",
+                background: "var(--text)",
+                border: "1px solid var(--border-light)",
                 borderRadius: "16px",
                 padding: "20px",
                 display: "flex",
@@ -308,7 +308,7 @@ export default function ReviewSection({
                     width: "36px",
                     height: "36px",
                     borderRadius: "50%",
-                    background: "#3b82f6",
+                    background: "var(--accent)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -322,10 +322,10 @@ export default function ReviewSection({
                 </div>
 
                 <div>
-                  <div style={{ color: "#f1f5f9", fontWeight: 600, fontSize: "15px" }}>
+                  <div style={{ color: "var(--text)", fontWeight: 600, fontSize: "15px" }}>
                     {review.student.fullName || review.student.name || "Student"}
                   </div>
-                  <div style={{ color: "#64748b", fontSize: "12px" }}>
+                  <div style={{ color: "var(--text-muted)", fontSize: "12px" }}>
                     {new Date(review.createdAt).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "short",
@@ -342,7 +342,7 @@ export default function ReviewSection({
               {review.comment && (
                 <p
                   style={{
-                    color: "#94a3b8",
+                    color: "var(--text-muted)",
                     margin: 0,
                     fontSize: "15px",
                     lineHeight: 1.6,

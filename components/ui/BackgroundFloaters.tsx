@@ -24,22 +24,22 @@ interface BackgroundFloatersProps {
 
 const PRESETS: Record<number, FloaterConfig[]> = {
   3: [
-    { color: "#3b82f6", size: 500, top: "-10%",  left: "-8%",  duration: 12 },
-    { color: "#a78bfa", size: 400, top: "60%",   left: "80%",  duration: 15, delay: 3 },
-    { color: "#38bdf8", size: 350, top: "40%",   left: "40%",  duration: 10, delay: 6 },
+    { color: "var(--accent)", size: 500, top: "-10%",  left: "-8%",  duration: 12 },
+    { color: "#5d3a5f", size: 400, top: "60%",   left: "80%",  duration: 15, delay: 3 },
+    { color: "#1c6e7a", size: 350, top: "40%",   left: "40%",  duration: 10, delay: 6 },
   ],
   4: [
-    { color: "#3b82f6", size: 500, top: "-10%",  left: "-8%",  duration: 12 },
-    { color: "#a78bfa", size: 400, top: "65%",   left: "78%",  duration: 15, delay: 3 },
-    { color: "#38bdf8", size: 300, top: "30%",   left: "85%",  duration: 10, delay: 6 },
-    { color: "#f59e0b", size: 350, top: "75%",   left: "5%",   duration: 13, delay: 2 },
+    { color: "var(--accent)", size: 500, top: "-10%",  left: "-8%",  duration: 12 },
+    { color: "#5d3a5f", size: 400, top: "65%",   left: "78%",  duration: 15, delay: 3 },
+    { color: "#1c6e7a", size: 300, top: "30%",   left: "85%",  duration: 10, delay: 6 },
+    { color: "var(--rating)", size: 350, top: "75%",   left: "5%",   duration: 13, delay: 2 },
   ],
   5: [
-    { color: "#3b82f6", size: 550, top: "-12%",  left: "-10%", duration: 12 },
-    { color: "#a78bfa", size: 400, top: "65%",   left: "78%",  duration: 15, delay: 3 },
-    { color: "#38bdf8", size: 300, top: "25%",   left: "88%",  duration: 10, delay: 6 },
-    { color: "#f59e0b", size: 350, top: "80%",   left: "3%",   duration: 13, delay: 2 },
-    { color: "#22c55e", size: 280, top: "50%",   left: "45%",  duration: 18, delay: 5 },
+    { color: "var(--accent)", size: 550, top: "-12%",  left: "-10%", duration: 12 },
+    { color: "#5d3a5f", size: 400, top: "65%",   left: "78%",  duration: 15, delay: 3 },
+    { color: "#1c6e7a", size: 300, top: "25%",   left: "88%",  duration: 10, delay: 6 },
+    { color: "var(--rating)", size: 350, top: "80%",   left: "3%",   duration: 13, delay: 2 },
+    { color: "var(--success)", size: 280, top: "50%",   left: "45%",  duration: 18, delay: 5 },
   ],
 };
 

@@ -2,15 +2,75 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { signOut } from "next-auth/react";
+import { Sun, Moon, Menu, X, Plus } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
+import { useTheme } from "@/app/components/Theme";
 
-// ─── Mobile Nav Drawer ─────────────────────────────────────────────────────────
+function ThemeToggle({ compact = false }: { compact?: boolean }) {
+    const { theme, toggle } = useTheme();
+    const Icon = theme === "dark" ? Sun : Moon;
+    return (
+        <button
+            type="button"
+            onClick={toggle}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            style={{
+                background: "transparent",
+                border: "1px solid var(--border-light)",
+                borderRadius: compact ? 8 : 999,
+                width: compact ? 36 : "auto",
+                height: 36,
+                padding: compact ? 0 : "0 12px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                transition: "background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast)",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-alt)"; e.currentTarget.style.color = "var(--text)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+        >
+            <Icon size={16} strokeWidth={1.8} />
+        </button>
+    );
+}
+
+function LangToggle({ compact = false }: { compact?: boolean }) {
+    const { lang, setLang } = useI18n();
+    return (
+        <button
+            type="button"
+            onClick={() => setLang(lang === "en" ? "ar" : "en")}
+            aria-label="Toggle language"
+            style={{
+                background: "transparent",
+                border: "1px solid var(--border-light)",
+                borderRadius: compact ? 8 : 999,
+                height: 36,
+                padding: compact ? "0 10px" : "0 14px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: "inherit",
+                transition: "background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast)",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-alt)"; e.currentTarget.style.color = "var(--text)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+        >
+            {lang === "en" ? "عربي" : "EN"}
+        </button>
+    );
+}
+
 function MobileDrawer({
-    open,
-    onClose,
-    links,
-    session,
-    canCreateClass,
-    isAdmin,
+    open, onClose, links, session, canCreateClass, isAdmin,
 }: {
     open: boolean;
     onClose: () => void;
@@ -19,7 +79,8 @@ function MobileDrawer({
     canCreateClass: boolean;
     isAdmin: boolean;
 }) {
-    // Prevent body scroll when drawer is open
+    const { t } = useI18n();
+
     useEffect(() => {
         if (open) document.body.style.overflow = "hidden";
         else document.body.style.overflow = "";
@@ -28,65 +89,68 @@ function MobileDrawer({
 
     return (
         <>
-            {/* Backdrop */}
             <div
                 onClick={onClose}
                 style={{
                     position: "fixed", inset: 0,
-                    backgroundColor: "rgba(0,0,0,0.6)",
-                    backdropFilter: "blur(4px)",
+                    backgroundColor: "rgba(24,23,21,0.42)",
+                    backdropFilter: "blur(3px)",
                     zIndex: 998,
                     opacity: open ? 1 : 0,
                     pointerEvents: open ? "auto" : "none",
-                    transition: "opacity 0.3s ease",
+                    transition: "opacity 0.25s ease",
                 }}
             />
-            {/* Drawer */}
             <nav
                 role="dialog"
                 aria-modal="true"
                 aria-label="Mobile navigation"
                 style={{
                     position: "fixed", top: 0, right: 0,
-                    width: "min(300px, 80vw)", height: "100vh",
-                    backgroundColor: "#1e293b",
-                    borderLeft: "1px solid #334155",
+                    width: "min(300px, 82vw)", height: "100vh",
+                    backgroundColor: "var(--bg-elevated)",
+                    borderLeft: "1px solid var(--border-light)",
                     zIndex: 999,
                     transform: open ? "translateX(0)" : "translateX(100%)",
-                    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
                     display: "flex", flexDirection: "column",
-                    padding: "1.5rem",
+                    padding: "1.25rem",
                     overflowY: "auto",
+                    boxShadow: "var(--shadow-lg)",
                 }}
             >
-                {/* Close button */}
-                <button
-                    onClick={onClose}
-                    aria-label="Close menu"
-                    style={{
-                        alignSelf: "flex-end",
-                        background: "none", border: "none",
-                        color: "#94a3b8", fontSize: 28,
-                        cursor: "pointer", padding: 4,
-                        marginBottom: "1rem",
-                    }}
-                >
-                    ✕
-                </button>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <ThemeToggle compact />
+                        <LangToggle compact />
+                    </div>
+                    <button
+                        onClick={onClose}
+                        aria-label="Close menu"
+                        style={{
+                            background: "none", border: "none",
+                            color: "var(--text-muted)",
+                            cursor: "pointer", padding: 4,
+                            lineHeight: 1,
+                            display: "inline-flex",
+                        }}
+                    >
+                        <X size={20} strokeWidth={1.8} />
+                    </button>
+                </div>
 
-                {/* Links */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                     {links.map((link) => (
                         <Link
                             key={link.href + link.label}
                             href={link.href}
                             onClick={onClose}
                             style={{
-                                color: "#cbd5e1", fontSize: 16, fontWeight: 500,
-                                textDecoration: "none", padding: "0.75rem 1rem",
-                                borderRadius: 10, transition: "background 0.2s",
+                                color: "var(--text)", fontSize: 15, fontWeight: 500,
+                                textDecoration: "none", padding: "0.65rem 0.875rem",
+                                borderRadius: 8, transition: "background 0.15s",
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(59,130,246,0.1)")}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-alt)")}
                             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                         >
                             {link.label}
@@ -98,14 +162,12 @@ function MobileDrawer({
                             href="/create-class"
                             onClick={onClose}
                             style={{
-                                color: "#cbd5e1", fontSize: 16, fontWeight: 500,
-                                textDecoration: "none", padding: "0.75rem 1rem",
-                                borderRadius: 10, transition: "background 0.2s",
+                                color: "var(--text)", fontSize: 15, fontWeight: 500,
+                                textDecoration: "none", padding: "0.65rem 0.875rem",
+                                borderRadius: 8,
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(59,130,246,0.1)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                         >
-                            Create Class
+                            {t("nav.createClass")}
                         </Link>
                     )}
 
@@ -114,63 +176,46 @@ function MobileDrawer({
                             href="/admin"
                             onClick={onClose}
                             style={{
-                                color: "#f87171", fontSize: 16, fontWeight: 700,
-                                textDecoration: "none", padding: "0.75rem 1rem",
-                                borderRadius: 10, transition: "background 0.2s",
+                                color: "var(--error)", fontSize: 15, fontWeight: 600,
+                                textDecoration: "none", padding: "0.65rem 0.875rem",
+                                borderRadius: 8, background: "var(--error-bg)",
+                                border: "1px solid var(--error-border)",
+                                marginTop: 6,
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(248,113,113,0.1)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                         >
-                            ⚡ Admin Panel
+                            {t("nav.admin")}
                         </Link>
                     )}
                 </div>
 
-                {/* Divider */}
-                <div style={{ height: 1, background: "#334155", margin: "1.5rem 0" }} />
+                <div style={{ height: 1, background: "var(--border-light)", margin: "1.25rem 0" }} />
 
-                {/* Auth action */}
                 {session ? (
-                    <form action="/api/auth/signout" method="POST">
-                        <button
-                            type="submit"
-                            style={{
-                                width: "100%",
-                                backgroundColor: "#334155", color: "#94a3b8",
-                                border: "1px solid #475569", borderRadius: 10,
-                                padding: "0.75rem", fontSize: 15, fontWeight: 600,
-                                cursor: "pointer",
-                            }}
-                        >
-                            Sign Out
-                        </button>
-                    </form>
+                    <button
+                        type="button"
+                        onClick={() => signOut({ callbackUrl: "/", redirect: true })}
+                        className="btn-secondary"
+                        style={{ width: "100%", padding: "0.7rem", fontWeight: 500 }}
+                    >
+                        {t("nav.signOut")}
+                    </button>
                 ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <Link
+                            href="/classes"
+                            onClick={onClose}
+                            className="btn-primary"
+                            style={{ width: "100%", padding: "0.75rem", fontSize: 14, justifyContent: "center" }}
+                        >
+                            {t("nav.browseClasses")}
+                        </Link>
                         <Link
                             href="/login"
                             onClick={onClose}
-                            style={{
-                                display: "block", textAlign: "center",
-                                backgroundColor: "#3b82f6", color: "white",
-                                padding: "0.75rem", borderRadius: 10,
-                                fontSize: 15, fontWeight: 600, textDecoration: "none",
-                                boxShadow: "0 2px 8px #3b82f640",
-                            }}
+                            className="btn-secondary"
+                            style={{ width: "100%", padding: "0.7rem", fontWeight: 500, justifyContent: "center" }}
                         >
-                            Sign In
-                        </Link>
-                        <Link
-                            href="/signup"
-                            onClick={onClose}
-                            style={{
-                                display: "block", textAlign: "center",
-                                border: "1px solid #334155", color: "#cbd5e1",
-                                padding: "0.75rem", borderRadius: 10,
-                                fontSize: 15, fontWeight: 500, textDecoration: "none",
-                            }}
-                        >
-                            Create Account
+                            {t("nav.signIn")}
                         </Link>
                     </div>
                 )}
@@ -179,7 +224,6 @@ function MobileDrawer({
     );
 }
 
-// ─── Navbar (Client Wrapper) ─────────────────────────────────────────────────
 export default function NavbarClient({
     session,
     role,
@@ -187,123 +231,176 @@ export default function NavbarClient({
     session: boolean;
     role: string;
 }) {
+    const { t } = useI18n();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 4);
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
 
     const canCreateClass = role === "TUTOR" || role === "CENTER_ADMIN" || role === "ADMIN";
     const isAdmin = role === "ADMIN";
 
     const linkStyle = {
-        color: "#94a3b8",
+        color: "var(--text-secondary)",
         fontSize: 14,
         textDecoration: "none" as const,
         fontWeight: 500,
-        transition: "color 0.2s",
+        transition: "color 0.15s",
+        whiteSpace: "nowrap" as const,
     };
 
     const publicLinks = [
-        { href: "/", label: "Home" },
-        { href: "/classes", label: "Classes" },
-        { href: "/tutors", label: "Tutors" },
-        { href: "/centers", label: "Centers" },
+        { href: "/classes", label: t("nav.classes") },
+        { href: "/tutors", label: t("nav.tutors") },
+        { href: "/centers", label: t("nav.centers") },
+        { href: "/signup?role=tutor", label: t("nav.forTutors") },
     ];
 
-    const dashboardLink = session ? [{ href: "/dashboard", label: "Dashboard" }] : [];
-    const mobileLinks = [...publicLinks, ...dashboardLink];
+    const dashboardLink = session ? [{ href: "/dashboard", label: t("nav.dashboard") }] : [];
+    const bookingsLink = session && canCreateClass ? [{ href: "/dashboard/bookings", label: t("nav.bookings") }] : [];
+    const mobileLinks = [{ href: "/", label: t("nav.home") }, ...publicLinks, ...dashboardLink, ...bookingsLink];
 
     return (
         <>
             <header
                 role="banner"
                 style={{
-                    backgroundColor: "rgba(30,41,59,0.85)",
-                    backdropFilter: "blur(12px)",
-                    borderBottom: "1px solid #334155",
+                    backgroundColor: scrolled ? "color-mix(in srgb, var(--bg) 85%, transparent)" : "var(--bg)",
+                    backdropFilter: scrolled ? "saturate(180%) blur(10px)" : "none",
+                    WebkitBackdropFilter: scrolled ? "saturate(180%) blur(10px)" : "none",
+                    borderBottom: scrolled ? "1px solid var(--border-light)" : "1px solid transparent",
+                    boxShadow: scrolled ? "var(--shadow-xs)" : "none",
                     padding: "0 1.5rem",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    height: 60,
+                    height: 64,
                     position: "sticky",
                     top: 0,
                     zIndex: 100,
+                    transition: "background 0.2s, box-shadow 0.2s, border-color 0.2s",
                 }}
             >
-                {/* Logo */}
                 <Link
                     href="/"
                     aria-label="Coursaty home"
                     style={{
-                        fontSize: "1.25rem",
+                        fontSize: "1.2rem",
                         fontWeight: 800,
-                        color: "#f8fafc",
+                        color: "var(--text)",
                         textDecoration: "none",
-                        background: "linear-gradient(90deg, #3b82f6, #38bdf8)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
+                        letterSpacing: "-0.025em",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
                     }}
                 >
+                    <span style={{
+                        width: 22, height: 22, borderRadius: 6,
+                        background: "var(--accent)",
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        color: "var(--accent-fg)", fontSize: 12, fontWeight: 800,
+                    }}>C</span>
                     Coursaty
                 </Link>
 
-                {/* Desktop nav */}
                 <nav className="desktop-only" aria-label="Main navigation" style={{ gap: "1.5rem", alignItems: "center" }}>
                     {publicLinks.map((link) => (
-                        <Link key={link.href} href={link.href} style={linkStyle}>
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            style={linkStyle}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-secondary)"; }}
+                        >
                             {link.label}
                         </Link>
                     ))}
 
                     {session ? (
-                        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-                            <Link href="/dashboard" style={linkStyle}>
-                                Dashboard
+                        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                            <Link href="/dashboard" style={linkStyle}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-secondary)"; }}>
+                                {t("nav.dashboard")}
                             </Link>
 
                             {canCreateClass && (
-                                <Link href="/create-class" style={linkStyle}>
-                                    Create Class
+                                <Link href="/dashboard/bookings" style={linkStyle}
+                                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"; }}
+                                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-secondary)"; }}>
+                                    {t("nav.bookings")}
+                                </Link>
+                            )}
+
+                            {canCreateClass && (
+                                <Link href="/create-class"
+                                    style={{
+                                        color: "var(--accent)",
+                                        border: "1px solid var(--accent-border)",
+                                        borderRadius: 8,
+                                        padding: "6px 12px",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        textDecoration: "none",
+                                        backgroundColor: "var(--accent-bg)",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: 4,
+                                    }}>
+                                    <Plus size={14} strokeWidth={2} /> {t("nav.createClass").replace("+ ", "")}
                                 </Link>
                             )}
 
                             {isAdmin && (
-                                <Link
-                                    href="/admin"
+                                <Link href="/admin"
                                     style={{
-                                        backgroundColor: "#f87171",
-                                        color: "#fff",
-                                        padding: "5px 14px",
+                                        backgroundColor: "var(--error-bg)",
+                                        color: "var(--error)",
+                                        padding: "6px 12px",
                                         borderRadius: 8,
                                         fontSize: 13,
                                         textDecoration: "none",
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    Admin
+                                        fontWeight: 600,
+                                        border: "1px solid var(--error-border)",
+                                    }}>
+                                    {t("nav.admin")}
                                 </Link>
                             )}
 
-                            <SignOutBtn />
+                            <ThemeToggle />
+                            <LangToggle />
+                            <SignOutBtn label={t("nav.signOut")} />
                         </div>
                     ) : (
-                        <Link
-                            href="/login"
-                            style={{
-                                backgroundColor: "#3b82f6",
-                                color: "white",
-                                padding: "6px 16px",
-                                borderRadius: 8,
-                                fontSize: 14,
-                                fontWeight: 600,
-                                textDecoration: "none",
-                                boxShadow: "0 2px 8px #3b82f640",
-                            }}
-                        >
-                            Sign In
-                        </Link>
+                        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                            <ThemeToggle />
+                            <LangToggle />
+                            <Link href="/login"
+                                style={{
+                                    color: "var(--text-secondary)",
+                                    padding: "6px 14px",
+                                    borderRadius: 8,
+                                    fontSize: 14,
+                                    fontWeight: 500,
+                                    textDecoration: "none",
+                                }}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-secondary)"; }}>
+                                {t("nav.signIn")}
+                            </Link>
+                            <Link href="/classes" className="btn-primary"
+                                style={{ padding: "7px 16px", fontSize: 13.5 }}>
+                                {t("nav.browseClasses")}
+                            </Link>
+                        </div>
                     )}
                 </nav>
 
-                {/* Mobile hamburger */}
                 <button
                     className="mobile-only"
                     onClick={() => setMenuOpen(true)}
@@ -311,23 +408,17 @@ export default function NavbarClient({
                     style={{
                         background: "none",
                         border: "none",
-                        color: "#94a3b8",
-                        fontSize: 26,
+                        color: "var(--text-secondary)",
                         cursor: "pointer",
                         padding: 4,
                         alignItems: "center",
                         justifyContent: "center",
                     }}
                 >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="3" y1="6" x2="21" y2="6" />
-                        <line x1="3" y1="12" x2="21" y2="12" />
-                        <line x1="3" y1="18" x2="21" y2="18" />
-                    </svg>
+                    <Menu size={22} strokeWidth={1.8} />
                 </button>
             </header>
 
-            {/* Mobile drawer */}
             <MobileDrawer
                 open={menuOpen}
                 onClose={() => setMenuOpen(false)}
@@ -340,25 +431,14 @@ export default function NavbarClient({
     );
 }
 
-// ─── Sign‑out button ──────────────────────────────────────────────────────────
-function SignOutBtn() {
-    const { signOut } = require("next-auth/react");
+function SignOutBtn({ label }: { label: string }) {
     return (
         <button
             onClick={() => signOut({ callbackUrl: "/", redirect: true })}
-            style={{
-                backgroundColor: "#334155",
-                color: "#94a3b8",
-                border: "none",
-                borderRadius: 8,
-                padding: "5px 14px",
-                fontSize: 13,
-                cursor: "pointer",
-                fontWeight: 600,
-                transition: "background 0.2s",
-            }}
+            className="btn-ghost"
+            style={{ fontSize: 13, padding: "6px 14px", fontWeight: 500 }}
         >
-            Sign Out
+            {label}
         </button>
     );
 }

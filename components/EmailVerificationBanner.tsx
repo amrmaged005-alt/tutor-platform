@@ -33,9 +33,10 @@ export default function EmailVerificationBanner() {
   return (
     <div
       style={{
-        backgroundColor: "#451a03",
-        borderBottom: "1px solid #92400e",
-        padding: "0.75rem 1.5rem",
+        backgroundColor: "var(--bg-card)",
+        borderBottom: "1px solid rgba(138,90,20,0.31)",
+        borderLeft: "3px solid var(--rating)",
+        padding: "0.7rem 1.5rem",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -45,28 +46,35 @@ export default function EmailVerificationBanner() {
     >
       {/* Left — warning message */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ fontSize: 18 }}>⚠️</span>
-        <span style={{ color: "#fcd34d", fontSize: 14, fontWeight: 500 }}>
-          Please verify your email address to unlock bookings.
-        </span>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>
+          ⚠
+        </div>
+        <div>
+          <span style={{ color: "var(--rating)", fontSize: 13, fontWeight: 600 }}>
+            Email verification required
+          </span>
+          <span style={{ color: "#78716c", fontSize: 13, marginLeft: 6 }}>
+            — verify your email to unlock bookings.
+          </span>
+        </div>
       </div>
 
       {/* Right — action */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {error && (
-          <span style={{ color: "#f87171", fontSize: 13 }}>{error}</span>
+          <span style={{ color: "var(--error)", fontSize: 13 }}>{error}</span>
         )}
         {sent ? (
-          <span style={{ color: "#4ade80", fontSize: 13, fontWeight: 600 }}>
-            ✓ Verification email sent — check your inbox
+          <span style={{ color: "var(--success)", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ fontSize: 16 }}>✓</span> Email sent — check your inbox
           </span>
         ) : (
           <button
             onClick={handleResend}
             disabled={sending}
             style={{
-              backgroundColor: "#d97706",
-              color: "white",
+              background: "linear-gradient(135deg, var(--warning), var(--warning))",
+              color: "var(--accent-fg)",
               border: "none",
               borderRadius: 8,
               padding: "0.4rem 1rem",
@@ -74,9 +82,10 @@ export default function EmailVerificationBanner() {
               fontWeight: 700,
               cursor: sending ? "not-allowed" : "pointer",
               opacity: sending ? 0.7 : 1,
+              boxShadow: "0 2px 8px rgba(217,119,6,0.3)",
             }}
           >
-            {sending ? "Sending..." : "Resend verification email"}
+            {sending ? "Sending..." : "Resend email"}
           </button>
         )}
       </div>

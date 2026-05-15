@@ -19,7 +19,7 @@ export default function SectionHeader({
   title,
   subtitle,
   badge,
-  badgeColor = "#f59e0b",
+  badgeColor = "var(--rating)",
   align = "left",
 }: SectionHeaderProps) {
   return (
@@ -59,12 +59,12 @@ export default function SectionHeader({
       {/* Main title */}
       <h2
         style={{
-          fontSize: "28px",
+          fontSize: "clamp(1.3rem, 3vw, 1.75rem)",
           fontWeight: 800,
-          color: "#f1f5f9",
+          color: "var(--text)",
           margin: "0 0 8px 0",
           lineHeight: 1.2,
-          letterSpacing: "-0.02em",
+          letterSpacing: "-0.025em",
         }}
       >
         {title}
@@ -74,8 +74,8 @@ export default function SectionHeader({
       {subtitle && (
         <p
           style={{
-            fontSize: "15px",
-            color: "#94a3b8",
+            fontSize: "14px",
+            color: "var(--text-muted)",
             margin: 0,
             lineHeight: 1.6,
           }}
@@ -85,13 +85,18 @@ export default function SectionHeader({
       )}
 
       {/* Decorative underline accent */}
-      <div
+      <motion.div
+        initial={{ width: 0 }}
+        whileInView={{ width: 40 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.15 }}
         style={{
-          marginTop: "16px",
-          width: "48px",
+          marginTop: "14px",
           height: "3px",
           borderRadius: "999px",
-          background: "linear-gradient(90deg, #3b82f6, #38bdf8)",
+          background: badge
+            ? `linear-gradient(90deg, ${badgeColor}, ${badgeColor}60)`
+            : "linear-gradient(90deg, var(--accent), #1c6e7a)",
           marginLeft: align === "center" ? "auto" : "0",
           marginRight: align === "center" ? "auto" : "0",
         }}

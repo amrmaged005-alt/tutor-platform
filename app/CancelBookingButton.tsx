@@ -24,8 +24,8 @@ export default function CancelBookingButton({
       disabled={pending}
       style={{
         background: "transparent",
-        border: "1px solid #f87171",
-        color: "#f87171",
+        border: "1px solid var(--error)",
+        color: "var(--error)",
         borderRadius: 8,
         padding: "4px 12px",
         fontSize: 12,

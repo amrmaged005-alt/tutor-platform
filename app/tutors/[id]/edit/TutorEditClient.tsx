@@ -11,15 +11,15 @@ const SUBJECT_OPTIONS = [
 ];
 
 const SUBJECT_COLORS: Record<string, string> = {
-  Math: "#3b82f6", Physics: "#8b5cf6", Chemistry: "#22c55e",
-  Biology: "#10b981", English: "#f59e0b", Arabic: "#ef4444",
-  History: "#f97316", Geography: "#06b6d4", French: "#a78bfa",
-  "Computer Science": "#38bdf8", Science: "#34d399",
-  Economics: "#fbbf24", Accounting: "#fb923c", Business: "#e879f9",
+  Math: "var(--accent)", Physics: "#5d3a5f", Chemistry: "var(--success)",
+  Biology: "var(--success)", English: "var(--rating)", Arabic: "var(--error)",
+  History: "#8a5e1a", Geography: "#1c6e7a", French: "#5d3a5f",
+  "Computer Science": "#1c6e7a", Science: "var(--success)",
+  Economics: "var(--rating)", Accounting: "#8a5e1a", Business: "#5d3a5f",
 };
 
 function subjectColor(s: string) {
-  return SUBJECT_COLORS[s] ?? "#3b82f6";
+  return SUBJECT_COLORS[s] ?? "var(--accent)";
 }
 
 interface TutorData {
@@ -82,11 +82,11 @@ export default function TutorEditClient({
 
   const inputStyle = {
     width: "100%",
-    backgroundColor: "#0f172a",
-    border: "1px solid #334155",
+    backgroundColor: "var(--bg-card)",
+    border: "1px solid var(--border-light)",
     borderRadius: 10,
     padding: "11px 14px",
-    color: "#f1f5f9",
+    color: "var(--text)",
     fontSize: 15,
     outline: "none",
     boxSizing: "border-box" as const,
@@ -96,7 +96,7 @@ export default function TutorEditClient({
 
   const labelStyle = {
     display: "block",
-    color: "#94a3b8",
+    color: "var(--text-muted)",
     fontSize: 13,
     fontWeight: 600,
     marginBottom: 6,
@@ -106,7 +106,7 @@ export default function TutorEditClient({
   const sectionAccent = {
     width: 4,
     height: 16,
-    background: "linear-gradient(180deg,#3b82f6,transparent)",
+    background: "linear-gradient(180deg,var(--accent),transparent)",
     borderRadius: 2,
     display: "inline-block",
     marginRight: 8,
@@ -126,9 +126,9 @@ export default function TutorEditClient({
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#0f172a",
+        backgroundColor: "var(--bg-card)",
         fontFamily: "system-ui, -apple-system, sans-serif",
-        color: "#f1f5f9",
+        color: "var(--text)",
       }}
     >
       {/* Hero */}
@@ -136,8 +136,8 @@ export default function TutorEditClient({
         style={{
           position: "relative",
           overflow: "hidden",
-          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%)",
-          borderBottom: "1px solid #334155",
+          background: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-alt) 100%)",
+          borderBottom: "1px solid var(--border-light)",
           padding: "2.5rem 2rem",
         }}
       >
@@ -145,7 +145,7 @@ export default function TutorEditClient({
           style={{
             position: "absolute",
             inset: 0,
-            backgroundImage: `linear-gradient(#ffffff06 1px, transparent 1px), linear-gradient(90deg, #ffffff06 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(rgba(24,23,21,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,21,0.06) 1px, transparent 1px)`,
             backgroundSize: "40px 40px",
             pointerEvents: "none",
           }}
@@ -158,7 +158,7 @@ export default function TutorEditClient({
             width: 240,
             height: 240,
             borderRadius: "50%",
-            background: "radial-gradient(circle, #3b82f620 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(13,89,70,0.13) 0%, transparent 70%)",
             pointerEvents: "none",
           }}
         />
@@ -170,7 +170,7 @@ export default function TutorEditClient({
           >
             <Link
               href={"/tutors/" + tutor.id}
-              style={{ color: "#64748b", fontSize: 13, textDecoration: "none" }}
+              style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}
             >
               ← Back to Profile
             </Link>
@@ -187,7 +187,7 @@ export default function TutorEditClient({
                 width: 72,
                 height: 72,
                 borderRadius: "50%",
-                background: "radial-gradient(circle at 35% 35%, #60a5fa, #1d4ed8)",
+                background: "radial-gradient(circle at 35% 35%, var(--accent), var(--accent-hover))",
                 flexShrink: 0,
                 display: "flex",
                 alignItems: "center",
@@ -195,7 +195,7 @@ export default function TutorEditClient({
                 fontWeight: 800,
                 fontSize: 28,
                 color: "#fff",
-                boxShadow: "0 0 0 3px #1e293b, 0 0 0 6px #3b82f630",
+                boxShadow: "0 0 0 3px var(--text), 0 0 0 6px rgba(13,89,70,0.19)",
               }}
             >
               {(displayName[0] || "T").toUpperCase()}
@@ -204,10 +204,10 @@ export default function TutorEditClient({
               <h1 style={{ fontSize: "1.4rem", fontWeight: 800, margin: "0 0 4px", letterSpacing: -0.5 }}>
                 Edit Profile
               </h1>
-              <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>
+              <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
                 {tutor.email}
                 {tutor.center && (
-                  <span style={{ color: "#475569" }}> · {tutor.center.name}</span>
+                  <span style={{ color: "var(--text-secondary)" }}> · {tutor.center.name}</span>
                 )}
               </p>
             </div>
@@ -221,10 +221,10 @@ export default function TutorEditClient({
             style={{ marginTop: "1.5rem" }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ color: "#64748b", fontSize: 12, fontWeight: 600 }}>Profile completeness</span>
-              <span style={{ color: pct === 100 ? "#22c55e" : "#f59e0b", fontSize: 12, fontWeight: 700 }}>{pct}%</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600 }}>Profile completeness</span>
+              <span style={{ color: pct === 100 ? "var(--success)" : "var(--rating)", fontSize: 12, fontWeight: 700 }}>{pct}%</span>
             </div>
-            <div style={{ height: 4, backgroundColor: "#334155", borderRadius: 99, overflow: "hidden" }}>
+            <div style={{ height: 4, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden" }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
@@ -233,8 +233,8 @@ export default function TutorEditClient({
                   height: "100%",
                   borderRadius: 99,
                   background: pct === 100
-                    ? "linear-gradient(90deg,#22c55e,#4ade80)"
-                    : "linear-gradient(90deg,#f59e0b,#fbbf24)",
+                    ? "linear-gradient(90deg,var(--success),var(--success))"
+                    : "linear-gradient(90deg,var(--rating),var(--rating))",
                 }}
               />
             </div>
@@ -252,14 +252,14 @@ export default function TutorEditClient({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             style={{
-              backgroundColor: "#1e293b",
-              border: "1px solid #334155",
+              backgroundColor: "var(--bg-card)",
+              border: "1px solid var(--border-light)",
               borderRadius: 18,
               padding: "1.75rem",
               marginBottom: "1.5rem",
             }}
           >
-            <h2 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 1.25rem", color: "#f1f5f9", display: "flex", alignItems: "center" }}>
+            <h2 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 1.25rem", color: "var(--text)", display: "flex", alignItems: "center" }}>
               <span style={sectionAccent} />
               Basic Info
             </h2>
@@ -272,8 +272,8 @@ export default function TutorEditClient({
                   defaultValue={tutor.fullName}
                   placeholder="e.g. Ahmed Hassan"
                   style={inputStyle}
-                  onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
-                  onBlur={(e) => (e.target.style.borderColor = "#334155")}
+                  onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--text-secondary)")}
                 />
               </div>
               <div>
@@ -283,18 +283,18 @@ export default function TutorEditClient({
                   defaultValue={tutor.phone}
                   placeholder="e.g. +201012345678"
                   style={inputStyle}
-                  onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
-                  onBlur={(e) => (e.target.style.borderColor = "#334155")}
+                  onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--text-secondary)")}
                 />
               </div>
             </div>
 
             <div>
-              <label style={labelStyle}>EMAIL <span style={{ color: "#475569", fontWeight: 400 }}>(read-only)</span></label>
+              <label style={labelStyle}>EMAIL <span style={{ color: "var(--text-secondary)", fontWeight: 400 }}>(read-only)</span></label>
               <input
                 value={tutor.email}
                 disabled
-                style={{ ...inputStyle, color: "#475569", cursor: "not-allowed" }}
+                style={{ ...inputStyle, color: "var(--text-secondary)", cursor: "not-allowed" }}
               />
             </div>
           </motion.div>
@@ -305,14 +305,14 @@ export default function TutorEditClient({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
             style={{
-              backgroundColor: "#1e293b",
-              border: "1px solid #334155",
+              backgroundColor: "var(--bg-card)",
+              border: "1px solid var(--border-light)",
               borderRadius: 18,
               padding: "1.75rem",
               marginBottom: "1.5rem",
             }}
           >
-            <h2 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 1.25rem", color: "#f1f5f9", display: "flex", alignItems: "center" }}>
+            <h2 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 1.25rem", color: "var(--text)", display: "flex", alignItems: "center" }}>
               <span style={sectionAccent} />
               About You
             </h2>
@@ -328,10 +328,10 @@ export default function TutorEditClient({
                 lineHeight: 1.7,
                 minHeight: 120,
               }}
-              onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
-              onBlur={(e) => (e.target.style.borderColor = "#334155")}
+              onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--text-secondary)")}
             />
-            <div style={{ color: "#475569", fontSize: 12, marginTop: 5 }}>
+            <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 5 }}>
               A good bio helps students trust you. Aim for 2–4 sentences.
             </div>
           </motion.div>
@@ -342,14 +342,14 @@ export default function TutorEditClient({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             style={{
-              backgroundColor: "#1e293b",
-              border: "1px solid #334155",
+              backgroundColor: "var(--bg-card)",
+              border: "1px solid var(--border-light)",
               borderRadius: 18,
               padding: "1.75rem",
               marginBottom: "2rem",
             }}
           >
-            <h2 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 1.25rem", color: "#f1f5f9", display: "flex", alignItems: "center" }}>
+            <h2 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 1.25rem", color: "var(--text)", display: "flex", alignItems: "center" }}>
               <span style={sectionAccent} />
               Subjects You Teach
             </h2>
@@ -428,8 +428,8 @@ export default function TutorEditClient({
                       right: 8,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      backgroundColor: "#3b82f6",
-                      color: "white",
+                      backgroundColor: "var(--accent)",
+                      color: "var(--accent-fg)",
                       border: "none",
                       borderRadius: 7,
                       padding: "5px 12px",
@@ -451,8 +451,8 @@ export default function TutorEditClient({
                     top: "calc(100% + 6px)",
                     left: 0,
                     right: 0,
-                    backgroundColor: "#1e293b",
-                    border: "1px solid #334155",
+                    backgroundColor: "var(--bg-card)",
+                    border: "1px solid var(--border-light)",
                     borderRadius: 12,
                     overflow: "hidden",
                     zIndex: 50,
@@ -469,9 +469,9 @@ export default function TutorEditClient({
                         textAlign: "left" as const,
                         background: "none",
                         border: "none",
-                        borderBottom: "1px solid #334155",
+                        borderBottom: "1px solid var(--border-light)",
                         padding: "10px 16px",
-                        color: "#f1f5f9",
+                        color: "var(--text)",
                         fontSize: 14,
                         cursor: "pointer",
                         display: "flex",
@@ -495,7 +495,7 @@ export default function TutorEditClient({
               )}
             </div>
 
-            <div style={{ color: "#475569", fontSize: 12, marginTop: 8 }}>
+            <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 8 }}>
               Pick from suggestions or type and press Enter to add a custom subject.
             </div>
 
@@ -516,15 +516,15 @@ export default function TutorEditClient({
               style={{
                 flex: 1,
                 minWidth: 160,
-                background: saving ? "#1e3a5f" : "linear-gradient(135deg,#3b82f6,#1d4ed8)",
-                color: "white",
+                background: saving ? "var(--text)" : "linear-gradient(135deg,var(--accent),var(--accent-hover))",
+                color: "var(--accent-fg)",
                 border: "none",
                 borderRadius: 12,
                 padding: "14px 24px",
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: saving ? "wait" : "pointer",
-                boxShadow: saving ? "none" : "0 4px 16px #3b82f640",
+                boxShadow: saving ? "none" : "0 4px 16px rgba(13,89,70,0.25)",
                 transition: "all 0.2s",
               }}
             >
@@ -535,9 +535,9 @@ export default function TutorEditClient({
               style={{
                 flex: 1,
                 minWidth: 120,
-                backgroundColor: "#1e293b",
-                border: "1px solid #334155",
-                color: "#94a3b8",
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
+                color: "var(--text-muted)",
                 borderRadius: 12,
                 padding: "14px 24px",
                 fontSize: 15,

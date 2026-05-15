@@ -3,8 +3,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import BackgroundFloaters from "../../components/ui/BackgroundFloaters";
-import SectionHeader from "../../components/ui/SectionHeader";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
 export interface CenterCardData {
@@ -26,45 +24,42 @@ export interface CenterCardData {
 
 // ─── SUBJECT COLORS ────────────────────────────────────────────────────────────
 const SUBJECT_COLORS: Record<string, string> = {
-  Math: "#3b82f6", Mathematics: "#3b82f6", Physics: "#8b5cf6",
-  Chemistry: "#22c55e", Biology: "#10b981", English: "#f59e0b",
-  Arabic: "#ef4444", History: "#f97316", Geography: "#06b6d4",
-  French: "#a78bfa", "Computer Science": "#38bdf8", Science: "#34d399",
-  Economics: "#fbbf24", Business: "#e879f9",
+  Math: "var(--accent)", Mathematics: "var(--accent)", Physics: "var(--accent)",
+  Chemistry: "var(--success)", Biology: "var(--accent)", English: "var(--warning)",
+  Arabic: "var(--error)", History: "var(--warning)", Geography: "var(--accent)",
+  French: "var(--accent)", "Computer Science": "var(--accent)", Science: "var(--success)",
+  Economics: "var(--warning)", Business: "var(--accent)",
 };
-function subjectColor(s: string) { return SUBJECT_COLORS[s] ?? "#64748b"; }
+function subjectColor(s: string) { return SUBJECT_COLORS[s] ?? "var(--text-secondary)"; }
 
 const CITIES = ["All Cities", "Cairo", "Alexandria", "Giza", "Online"];
 
 // ─── STARS ─────────────────────────────────────────────────────────────────────
 function Stars({ rating }: { rating: number }) {
+  const full = Math.round(rating);
   return (
-    <span style={{ color: "#f59e0b", fontSize: 13, letterSpacing: 1 }}>
-      {"★".repeat(Math.round(rating))}{"☆".repeat(5 - Math.round(rating))}
+    <span style={{ color: "var(--rating)", fontSize: 13, letterSpacing: 1 }}>
+      {"★".repeat(full)}{"☆".repeat(5 - full)}
     </span>
   );
 }
 
 // ─── CENTER LOGO ───────────────────────────────────────────────────────────────
-function CenterLogo({ name, logoUrl, size = 64 }: { name: string; logoUrl: string | null; size?: number }) {
+function CenterLogo({ name, logoUrl, size = 56 }: { name: string; logoUrl: string | null; size?: number }) {
   if (logoUrl) {
-    return <img src={logoUrl} alt={name} style={{ width: size, height: size, borderRadius: 14, objectFit: "cover", flexShrink: 0 }} />;
+    return <img src={logoUrl} alt={name} style={{ width: size, height: size, borderRadius: 12, objectFit: "cover", flexShrink: 0, border: "1px solid var(--border-light)" }} />;
   }
-  // Pick color based on first letter
-  const colors = [
-    ["#1d4ed8", "#1e3a8a"], ["#7c3aed", "#4c1d95"],
-    ["#059669", "#064e3b"], ["#dc2626", "#7f1d1d"],
-    ["#d97706", "#78350f"],
-  ];
-  const pair = colors[(name.charCodeAt(0) ?? 0) % colors.length];
+  const colors = ["var(--accent-bg-soft)", "var(--accent-bg-soft)", "var(--accent-bg)", "var(--warning-bg)", "var(--accent-bg-soft)"];
+  const textColors = ["var(--accent-hover)", "var(--accent)", "var(--success)", "var(--warning)", "var(--accent)"];
+  const idx = (name.charCodeAt(0) ?? 0) % colors.length;
   return (
     <div style={{
-      width: size, height: size, borderRadius: 14,
-      background: `linear-gradient(135deg, ${pair[0]}, ${pair[1]})`,
+      width: size, height: size, borderRadius: 12,
+      backgroundColor: colors[idx],
       flexShrink: 0, display: "flex", alignItems: "center",
-      justifyContent: "center", fontWeight: 900,
-      fontSize: size * 0.4, color: "#fff",
-      boxShadow: `0 0 0 3px #1e293b, 0 0 0 5px ${pair[0]}30`,
+      justifyContent: "center", fontWeight: 800,
+      fontSize: size * 0.4, color: textColors[idx],
+      border: "1px solid var(--border-light)",
     }}>
       {name[0]?.toUpperCase()}
     </div>
@@ -78,71 +73,83 @@ function CenterCard({ center, index = 0 }: { center: CenterCardData; index?: num
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: index * 0.06 }}
-      whileHover={{ y: -6, boxShadow: "0 20px 48px #1d4ed825" }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "#1d4ed850"; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "#334155"; }}
+      transition={{ duration: 0.35, delay: index * 0.05 }}
       style={{
-        backgroundColor: "#1e293b",
-        border: "1px solid #334155",
-        borderRadius: 20,
+        backgroundColor: "var(--bg-card)",
+        border: "1px solid var(--border-light)",
+        borderRadius: 14,
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        transition: "border-color 0.2s",
+        transition: "border-color 0.2s, box-shadow 0.2s",
         position: "relative",
       }}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.borderColor = "var(--accent-border)";
+        el.style.boxShadow = "0 4px 16px rgba(37,99,235,0.08)";
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.borderColor = "var(--border-light)";
+        el.style.boxShadow = "none";
+      }}
     >
-      {/* Top accent — institutional blue */}
-      <div style={{ height: 4, background: "linear-gradient(90deg, #1d4ed8, #7c3aed44)", flexShrink: 0 }} />
+      {/* Top accent bar */}
+      <div style={{ height: 3, backgroundColor: "var(--accent)", flexShrink: 0 }} />
 
-      <div style={{ padding: "20px 20px 0" }}>
+      <div style={{ padding: "18px 18px 0" }}>
         {/* Header row */}
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 14 }}>
-          <CenterLogo name={center.name} logoUrl={center.logoUrl} size={60} />
+        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 12 }}>
+          <CenterLogo name={center.name} logoUrl={center.logoUrl} size={52} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 16, color: "#f1f5f9", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text)", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {center.name}
             </div>
-            <div style={{ color: "#64748b", fontSize: 13, marginBottom: 5, display: "flex", alignItems: "center", gap: 4 }}>
-              <span>📍</span>
+            <div style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 5, display: "flex", alignItems: "center", gap: 4 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
               <span>{center.city}{center.location ? ` · ${center.location}` : ""}</span>
             </div>
-            {/* Verified badge */}
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, backgroundColor: "#1e3a5f", border: "1px solid #38bdf820", borderRadius: 99, padding: "2px 10px", fontSize: 11, fontWeight: 700, color: "#38bdf8" }}>
-              ✓ Verified Center
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, backgroundColor: "var(--accent-bg)", border: "1px solid var(--accent-border)", borderRadius: 99, padding: "2px 8px", fontSize: 11, fontWeight: 700, color: "var(--accent)" }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Verified Center
             </span>
           </div>
         </div>
 
         {/* Rating */}
         {center.avgRating !== null ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
             <Stars rating={center.avgRating} />
-            <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>{center.avgRating.toFixed(1)}</span>
-            <span style={{ color: "#64748b", fontSize: 13 }}>({center.reviewCount} reviews)</span>
+            <span style={{ fontWeight: 700, color: "var(--text)", fontSize: 13 }}>{center.avgRating.toFixed(1)}</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 12 }}>({center.reviewCount} reviews)</span>
           </div>
         ) : (
-          <div style={{ color: "#475569", fontSize: 13, marginBottom: 12 }}>New center</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 10 }}>New center</div>
         )}
 
         {/* Subject tags */}
         {center.subjects.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
             {visibleSubjects.map((s) => (
               <span key={s} style={{
-                backgroundColor: `${subjectColor(s)}18`,
-                border: `1px solid ${subjectColor(s)}40`,
+                backgroundColor: `${subjectColor(s)}12`,
+                border: `1px solid ${subjectColor(s)}30`,
                 color: subjectColor(s),
-                borderRadius: 999, padding: "3px 10px",
-                fontSize: 12, fontWeight: 600,
+                borderRadius: 999, padding: "2px 9px",
+                fontSize: 11, fontWeight: 600,
               }}>{s}</span>
             ))}
             {extraSubjects > 0 && (
-              <span style={{ backgroundColor: "#334155", color: "#94a3b8", borderRadius: 999, padding: "3px 10px", fontSize: 12, fontWeight: 600 }}>
+              <span style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)", borderRadius: 999, padding: "2px 9px", fontSize: 11, fontWeight: 600 }}>
                 +{extraSubjects} more
               </span>
             )}
@@ -152,8 +159,8 @@ function CenterCard({ center, index = 0 }: { center: CenterCardData; index?: num
         {/* Description */}
         {center.description && (
           <p style={{
-            color: "#64748b", fontSize: 13, lineHeight: 1.6,
-            margin: "0 0 12px",
+            color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.6,
+            margin: "0 0 10px",
             display: "-webkit-box", WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical", overflow: "hidden",
           }}>
@@ -162,35 +169,36 @@ function CenterCard({ center, index = 0 }: { center: CenterCardData; index?: num
         )}
 
         {/* Stats row */}
-        <div style={{ display: "flex", gap: 16, paddingBottom: 14, borderBottom: "1px solid #334155" }}>
+        <div style={{ display: "flex", gap: 16, paddingBottom: 12, borderBottom: "1px solid var(--bg-subtle)" }}>
           {[
-            { icon: "👨‍🏫", value: center.tutorCount, label: "Tutors" },
-            { icon: "📚", value: center.classCount, label: "Classes" },
-            { icon: "👥", value: center.totalStudents, label: "Students" },
+            { value: center.tutorCount, label: "Tutors" },
+            { value: center.classCount, label: "Classes" },
+            { value: center.totalStudents, label: "Students" },
           ].map((stat) => (
-            <div key={stat.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <span style={{ fontSize: 14 }}>{stat.icon}</span>
-              <span style={{ fontWeight: 700, color: "#cbd5e1", fontSize: 14 }}>{stat.value}</span>
-              <span style={{ color: "#475569", fontSize: 12 }}>{stat.label}</span>
+            <div key={stat.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ fontWeight: 700, color: "var(--text)", fontSize: 14 }}>{stat.value}</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{stat.label}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* CTA */}
-      <div style={{ padding: "14px 20px 20px" }}>
+      <div style={{ padding: "12px 18px 16px" }}>
         <Link
           href={`/centers/${center.id}`}
           style={{
             display: "block", textAlign: "center",
-            background: "linear-gradient(135deg, #1d4ed8, #1e3a8a)",
-            color: "#fff", borderRadius: 10,
-            padding: "10px 0", fontSize: 14, fontWeight: 700,
+            backgroundColor: "var(--accent)",
+            color: "var(--bg-card)", borderRadius: 8,
+            padding: "9px 0", fontSize: 13, fontWeight: 600,
             textDecoration: "none",
-            boxShadow: "0 4px 14px #1d4ed840",
+            transition: "background 0.15s",
           }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent-hover)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent)"; }}
         >
-          View Center →
+          View Center
         </Link>
       </div>
     </motion.div>
@@ -207,27 +215,29 @@ function FilterSidebar({
   minRating: number; setMinRating: (r: number) => void;
   onClear: () => void; hasFilters: boolean;
 }) {
-  const label: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 };
-
   return (
-    <div style={{ width: 240, flexShrink: 0, position: "sticky", top: 24, alignSelf: "flex-start", backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: "20px 18px", display: "flex", flexDirection: "column", gap: 22 }}>
+    <div style={{ width: 220, flexShrink: 0, position: "sticky", top: 80, alignSelf: "flex-start", backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 14, padding: "18px", display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: "#f1f5f9" }}>🏫 Filters</span>
-        {hasFilters && <button onClick={onClear} style={{ background: "none", border: "none", color: "#3b82f6", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0 }}>Clear all</button>}
+        <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text)" }}>Filters</span>
+        {hasFilters && (
+          <button onClick={onClear} style={{ background: "var(--accent-bg)", border: "1px solid var(--accent-border)", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", padding: "3px 10px", borderRadius: 999 }}>
+            Clear all
+          </button>
+        )}
       </div>
 
       {/* City */}
       <div>
-        <div style={label}>City</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>City</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           {CITIES.map((city) => (
             <button key={city} onClick={() => setSelectedCity(city)} style={{
-              background: selectedCity === city ? "#1d4ed815" : "none",
-              border: selectedCity === city ? "1px solid #1d4ed840" : "1px solid transparent",
+              background: selectedCity === city ? "var(--accent-bg)" : "none",
+              border: selectedCity === city ? "1px solid var(--accent-border)" : "1px solid transparent",
               borderRadius: 8, padding: "7px 10px", textAlign: "left",
-              color: selectedCity === city ? "#60a5fa" : "#94a3b8",
+              color: selectedCity === city ? "var(--accent)" : "var(--text-secondary)",
               fontWeight: selectedCity === city ? 600 : 400,
-              fontSize: 14, cursor: "pointer", transition: "all 0.15s",
+              fontSize: 13, cursor: "pointer", transition: "all 0.15s",
             }}>
               {city}
             </button>
@@ -237,14 +247,14 @@ function FilterSidebar({
 
       {/* Min Rating */}
       <div>
-        <div style={label}>Minimum Rating</div>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>Minimum Rating</div>
+        <div style={{ display: "flex", gap: 5 }}>
           {[0, 3, 4, 4.5].map((r) => (
             <button key={r} onClick={() => setMinRating(r)} style={{
               flex: 1, padding: "6px 4px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
-              border: `1px solid ${minRating === r ? "#f59e0b" : "#334155"}`,
-              backgroundColor: minRating === r ? "#f59e0b15" : "transparent",
-              color: minRating === r ? "#f59e0b" : "#64748b",
+              border: `1px solid ${minRating === r ? "var(--warning-bg)" : "var(--border-light)"}`,
+              backgroundColor: minRating === r ? "var(--warning-bg)" : "var(--bg-card)",
+              color: minRating === r ? "var(--warning)" : "var(--text-secondary)",
               transition: "all 0.15s",
             }}>
               {r === 0 ? "Any" : `${r}★`}
@@ -252,6 +262,16 @@ function FilterSidebar({
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── SECTION TITLE ─────────────────────────────────────────────────────────────
+function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", margin: 0, marginBottom: subtitle ? 4 : 0 }}>{title}</h2>
+      {subtitle && <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>{subtitle}</p>}
     </div>
   );
 }
@@ -280,64 +300,57 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
     });
   }, [centers, search, selectedCity, minRating]);
 
-  // Segments
   const topRated = filtered.filter((c) => c.avgRating !== null && c.avgRating >= 4.5);
   const established = filtered.filter((c) => c.classCount >= 5);
   const newCenters = filtered.filter((c) => c.classCount < 5);
   const isFiltering = hasFilters;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0f172a", fontFamily: "system-ui, -apple-system, sans-serif", color: "#f1f5f9", position: "relative" }}>
-      <BackgroundFloaters
-        floaters={[
-          { color: "#1d4ed8", size: 500, top: "-10%", left: "-8%",  duration: 12 },
-          { color: "#7c3aed", size: 400, top: "65%",  left: "78%",  duration: 15, delay: 3 },
-          { color: "#0284c7", size: 300, top: "35%",  left: "88%",  duration: 10, delay: 6 },
-          { color: "#059669", size: 280, top: "80%",  left: "5%",   duration: 13, delay: 2 },
-        ]}
-      />
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-alt)", color: "var(--text)" }}>
 
-      {/* ── HERO ── */}
-      <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg, #0f172a 0%, #1a2744 50%, #0f172a 100%)", borderBottom: "1px solid #334155", padding: "52px 24px 44px", zIndex: 1 }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `linear-gradient(#ffffff05 1px, transparent 1px), linear-gradient(90deg, #ffffff05 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: -120, right: -80, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, #1d4ed820 0%, transparent 65%)", pointerEvents: "none" }} />
+      {/* Page header */}
+      <div style={{ backgroundColor: "var(--bg-card)", borderBottom: "1px solid var(--border-light)", padding: "32px 24px 28px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          {/* Breadcrumb */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
+            <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Home</Link>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+            <span style={{ color: "var(--text)" }}>Learning Centers</span>
+          </div>
 
-        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
-          <Link href="/" style={{ color: "#64748b", fontSize: 13, textDecoration: "none" }}>← Home</Link>
+          <h1 style={{ fontSize: "clamp(22px, 3.5vw, 32px)", fontWeight: 800, color: "var(--text)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+            Learning Centers
+          </h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
+            {centers.length} verified centers across Egypt — find the right institution for you.
+          </p>
 
-          <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
-            style={{ fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 900, margin: "20px 0 10px", letterSpacing: "-0.03em", lineHeight: 1.15 }}>
-            Learning{" "}
-            <span style={{ background: "linear-gradient(90deg, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              Centers
-            </span>
-          </motion.h1>
-
-          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}
-            style={{ color: "#94a3b8", fontSize: 17, marginBottom: 24, maxWidth: 460 }}>
-            {centers.length} verified centers across Egypt. Find the right institution for you.
-          </motion.p>
-
-          {/* Search */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
-            style={{ position: "relative", maxWidth: 520 }}>
-            <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 18, pointerEvents: "none" }}>🔍</span>
+          {/* Search bar */}
+          <div style={{ position: "relative", maxWidth: 520 }}>
+            <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </div>
             <input
-              type="text" placeholder="Search centers by name, subject, or location..."
+              type="text" placeholder="Search by name, subject, or location..."
               value={search} onChange={(e) => setSearch(e.target.value)}
-              style={{ width: "100%", backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 14, padding: "13px 16px 13px 48px", color: "#f1f5f9", fontSize: 15, outline: "none", boxSizing: "border-box", fontFamily: "inherit", transition: "border-color 0.2s" }}
-              onFocus={(e) => (e.target.style.borderColor = "#60a5fa")}
-              onBlur={(e) => (e.target.style.borderColor = "#334155")}
+              style={{ width: "100%", backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "11px 14px 11px 42px", color: "var(--text)", fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit", transition: "border-color 0.15s, box-shadow 0.15s" }}
+              onFocus={(e) => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+              onBlur={(e) => { e.target.style.borderColor = "var(--border-light)"; e.target.style.boxShadow = "none"; }}
             />
             {search && (
-              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: 18 }}>×</button>
+              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>×</button>
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* ── MAIN ── */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "36px 24px 80px", position: "relative", zIndex: 1, display: "flex", gap: 28, alignItems: "flex-start" }}>
+      {/* Main content */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px 80px", display: "flex", gap: 28, alignItems: "flex-start" }}>
         {/* Sidebar */}
         <FilterSidebar
           selectedCity={selectedCity} setSelectedCity={setSelectedCity}
@@ -348,14 +361,14 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
         {/* Cards */}
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Result count */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <span style={{ color: "#64748b", fontSize: 14 }}>
-              Showing <span style={{ color: "#f1f5f9", fontWeight: 700 }}>{filtered.length}</span> center{filtered.length !== 1 ? "s" : ""}
-              {hasFilters && " matching filters"}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
+            <span style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+              <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span> center{filtered.length !== 1 ? "s" : ""}
+              {hasFilters && " match your filters"}
             </span>
             {hasFilters && (
-              <button onClick={clearFilters} style={{ background: "none", border: "1px solid #334155", color: "#94a3b8", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                ✕ Clear
+              <button onClick={clearFilters} style={{ background: "var(--accent-bg)", border: "1px solid var(--accent-border)", color: "var(--accent)", borderRadius: 999, padding: "5px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                ✕ Clear filters
               </button>
             )}
           </div>
@@ -363,55 +376,53 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
           <AnimatePresence mode="wait">
             {filtered.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: "64px 32px", textAlign: "center" }}>
-                <div style={{ fontSize: "3rem", marginBottom: 16 }}>🏫</div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 18, marginBottom: 8 }}>No centers found</div>
-                <div style={{ color: "#64748b", fontSize: 14, marginBottom: 24 }}>Try adjusting your search or filters</div>
-                <button onClick={clearFilters} style={{ backgroundColor: "#1d4ed8", color: "#fff", border: "none", borderRadius: 10, padding: "10px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 14, padding: "64px 32px", textAlign: "center" }}>
+                <div style={{ marginBottom: 16, color: "var(--border)" }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto", display: "block" }}>
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                </div>
+                <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 17, marginBottom: 8 }}>No centers found</div>
+                <div style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>Try adjusting your search or filters</div>
+                <button onClick={clearFilters} style={{ backgroundColor: "var(--accent)", color: "var(--bg-card)", border: "none", borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
                   Clear filters
                 </button>
               </motion.div>
             ) : isFiltering ? (
               <motion.div key="filtered" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 20 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 18 }}>
                   {filtered.map((c, i) => <CenterCard key={c.id} center={c} index={i} />)}
                 </div>
               </motion.div>
             ) : (
-              <motion.div key="segments" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ display: "flex", flexDirection: "column", gap: 48 }}>
-
+              <motion.div key="segments" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
                 {topRated.length > 0 && (
                   <section>
-                    <SectionHeader title="Top Rated Centers" subtitle="Consistently rated 4.5★ or higher" badge="⭐ Highest Rated" badgeColor="#f59e0b" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 20 }}>
+                    <SectionTitle title="Top Rated Centers" subtitle="Consistently rated 4.5★ or higher" />
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 18 }}>
                       {topRated.map((c, i) => <CenterCard key={c.id} center={c} index={i} />)}
                     </div>
                   </section>
                 )}
-
                 {established.length > 0 && (
                   <section>
-                    <SectionHeader title="Established Institutions" subtitle="Centers with a proven track record" badge="🏛️ Established" badgeColor="#60a5fa" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 20 }}>
+                    <SectionTitle title="Established Institutions" subtitle="Centers with a proven track record" />
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 18 }}>
                       {established.map((c, i) => <CenterCard key={c.id} center={c} index={i} />)}
                     </div>
                   </section>
                 )}
-
                 {newCenters.length > 0 && (
                   <section>
-                    <SectionHeader title="New Centers" subtitle="Just joined — be among their first students" badge="🌱 New" badgeColor="#22c55e" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 20 }}>
+                    <SectionTitle title="New Centers" subtitle="Just joined — be among their first students" />
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 18 }}>
                       {newCenters.map((c, i) => <CenterCard key={c.id} center={c} index={i} />)}
                     </div>
                   </section>
                 )}
-
                 {filtered.length === 0 && (
-                  <div style={{ textAlign: "center", color: "#64748b", padding: "48px 0" }}>
-                    No centers yet. Check back soon!
-                  </div>
+                  <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "48px 0" }}>No centers yet. Check back soon!</div>
                 )}
               </motion.div>
             )}

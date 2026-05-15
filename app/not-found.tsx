@@ -9,61 +9,62 @@ export default function NotFound() {
                 alignItems: "center",
                 justifyContent: "center",
                 flexDirection: "column",
-                gap: 16,
+                gap: 20,
                 padding: "2rem",
                 textAlign: "center",
+                backgroundColor: "var(--bg-alt)",
             }}
         >
-            <div style={{ fontSize: 72, marginBottom: 8 }}>🔍</div>
-            <h1
-                style={{
-                    fontSize: "clamp(2rem, 5vw, 3.5rem)",
-                    fontWeight: 900,
-                    background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    margin: 0,
-                }}
-            >
-                404
-            </h1>
-            <h2 style={{ color: "#f8fafc", fontWeight: 700, fontSize: 22, margin: 0 }}>
-                Page not found
-            </h2>
-            <p style={{ color: "#64748b", fontSize: 15, maxWidth: 420 }}>
-                The page you&apos;re looking for doesn&apos;t exist or has been moved.
-                Let&apos;s get you back on track.
-            </p>
-            <div style={{ display: "flex", gap: 12, marginTop: 12, flexWrap: "wrap", justifyContent: "center" }}>
-                <Link
-                    href="/"
+            <div>
+                <div
                     style={{
-                        backgroundColor: "#3b82f6",
-                        color: "white",
-                        padding: "0.7rem 1.8rem",
-                        borderRadius: 10,
-                        fontSize: 15,
-                        fontWeight: 600,
-                        textDecoration: "none",
-                        boxShadow: "0 2px 12px rgba(59,130,246,0.3)",
+                        fontSize: "clamp(5rem, 14vw, 9rem)",
+                        fontWeight: 900,
+                        color: "var(--border-light)",
+                        lineHeight: 1,
+                        marginBottom: 16,
                     }}
                 >
-                    Go Home
-                </Link>
-                <Link
-                    href="/classes"
-                    style={{
-                        border: "1px solid #334155",
-                        color: "#cbd5e1",
-                        padding: "0.7rem 1.8rem",
-                        borderRadius: 10,
-                        fontSize: 15,
-                        fontWeight: 500,
-                        textDecoration: "none",
-                    }}
-                >
-                    Browse Classes
-                </Link>
+                    404
+                </div>
+                <h2 style={{ color: "var(--text)", fontWeight: 700, fontSize: "clamp(1.2rem, 3vw, 1.5rem)", margin: "0 0 12px" }}>
+                    Page not found
+                </h2>
+                <p style={{ color: "var(--text-secondary)", fontSize: 15, maxWidth: 400, margin: "0 auto 28px", lineHeight: 1.7 }}>
+                    The page you&apos;re looking for doesn&apos;t exist or has been moved.
+                    Let&apos;s get you back on track.
+                </p>
+                <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+                    <Link
+                        href="/"
+                        style={{
+                            backgroundColor: "var(--accent)",
+                            color: "var(--accent-fg)",
+                            padding: "10px 24px",
+                            borderRadius: 8,
+                            fontSize: 14,
+                            fontWeight: 600,
+                            textDecoration: "none",
+                        }}
+                    >
+                        Go Home
+                    </Link>
+                    <Link
+                        href="/classes"
+                        style={{
+                            border: "1px solid var(--border-light)",
+                            color: "var(--text)",
+                            padding: "10px 24px",
+                            borderRadius: 8,
+                            fontSize: 14,
+                            fontWeight: 500,
+                            textDecoration: "none",
+                            backgroundColor: "var(--bg-card)",
+                        }}
+                    >
+                        Browse Classes
+                    </Link>
+                </div>
             </div>
         </div>
     );

@@ -1,71 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, useInView, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useI18n } from "@/app/components/i18n";
 
-// ── Floating Orb ─────────────────────────────────────────────────────────
-function FloatingOrb({ x, y, size, color, duration }: { x: string; y: string; size: number; color: string; duration: number }) {
-  return (
-    <motion.div
-      animate={{ y: [0, -30, 0], x: [0, 15, 0], scale: [1, 1.1, 1] }}
-      transition={{ duration, repeat: Infinity, ease: "easeInOut" }}
-      style={{
-        position: "absolute", left: x, top: y,
-        width: size, height: size, borderRadius: "50%",
-        background: color, filter: "blur(60px)",
-        pointerEvents: "none", zIndex: 0,
-      }}
-    />
-  );
-}
-
-// ── Particle ─────────────────────────────────────────────────────────────
-function Particle({ x, y, delay }: { x: string; y: string; delay: number }) {
-  return (
-    <motion.div
-      animate={{ opacity: [0, 1, 0], scale: [0, 1, 0], y: [0, -40, -80] }}
-      transition={{ duration: 4, repeat: Infinity, delay, ease: "easeOut" }}
-      style={{
-        position: "absolute", left: x, top: y,
-        width: 3, height: 3, borderRadius: "50%",
-        backgroundColor: "#3b82f6", pointerEvents: "none", zIndex: 0,
-      }}
-    />
-  );
-}
-
-// ── Magnetic Card ─────────────────────────────────────────────────────────
-function MagneticCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const rotateX = useTransform(y, [-50, 50], [8, -8]);
-  const rotateY = useTransform(x, [-50, 50], [-8, 8]);
-  const springX = useSpring(rotateX, { stiffness: 200, damping: 20 });
-  const springY = useSpring(rotateY, { stiffness: 200, damping: 20 });
-
-  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-    x.set(e.clientX - rect.left - rect.width / 2);
-    y.set(e.clientY - rect.top - rect.height / 2);
-  }
-  function handleMouseLeave() { x.set(0); y.set(0); }
-
-  return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ rotateX: springX, rotateY: springY, transformStyle: "preserve-3d", ...style }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-// ── Animated Counter ──────────────────────────────────────────────────────
+// ── Animated number counter ───────────────────────────────────────────────────
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
@@ -73,110 +13,39 @@ function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
 
   useEffect(() => {
     if (!inView) return;
-    let start = 0;
-    const step = target / (1500 / 16);
+    const step = target / (900 / 16);
+    let current = 0;
     const timer = setInterval(() => {
-      start += step;
-      if (start >= target) { setCount(target); clearInterval(timer); }
-      else setCount(Math.floor(start));
+      current += step;
+      if (current >= target) { setCount(target); clearInterval(timer); }
+      else setCount(Math.floor(current));
     }, 16);
     return () => clearInterval(timer);
   }, [inView, target]);
 
-  return <span ref={ref}>{count}{suffix}</span>;
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
 
-// ── Typing Headline ───────────────────────────────────────────────────────
-function TypingText({ words }: { words: string[] }) {
-  const [index, setIndex] = useState(0);
-  const [displayed, setDisplayed] = useState("");
-  const [deleting, setDeleting] = useState(false);
-
-  useEffect(() => {
-    const word = words[index];
-    let timeout: ReturnType<typeof setTimeout>;
-    if (!deleting && displayed.length < word.length) {
-      timeout = setTimeout(() => setDisplayed(word.slice(0, displayed.length + 1)), 80);
-    } else if (!deleting && displayed.length === word.length) {
-      timeout = setTimeout(() => setDeleting(true), 2000);
-    } else if (deleting && displayed.length > 0) {
-      timeout = setTimeout(() => setDisplayed(displayed.slice(0, -1)), 40);
-    } else {
-      setDeleting(false);
-      setIndex((index + 1) % words.length);
-    }
-    return () => clearTimeout(timeout);
-  }, [displayed, deleting, index, words]);
-
-  return (
-    <span style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-      {displayed}
-      <motion.span
-        animate={{ opacity: [1, 0] }}
-        transition={{ duration: 0.5, repeat: Infinity }}
-        style={{ WebkitTextFillColor: "#3b82f6" }}
-      >|</motion.span>
-    </span>
-  );
-}
-
-// ── Shimmer Button ────────────────────────────────────────────────────────
-function ShimmerButton({ href, children, primary = true }: { href: string; children: React.ReactNode; primary?: boolean }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <Link href={href} style={{ textDecoration: "none" }}>
-      <motion.div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.97 }}
-        style={{
-          position: "relative", overflow: "hidden",
-          backgroundColor: primary ? "#3b82f6" : "transparent",
-          color: "white", padding: "0.9rem 2.2rem", borderRadius: 14,
-          fontWeight: 700, fontSize: 16, cursor: "pointer",
-          border: primary ? "none" : "1px solid #334155",
-          boxShadow: primary ? "0 0 40px rgba(59,130,246,0.4)" : "none",
-          display: "inline-block",
-        }}
-      >
-        <AnimatePresence>
-          {hovered && primary && (
-            <motion.div
-              initial={{ x: "-100%", skewX: -20 }}
-              animate={{ x: "200%" }}
-              exit={{ x: "200%" }}
-              transition={{ duration: 0.5 }}
-              style={{
-                position: "absolute", inset: 0,
-                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
-                pointerEvents: "none",
-              }}
-            />
-          )}
-        </AnimatePresence>
-        {children}
-      </motion.div>
-    </Link>
-  );
-}
-
-// ── FAQ Item ──────────────────────────────────────────────────────────────
+// ── FAQ accordion item ────────────────────────────────────────────────────────
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <motion.div
+    <div
       onClick={() => setOpen(o => !o)}
-      whileHover={{ x: 4 }}
-      style={{ borderBottom: "1px solid #1e293b", padding: "1.25rem 0", cursor: "pointer" }}
+      style={{
+        borderBottom: "1px solid var(--border-light)",
+        padding: "1.25rem 0",
+        cursor: "pointer",
+      }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 16 }}>{q}</span>
-        <motion.span
-          animate={{ rotate: open ? 45 : 0 }}
-          transition={{ duration: 0.2 }}
-          style={{ color: "#3b82f6", fontSize: 24, fontWeight: 300, flexShrink: 0, marginLeft: 16, display: "inline-block" }}
-        >+</motion.span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+        <span style={{ color: "var(--text)", fontWeight: 600, fontSize: 16, lineHeight: 1.4 }}>{q}</span>
+        <span style={{
+          color: "var(--text-muted)", fontSize: 20, fontWeight: 300, flexShrink: 0,
+          transform: open ? "rotate(45deg)" : "rotate(0deg)",
+          transition: "transform 0.2s",
+          display: "inline-block",
+        }}>+</span>
       </div>
       <AnimatePresence>
         {open && (
@@ -184,386 +53,615 @@ function FAQItem({ q, a }: { q: string; a: string }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.22 }}
             style={{ overflow: "hidden" }}
           >
-            <p style={{ color: "#94a3b8", fontSize: 15, marginTop: 12, lineHeight: 1.7 }}>{a}</p>
+            <p style={{ color: "var(--text-secondary)", fontSize: 15, marginTop: 12, lineHeight: 1.75 }}>{a}</p>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
-// ── Data ──────────────────────────────────────────────────────────────────
+// ── Icon glyph ────────────────────────────────────────────────────────────────
+function Check({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" aria-hidden>
+      <path d="M3 7.5l2.5 2.5L11 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function Arrow({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+const STATS = [
+  { value: 50,  suffix: "+", label: "Active Classes" },
+  { value: 20,  suffix: "+", label: "Verified Tutors" },
+  { value: 200, suffix: "+", label: "Seats Booked" },
+  { value: 7,   suffix: "",  label: "Curricula" },
+];
+
 const FEATURES = [
-  { icon: "🎯", title: "Verified Tutors", desc: "Every tutor is manually reviewed. No random strangers — only qualified educators.", color: "#3b82f6" },
-  { icon: "📅", title: "Easy Scheduling", desc: "See real-time availability and book a slot in under 60 seconds.", color: "#8b5cf6" },
-  { icon: "💬", title: "WhatsApp Contact", desc: "Message your tutor directly on WhatsApp — no app downloads required.", color: "#10b981" },
-  { icon: "📚", title: "All Curricula", desc: "National, IGCSE, American, IB, STEM — we cover every Egyptian school system.", color: "#f59e0b" },
-  { icon: "🏫", title: "Centers & Tutors", desc: "Choose between independent tutors or established learning centers near you.", color: "#ec4899" },
-  { icon: "🔒", title: "Secure Bookings", desc: "Your booking is confirmed instantly with a full history in your dashboard.", color: "#06b6d4" },
+  { title: "Verified Tutors",     desc: "Every tutor is reviewed before going live. No strangers — only qualified educators with a track record." },
+  { title: "All Curricula",       desc: "National, IGCSE, American, IB, French System, STEM — every Egyptian school system in one place." },
+  { title: "Instant Booking",     desc: "Browse classes, check schedules, and confirm your seat in under 60 seconds. No phone calls needed." },
+  { title: "Direct Contact",      desc: "Message tutors and centers directly. No middleman, no friction, no app downloads required." },
+  { title: "Learning Centers",    desc: "Established centers and independent tutors, side by side, with the same trust signals." },
+  { title: "Student Dashboard",   desc: "Track bookings, manage upcoming classes, and access materials from a single organized place." },
 ];
 
 const STEPS = [
-  { num: "01", icon: "🔍", title: "Search", desc: "Filter by subject, curriculum, grade, location, and price to find the perfect class." },
-  { num: "02", icon: "📋", title: "Book", desc: "Pick your class and confirm your booking in one click. No calls needed." },
-  { num: "03", icon: "🎓", title: "Learn", desc: "Show up, learn, and track your progress — all from your dashboard." },
+  { num: "1", title: "Search",  desc: "Filter by subject, grade, curriculum, area, and price to find the right class." },
+  { num: "2", title: "Compare", desc: "Review tutors and centers side by side — credentials, schedules, ratings, fees." },
+  { num: "3", title: "Book",    desc: "Confirm your seat instantly. Your booking is tracked in your dashboard." },
+  { num: "4", title: "Learn",   desc: "Attend, message your tutor, and manage everything from one place." },
 ];
 
 const TESTIMONIALS = [
-  { name: "Layla Hassan", role: "Student, Grade 11", rating: 5, text: "Found an IGCSE Physics tutor in Nasr City within 5 minutes. My grades went from a C to an A in one term." },
-  { name: "Ahmed Karim", role: "Parent", rating: 5, text: "I was skeptical at first but the verification process gave me confidence. My daughter loves her Chemistry tutor." },
-  { name: "Sara Mahmoud", role: "Tutor", rating: 5, text: "I used to rely on word of mouth. Now I get 3-4 new students a month just from my Coursaty profile." },
-  { name: "Omar Fathy", role: "Student, Grade 12", rating: 5, text: "Booked a Math class for Thanaweya Amma prep. The tutor was amazing and the WhatsApp contact made everything easy." },
-  { name: "Nour El-Din", role: "Parent", rating: 5, text: "The center profiles are very detailed. We found a great center in Heliopolis with exactly the right schedule." },
-  { name: "Mona Adel", role: "Center Admin", rating: 5, text: "Managing our center's classes on Coursaty is simple. Our enrollment went up 40% in the first two months." },
+  { name: "Layla Hassan",  role: "Student · Grade 11", text: "Found an IGCSE Physics tutor in Nasr City within five minutes. My grades went from C to A in one term." },
+  { name: "Ahmed Karim",   role: "Parent",             text: "The verification process gave me confidence. My daughter loves her Chemistry tutor — I'd recommend Coursaty to any family." },
+  { name: "Sara Mahmoud",  role: "Private Tutor",      text: "I used to rely on word of mouth. Now I get three to four new students a month, just from my Coursaty profile." },
 ];
 
 const FAQS = [
-  { q: "Is Coursaty free to use?", a: "Browsing and booking is completely free for students. Tutors and centers pay nothing to list — we only grow when you grow." },
-  { q: "How do I know tutors are qualified?", a: "Every tutor profile is reviewed before going live. We check credentials and collect student feedback to maintain quality." },
-  { q: "What subjects are available?", a: "Math, Physics, Chemistry, Biology, English, Arabic, History, Geography, Computer Science — and more being added regularly." },
-  { q: "Can I book a learning center, not just individual tutors?", a: "Yes! Learning centers have their own profile pages with all their classes listed. You can book directly from their page." },
-  { q: "What if I need to cancel a booking?", a: "You can cancel any booking from your student dashboard. Cancellation policies depend on the tutor or center." },
-  { q: "How does WhatsApp contact work?", a: "Every tutor and center profile has a WhatsApp button. One tap opens a chat so you can ask questions before committing." },
-  { q: "Which curricula do you support?", a: "National (Thanaweya Amma), IGCSE, American/SAT/ACT, IB, French System, and STEM schools." },
-  { q: "Is Coursaty available outside Cairo?", a: "We are Cairo-focused right now but expanding to Alexandria and Giza very soon." },
-];
-
-const PARTICLES = [
-  { x: "10%", y: "20%", delay: 0 }, { x: "25%", y: "60%", delay: 0.5 },
-  { x: "40%", y: "35%", delay: 1 }, { x: "55%", y: "70%", delay: 1.5 },
-  { x: "70%", y: "25%", delay: 0.8 }, { x: "80%", y: "55%", delay: 0.3 },
-  { x: "90%", y: "40%", delay: 1.2 }, { x: "15%", y: "80%", delay: 2 },
-  { x: "60%", y: "15%", delay: 0.6 }, { x: "35%", y: "90%", delay: 1.8 },
-  { x: "75%", y: "80%", delay: 0.9 }, { x: "5%", y: "50%", delay: 1.4 },
+  { q: "Is Coursaty free to use?",            a: "Browsing and booking is completely free for students and parents. Tutors and centers pay nothing to list." },
+  { q: "How do I know tutors are qualified?", a: "Every tutor profile is reviewed before going live. We collect ongoing student feedback to maintain quality." },
+  { q: "What subjects are available?",        a: "Math, Physics, Chemistry, Biology, English, Arabic, History, Geography, Computer Science, and more." },
+  { q: "Can I book a learning center?",       a: "Yes. Learning centers have their own profile pages with all classes listed — you can book directly from their page." },
+  { q: "What if I need to cancel?",           a: "You can cancel any booking from your dashboard. Cancellation rules depend on the tutor or center's policy." },
+  { q: "Which curricula do you support?",     a: "Thanaweya Amma, IGCSE, American Diploma, IB, French System, and STEM schools." },
 ];
 
 const CURRICULA = ["Thanaweya Amma", "IGCSE", "American Diploma", "IB", "French System", "STEM"];
 
-// ── Main Landing Component ────────────────────────────────────────────────
-export default function Landing() {
+const TRUST_POINTS = [
+  "Verified tutors",
+  "Instant booking",
+  "All curricula",
+  "Trusted centers",
+  "Transparent fees",
+];
+
+// ── Section wrapper ───────────────────────────────────────────────────────────
+function Section({
+  children,
+  bg = "var(--bg)",
+  style,
+}: {
+  children: React.ReactNode;
+  bg?: string;
+  style?: React.CSSProperties;
+}) {
   return (
-    <div style={{ backgroundColor: "#0f172a", fontFamily: "var(--font-sans)", overflowX: "hidden" }}>
+    <section style={{ backgroundColor: bg, padding: "5rem 1.5rem", borderBottom: "1px solid var(--border-light)", ...style }}>
+      <div style={{ maxWidth: 1140, margin: "0 auto" }}>{children}</div>
+    </section>
+  );
+}
 
-      {/* ══ HERO ══════════════════════════════════════════════════════════ */}
-      <section style={{ minHeight: "95vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "6rem 2rem 4rem", position: "relative", overflow: "hidden" }}>
-        <FloatingOrb x="5%" y="10%" size={600} color="radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)" duration={8} />
-        <FloatingOrb x="60%" y="5%" size={500} color="radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)" duration={10} />
-        <FloatingOrb x="20%" y="60%" size={400} color="radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)" duration={12} />
-        <FloatingOrb x="75%" y="50%" size={350} color="radial-gradient(circle, rgba(245,158,11,0.07) 0%, transparent 70%)" duration={9} />
-        {PARTICLES.map((p, i) => <Particle key={i} {...p} />)}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)", backgroundSize: "60px 60px", pointerEvents: "none" }} />
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      display: "inline-block",
+      color: "var(--accent)",
+      fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: "0.14em",
+      textTransform: "uppercase",
+      marginBottom: "0.875rem",
+    }}>
+      {children}
+    </div>
+  );
+}
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(59,130,246,0.08)", backdropFilter: "blur(10px)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: 20, padding: "6px 16px", marginBottom: "1.75rem" }}>
-            <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#3b82f6", display: "inline-block" }} />
-            <span style={{ color: "#93c5fd", fontSize: 13, fontWeight: 600 }}>Egypt's #1 Tutoring Marketplace</span>
-          </div>
-        </motion.div>
+// ── Main Component ────────────────────────────────────────────────────────────
+export default function Landing() {
+  const { t } = useI18n();
+  return (
+    <div style={{ fontFamily: "var(--font-sans)", backgroundColor: "var(--bg)", overflowX: "hidden" }}>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          style={{ fontSize: "clamp(2.4rem, 6vw, 4.2rem)", fontWeight: 900, color: "#f8fafc", lineHeight: 1.12, maxWidth: 800, margin: "0 auto 1.25rem", zIndex: 1, position: "relative" }}
-        >
-          Find the perfect{" "}
-          <TypingText words={["Math tutor", "Physics class", "IGCSE prep", "Arabic tutor", "Chemistry class", "learning center"]} />
-          <br />in Cairo, today.
-        </motion.h1>
+      {/* ══ HERO ═══════════════════════════════════════════════════════════════ */}
+      <section style={{
+        backgroundColor: "var(--bg)",
+        borderBottom: "1px solid var(--border-light)",
+        padding: "5rem 1.5rem 4.5rem",
+        textAlign: "center",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        {/* Subtle texture */}
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(24,23,21,0.06) 1px, transparent 0)",
+          backgroundSize: "32px 32px",
+          pointerEvents: "none",
+          opacity: 0.6,
+          maskImage: "radial-gradient(ellipse at center, black 40%, transparent 75%)",
+        }} />
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          style={{ fontSize: "clamp(1rem, 2.5vw, 1.2rem)", color: "#94a3b8", maxWidth: 560, margin: "0 auto 2.5rem", lineHeight: 1.7, zIndex: 1, position: "relative" }}
-        >
-          Small group classes, verified tutors, and top learning centers — all subjects, all curricula, one platform.
-        </motion.p>
+        <div style={{ maxWidth: 820, margin: "0 auto", position: "relative" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              backgroundColor: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              borderRadius: 99, padding: "6px 14px",
+              marginBottom: "1.75rem",
+              boxShadow: "var(--shadow-xs)",
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "var(--accent)", display: "inline-block" }} />
+              <span style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, letterSpacing: "0.01em" }}>
+                {t("hero.tag")}
+              </span>
+            </div>
+          </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", marginBottom: "3rem", zIndex: 1, position: "relative" }}
-        >
-          <ShimmerButton href="/classes">Browse Classes →</ShimmerButton>
-          <ShimmerButton href="/signup" primary={false}>Become a Tutor</ShimmerButton>
-        </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.08 }}
+            style={{
+              fontSize: "clamp(2.4rem, 5.4vw, 3.75rem)",
+              fontWeight: 800,
+              color: "var(--text)",
+              lineHeight: 1.1,
+              letterSpacing: "-0.035em",
+              margin: "0 auto 1.25rem",
+              maxWidth: 740,
+            }}
+          >
+            {t("hero.title")}
+          </motion.h1>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", justifyContent: "center", zIndex: 1, position: "relative" }}
-        >
-          {["Verified Tutors", "Instant Booking", "WhatsApp Support", "All Curricula"].map((badge, i) => (
-            <motion.div
-              key={badge}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 + i * 0.1 }}
-              style={{ display: "flex", alignItems: "center", gap: 6, color: "#64748b", fontSize: 13 }}
-            >
-              <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.5 }} style={{ color: "#3b82f6" }}>✓</motion.span>
-              {badge}
-            </motion.div>
-          ))}
-        </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            style={{
+              fontSize: "clamp(1.05rem, 2.4vw, 1.18rem)",
+              color: "var(--text-secondary)",
+              maxWidth: 560,
+              margin: "0 auto 2.25rem",
+              lineHeight: 1.65,
+            }}
+          >
+            {t("hero.subtitle")}
+          </motion.p>
 
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          style={{ position: "absolute", bottom: "2rem", left: "50%", transform: "translateX(-50%)", color: "#334155", fontSize: 24 }}
-        >↓</motion.div>
-      </section>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.22 }}
+            style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", justifyContent: "center", marginBottom: "2.75rem" }}
+          >
+            <Link href="/classes" className="btn-primary" style={{ padding: "12px 22px", fontSize: 15 }}>
+              {t("hero.browseClasses")} <Arrow />
+            </Link>
+            <Link href="/tutors" className="btn-secondary" style={{ padding: "12px 22px", fontSize: 15 }}>
+              {t("hero.findTutor")}
+            </Link>
+          </motion.div>
 
-      {/* ══ CURRICULA TRUST BAR ══════════════════════════════════════════ */}
-      <section style={{ padding: "1.25rem 2rem", borderTop: "1px solid #1e293b", borderBottom: "1px solid #1e293b", backgroundColor: "#080f1a" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-          <span style={{ color: "#334155", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginRight: 4 }}>Supports</span>
-          {CURRICULA.map((c, i) => (
-            <motion.div
-              key={c}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 + i * 0.08 }}
-              style={{ background: "rgba(30,41,59,0.8)", border: "1px solid #1e293b", borderRadius: 20, padding: "4px 14px", fontSize: 12, fontWeight: 600, color: "#64748b" }}
-            >
-              {c}
-            </motion.div>
-          ))}
+          {/* Trust strip */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.35 }}
+            style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", justifyContent: "center", alignItems: "center" }}
+          >
+            {TRUST_POINTS.map((item) => (
+              <div key={item} style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--text-secondary)", fontSize: 13 }}>
+                <span style={{ color: "var(--accent)" }}><Check /></span>
+                {item}
+              </div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* ══ STATS ══════════════════════════════════════════════════════════ */}
-      <section style={{ padding: "4rem 2rem", borderBottom: "1px solid #1e293b", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.03), transparent)", pointerEvents: "none" }} />
-        <div style={{ maxWidth: 900, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "2rem", textAlign: "center" }}>
-          {[
-            { value: 50, suffix: "+", label: "Classes This Month", icon: "📚" },
-            { value: 20, suffix: "+", label: "Verified Tutors", icon: "👨‍🏫" },
-            { value: 200, suffix: "+", label: "Seats Booked", icon: "📅" },
-            { value: 7, suffix: "", label: "Curricula Supported", icon: "🎯" },
-          ].map((stat, i) => (
+      {/* ══ CURRICULA BAR ══════════════════════════════════════════════════════ */}
+      <div style={{
+        borderBottom: "1px solid var(--border-light)",
+        padding: "1.1rem 1.5rem",
+        backgroundColor: "var(--bg-alt)",
+      }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+          <span style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginRight: 10 }}>Curricula</span>
+          {CURRICULA.map((c) => (
+            <span key={c} className="badge" style={{ background: "var(--bg-card)" }}>
+              {c}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ══ STATS ══════════════════════════════════════════════════════════════ */}
+      <Section bg="var(--bg)" style={{ padding: "3.5rem 1.5rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "2rem", textAlign: "center" }}>
+          {STATS.map((stat, i) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              style={{ background: "rgba(30,41,59,0.5)", backdropFilter: "blur(10px)", border: "1px solid #1e293b", borderRadius: 20, padding: "1.5rem", cursor: "default" }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
             >
-              <div style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>{stat.icon}</div>
-              <div style={{ fontSize: "2.8rem", fontWeight: 900, background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <div style={{ fontSize: "2.6rem", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.04em", lineHeight: 1 }}>
                 <Counter target={stat.value} suffix={stat.suffix} />
               </div>
-              <div style={{ color: "#64748b", fontSize: 14, marginTop: 4 }}>{stat.label}</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 13.5, marginTop: 8, fontWeight: 500, letterSpacing: "0.01em" }}>{stat.label}</div>
             </motion.div>
           ))}
         </div>
-      </section>
+      </Section>
 
-      {/* ══ FEATURES ═══════════════════════════════════════════════════════ */}
-      <section style={{ padding: "7rem 2rem", position: "relative" }}>
-        <FloatingOrb x="80%" y="20%" size={400} color="radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)" duration={11} />
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <motion.div initial={{ width: 0 }} whileInView={{ width: 60 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ height: 3, background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", borderRadius: 2, margin: "0 auto 1.5rem" }} />
-            <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.5rem)", fontWeight: 800, color: "#f8fafc", marginBottom: "0.75rem" }}>
-              Everything you need to learn better
-            </h2>
-            <p style={{ color: "#64748b", fontSize: 16, maxWidth: 500, margin: "0 auto" }}>
-              Built specifically for Egypt's students, parents, tutors, and centers.
-            </p>
-          </motion.div>
+      {/* ══ HOW IT WORKS ═══════════════════════════════════════════════════════ */}
+      <Section bg="var(--bg-alt)">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{ marginBottom: "3rem", maxWidth: 600 }}
+        >
+          <SectionLabel>How it works</SectionLabel>
+          <h2 style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.25rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: 0 }}>
+            From search to first class in four steps
+          </h2>
+        </motion.div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
-            {FEATURES.map((f, i) => (
-              <MagneticCard key={f.title}>
-                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.08 }}
-                  whileHover={{ boxShadow: `0 20px 60px ${f.color}20` }}
-                  style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: "2rem", cursor: "default", height: "100%", transition: "border-color 0.3s", position: "relative", overflow: "hidden" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = f.color + "60"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#334155"; }}
-                >
-                  <div style={{ position: "absolute", top: 0, left: 0, width: 120, height: 120, borderRadius: "0 0 100% 0", background: `radial-gradient(circle, ${f.color}15 0%, transparent 70%)`, pointerEvents: "none" }} />
-                  <motion.div whileHover={{ scale: 1.2, rotate: 10 }} style={{ fontSize: "2rem", marginBottom: "1rem", display: "inline-block" }}>{f.icon}</motion.div>
-                  <h3 style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{f.title}</h3>
-                  <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.7 }}>{f.desc}</p>
-                </motion.div>
-              </MagneticCard>
-            ))}
-          </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem" }}>
+          {STEPS.map((step, i) => (
+            <motion.div
+              key={step.num}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              style={{
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
+                borderRadius: 14,
+                padding: "1.75rem",
+                boxShadow: "var(--shadow-xs)",
+              }}
+            >
+              <div style={{
+                width: 32, height: 32, borderRadius: 8,
+                backgroundColor: "var(--accent-bg)",
+                border: "1px solid var(--accent-border)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontWeight: 700, fontSize: 14, color: "var(--accent)",
+                marginBottom: "1rem",
+              }}>
+                {step.num}
+              </div>
+              <h3 style={{ color: "var(--text)", fontWeight: 700, fontSize: 17, marginBottom: 8 }}>{step.title}</h3>
+              <p style={{ color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.7 }}>{step.desc}</p>
+            </motion.div>
+          ))}
         </div>
-      </section>
+      </Section>
 
-      {/* ══ HOW IT WORKS ═══════════════════════════════════════════════════ */}
-      <section style={{ padding: "7rem 2rem", backgroundColor: "#080f1a", position: "relative", overflow: "hidden" }}>
-        <FloatingOrb x="10%" y="50%" size={500} color="radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%)" duration={13} />
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: "5rem" }}>
-            <motion.div initial={{ width: 0 }} whileInView={{ width: 60 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ height: 3, background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", borderRadius: 2, margin: "0 auto 1.5rem" }} />
-            <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.5rem)", fontWeight: 800, color: "#f8fafc", marginBottom: "0.75rem" }}>
-              How Coursaty works
-            </h2>
-            <p style={{ color: "#64748b", fontSize: 16 }}>Three steps to your first class.</p>
-          </motion.div>
+      {/* ══ FEATURES ═══════════════════════════════════════════════════════════ */}
+      <Section bg="var(--bg)">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{ marginBottom: "3rem", maxWidth: 600 }}
+        >
+          <SectionLabel>Why Coursaty</SectionLabel>
+          <h2 style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.25rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: "0 0 0.75rem" }}>
+            Everything you need to find the right class
+          </h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.7 }}>
+            Built specifically for Egypt's students, parents, tutors, and learning centers.
+          </p>
+        </motion.div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "2rem" }}>
-            {STEPS.map((s, i) => (
-              <motion.div
-                key={s.num}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.2 }}
-                whileHover={{ y: -8 }}
-                style={{ textAlign: "center", padding: "2.5rem 2rem", background: "rgba(30,41,59,0.5)", border: "1px solid #1e293b", borderRadius: 24, backdropFilter: "blur(10px)", cursor: "default" }}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.15, rotate: 5 }}
-                  style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", margin: "0 auto 1.25rem", boxShadow: "0 0 30px rgba(59,130,246,0.3)" }}
-                >
-                  {s.icon}
-                </motion.div>
-                <div style={{ color: "#3b82f6", fontSize: 11, fontWeight: 700, letterSpacing: 3, marginBottom: 10 }}>STEP {s.num}</div>
-                <h3 style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>{s.title}</h3>
-                <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.7 }}>{s.desc}</p>
-              </motion.div>
-            ))}
-          </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: "1.25rem" }}>
+          {FEATURES.map((f, i) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.06 }}
+              style={{
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
+                borderRadius: 14,
+                padding: "1.5rem",
+                transition: "border-color 0.18s, box-shadow 0.18s, transform 0.18s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-md)";
+                (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "var(--border-light)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+              }}
+            >
+              <div style={{
+                width: 30, height: 30, borderRadius: 8,
+                backgroundColor: "var(--accent-bg)",
+                border: "1px solid var(--accent-border)",
+                color: "var(--accent)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                marginBottom: "1rem",
+              }}>
+                <Check size={14} />
+              </div>
+              <h3 style={{ color: "var(--text)", fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{f.title}</h3>
+              <p style={{ color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.7 }}>{f.desc}</p>
+            </motion.div>
+          ))}
         </div>
-      </section>
+      </Section>
 
-      {/* ══ TUTOR + CENTER SPLIT ═══════════════════════════════════════════ */}
-      <section style={{ padding: "7rem 2rem", position: "relative", overflow: "hidden" }}>
-        <FloatingOrb x="50%" y="50%" size={600} color="radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%)" duration={14} />
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
+      {/* ══ ROLE-BASED CTA ROW ═════════════════════════════════════════════════ */}
+      <Section bg="var(--bg-alt)">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{ marginBottom: "2.5rem", maxWidth: 600 }}
+        >
+          <SectionLabel>Who is Coursaty for</SectionLabel>
+          <h2 style={{ fontSize: "clamp(1.6rem, 3.3vw, 2.1rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: 0 }}>
+            A single platform, three sides of the marketplace
+          </h2>
+        </motion.div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem" }}>
           {[
             {
-              emoji: "👨‍🏫", title: "Are you a tutor?", color: "#3b82f6", bg: "linear-gradient(135deg, #1e3a5f, #1e293b)", border: "#1d4ed8",
-              items: ["List your classes for free", "Get discovered by students in your area", "Manage bookings from your dashboard", "Build your reputation with reviews"],
-              cta: "Join as Tutor", href: "/signup",
+              tag: "Students & parents",
+              title: "Find the right tutor, fast",
+              desc: "Filter by subject and curriculum, compare credentials and reviews, book instantly.",
+              items: ["Free to browse", "Verified profiles", "Transparent pricing"],
+              cta: "Browse classes",
+              href: "/classes",
             },
             {
-              emoji: "🏫", title: "Running a center?", color: "#8b5cf6", bg: "linear-gradient(135deg, #2e1065, #1e293b)", border: "#7c3aed",
-              items: ["Create a verified center profile", "List all your classes in one place", "Let students book directly online", "Track students and revenue easily"],
-              cta: "Join as Center", href: "/signup",
+              tag: "Independent tutors",
+              title: "Grow your student base",
+              desc: "List classes for free and get discovered by students searching across Cairo.",
+              items: ["Free to list", "Built-in dashboard", "Direct messaging"],
+              cta: "Join as a tutor",
+              href: "/signup?role=tutor",
+            },
+            {
+              tag: "Learning centers",
+              title: "Manage your whole operation",
+              desc: "Centers, tutors, and bookings in one place — with a verified profile parents can trust.",
+              items: ["Verified center profile", "Tutor & class management", "Track bookings"],
+              cta: "Join as a center",
+              href: "/signup?role=center",
             },
           ].map((card, i) => (
             <motion.div
               key={card.title}
-              initial={{ opacity: 0, x: i === 0 ? -40 : 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              whileHover={{ y: -6 }}
-              style={{ background: card.bg, border: `1px solid ${card.border}`, borderRadius: 28, padding: "3rem 2.5rem", position: "relative", overflow: "hidden" }}
+              transition={{ duration: 0.45, delay: i * 0.08 }}
+              style={{
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
+                borderRadius: 16,
+                padding: "1.75rem",
+                boxShadow: "var(--shadow-xs)",
+                display: "flex",
+                flexDirection: "column",
+              }}
             >
-              <div style={{ position: "absolute", top: -40, right: -40, width: 150, height: 150, borderRadius: "50%", background: `radial-gradient(circle, ${card.color}20, transparent 70%)`, pointerEvents: "none" }} />
-              <motion.div whileHover={{ scale: 1.2, rotate: -5 }} style={{ fontSize: "2.5rem", marginBottom: "1.25rem", display: "inline-block" }}>{card.emoji}</motion.div>
-              <h3 style={{ color: "#f1f5f9", fontWeight: 800, fontSize: 24, marginBottom: "1.25rem" }}>{card.title}</h3>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 2rem", display: "flex", flexDirection: "column", gap: 14 }}>
-                {card.items.map((item, j) => (
-                  <motion.li
-                    key={item}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.3 + j * 0.1 }}
-                    style={{ color: "#94a3b8", fontSize: 15, display: "flex", gap: 10, alignItems: "flex-start" }}
-                  >
-                    <span style={{ color: card.color, fontWeight: 700, flexShrink: 0 }}>✓</span> {item}
-                  </motion.li>
+              <div style={{
+                color: "var(--accent)",
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.12em",
+                textTransform: "uppercase", marginBottom: 12,
+              }}>
+                {card.tag}
+              </div>
+              <h3 style={{ color: "var(--text)", fontWeight: 800, fontSize: 19, marginBottom: 8, letterSpacing: "-0.015em" }}>{card.title}</h3>
+              <p style={{ color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.7, marginBottom: "1.25rem" }}>{card.desc}</p>
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.5rem", display: "flex", flexDirection: "column", gap: 8 }}>
+                {card.items.map((item) => (
+                  <li key={item} style={{ color: "var(--text-secondary)", fontSize: 13.5, display: "flex", alignItems: "center", gap: 9 }}>
+                    <span style={{ color: "var(--accent)" }}><Check /></span>
+                    {item}
+                  </li>
                 ))}
               </ul>
-              <ShimmerButton href={card.href}>{card.cta}</ShimmerButton>
+              <Link
+                href={card.href}
+                className="btn-secondary"
+                style={{ alignSelf: "flex-start", marginTop: "auto" }}
+              >
+                {card.cta} <Arrow />
+              </Link>
             </motion.div>
           ))}
         </div>
-      </section>
+      </Section>
 
-      {/* ══ TESTIMONIALS ════════════════════════════════════════════════════ */}
-      <section style={{ padding: "7rem 2rem", backgroundColor: "#080f1a", position: "relative", overflow: "hidden" }}>
-        <FloatingOrb x="70%" y="30%" size={450} color="radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 70%)" duration={10} />
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <motion.div initial={{ width: 0 }} whileInView={{ width: 60 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ height: 3, background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", borderRadius: 2, margin: "0 auto 1.5rem" }} />
-            <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.5rem)", fontWeight: 800, color: "#f8fafc", marginBottom: "0.75rem" }}>
-              Students and tutors love Coursaty
-            </h2>
-            <p style={{ color: "#64748b", fontSize: 16 }}>Real people, real results.</p>
-          </motion.div>
+      {/* ══ TESTIMONIALS ═══════════════════════════════════════════════════════ */}
+      <Section bg="var(--bg)">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{ marginBottom: "3rem", maxWidth: 600 }}
+        >
+          <SectionLabel>From the community</SectionLabel>
+          <h2 style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.25rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: 0 }}>
+            Students, parents, and tutors trust Coursaty
+          </h2>
+        </motion.div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.5rem" }}>
-            {TESTIMONIALS.map((t, i) => (
-              <motion.div
-                key={t.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
-                whileHover={{ y: -6, boxShadow: "0 20px 40px rgba(59,130,246,0.1)" }}
-                style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: "1.75rem", cursor: "default", position: "relative", overflow: "hidden" }}
-              >
-                <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: "radial-gradient(circle, rgba(59,130,246,0.08), transparent)", pointerEvents: "none" }} />
-                <div style={{ color: "#fbbf24", fontSize: 16, marginBottom: 14, letterSpacing: 2 }}>{"★".repeat(t.rating)}</div>
-                <p style={{ color: "#cbd5e1", fontSize: 15, lineHeight: 1.75, marginBottom: "1.5rem" }}>"{t.text}"</p>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <motion.div whileHover={{ scale: 1.1 }} style={{ width: 42, height: 42, borderRadius: "50%", background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "white", fontSize: 16, flexShrink: 0 }}>
-                    {t.name[0]}
-                  </motion.div>
-                  <div>
-                    <div style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14 }}>{t.name}</div>
-                    <div style={{ color: "#64748b", fontSize: 12 }}>{t.role}</div>
-                  </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.25rem" }}>
+          {TESTIMONIALS.map((t, i) => (
+            <motion.div
+              key={t.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.1 }}
+              style={{
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-light)",
+                borderRadius: 14,
+                padding: "1.75rem",
+                boxShadow: "var(--shadow-xs)",
+              }}
+            >
+              <div style={{ color: "var(--rating)", fontSize: 13, marginBottom: 14, letterSpacing: 1, fontWeight: 600 }}>★★★★★</div>
+              <p style={{ color: "var(--text)", fontSize: 15, lineHeight: 1.75, marginBottom: "1.5rem", fontWeight: 400 }}>
+                "{t.text}"
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 11, paddingTop: "1rem", borderTop: "1px solid var(--border-light)" }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: "50%",
+                  backgroundColor: "var(--accent-bg)",
+                  border: "1px solid var(--accent-border)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 700, color: "var(--accent)", fontSize: 14, flexShrink: 0,
+                }}>
+                  {t.name[0]}
                 </div>
-              </motion.div>
-            ))}
-          </div>
+                <div>
+                  <div style={{ color: "var(--text)", fontWeight: 600, fontSize: 14 }}>{t.name}</div>
+                  <div style={{ color: "var(--text-muted)", fontSize: 12.5 }}>{t.role}</div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
-      </section>
+      </Section>
 
-      {/* ══ FAQ ════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: "7rem 2rem" }}>
+      {/* ══ FAQ ════════════════════════════════════════════════════════════════ */}
+      <Section bg="var(--bg-alt)">
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <motion.div initial={{ width: 0 }} whileInView={{ width: 60 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ height: 3, background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", borderRadius: 2, margin: "0 auto 1.5rem" }} />
-            <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.5rem)", fontWeight: 800, color: "#f8fafc", marginBottom: "0.75rem" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            style={{ marginBottom: "2.5rem" }}
+          >
+            <SectionLabel>FAQ</SectionLabel>
+            <h2 style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.25rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: 0 }}>
               Frequently asked questions
             </h2>
-            <p style={{ color: "#64748b", fontSize: 16 }}>Everything you need to know.</p>
           </motion.div>
-          {FAQS.map(faq => <FAQItem key={faq.q} q={faq.q} a={faq.a} />)}
+          <div style={{ borderTop: "1px solid var(--border-light)" }}>
+            {FAQS.map(faq => <FAQItem key={faq.q} q={faq.q} a={faq.a} />)}
+          </div>
         </div>
-      </section>
+      </Section>
 
-      {/* ══ FINAL CTA ══════════════════════════════════════════════════════ */}
-      <section style={{ padding: "8rem 2rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <FloatingOrb x="20%" y="20%" size={500} color="radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%)" duration={9} />
-        <FloatingOrb x="65%" y="60%" size={400} color="radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)" duration={11} />
-        {PARTICLES.slice(0, 6).map((p, i) => <Particle key={i} x={p.x} y={p.y} delay={p.delay} />)}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px)", backgroundSize: "60px 60px", pointerEvents: "none" }} />
-        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} style={{ position: "relative", zIndex: 1 }}>
-          <motion.div initial={{ width: 0 }} whileInView={{ width: 60 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ height: 3, background: "linear-gradient(90deg, #3b82f6, #8b5cf6)", borderRadius: 2, margin: "0 auto 2rem" }} />
-          <h2 style={{ fontSize: "clamp(2.2rem, 5vw, 3.8rem)", fontWeight: 900, color: "#f8fafc", marginBottom: "1.25rem", lineHeight: 1.15 }}>
-            Your next A grade{" "}
-            <span style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>starts here.</span>
+      {/* ══ FINAL CTA — premium, no royal blue ═════════════════════════════════ */}
+      <section style={{
+        backgroundColor: "var(--text)",
+        padding: "5.5rem 1.5rem",
+        textAlign: "center",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(251,250,246,0.05) 1px, transparent 0)",
+          backgroundSize: "30px 30px",
+          pointerEvents: "none",
+          opacity: 0.4,
+        }} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          style={{ position: "relative" }}
+        >
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 7,
+            backgroundColor: "rgba(251,250,246,0.06)",
+            border: "1px solid rgba(251,250,246,0.14)",
+            borderRadius: 99, padding: "5px 14px",
+            marginBottom: "1.5rem",
+            color: "rgba(251,250,246,0.85)",
+            fontSize: 12.5, fontWeight: 600, letterSpacing: "0.02em",
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#3fae8c" }} />
+            Ready when you are
+          </div>
+          <h2 style={{
+            fontSize: "clamp(2rem, 4.5vw, 3rem)",
+            fontWeight: 800,
+            color: "var(--accent-fg)",
+            letterSpacing: "-0.03em",
+            margin: "0 auto 1rem",
+            maxWidth: 640,
+            lineHeight: 1.15,
+          }}>
+            Start finding the right class today
           </h2>
-          <p style={{ color: "#64748b", fontSize: 18, marginBottom: "2.5rem", maxWidth: 480, margin: "0 auto 2.5rem" }}>
-            Hundreds of classes. Verified tutors. All of Cairo's best educators in one place.
+          <p style={{ color: "rgba(251,250,246,0.7)", fontSize: 16, lineHeight: 1.65, maxWidth: 480, margin: "0 auto 2.25rem" }}>
+            Hundreds of classes. Verified tutors. Cairo's best educators in one organized place.
           </p>
-          <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-            <ShimmerButton href="/classes">Browse All Classes →</ShimmerButton>
-            <ShimmerButton href="/tutors" primary={false}>Find a Tutor</ShimmerButton>
+          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+            <Link
+              href="/classes"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "var(--bg-card)", color: "var(--text)",
+                padding: "0.85rem 1.85rem", borderRadius: 10,
+                fontWeight: 700, fontSize: 15, textDecoration: "none",
+                transition: "background 0.15s, transform 0.15s",
+                border: "1px solid var(--bg-card)",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)"; }}
+            >
+              Browse All Classes <Arrow />
+            </Link>
+            <Link
+              href="/signup"
+              style={{
+                display: "inline-flex", alignItems: "center",
+                background: "transparent", color: "rgba(251,250,246,0.9)",
+                border: "1px solid rgba(251,250,246,0.25)",
+                padding: "0.85rem 1.85rem", borderRadius: 10,
+                fontWeight: 600, fontSize: 15, textDecoration: "none",
+                transition: "border-color 0.15s, color 0.15s, background 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(251,250,246,0.5)";
+                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(251,250,246,0.04)";
+                (e.currentTarget as HTMLAnchorElement).style.color = "var(--accent-fg)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(251,250,246,0.25)";
+                (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+                (e.currentTarget as HTMLAnchorElement).style.color = "rgba(251,250,246,0.9)";
+              }}
+            >
+              Create an Account
+            </Link>
           </div>
         </motion.div>
       </section>

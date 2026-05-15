@@ -13,41 +13,34 @@ export interface TutorCardData {
   photoUrl: string | null;
   city: string | null;
   center: { id: string; name: string } | null;
-  classCount: number;       // how many classes they own
-  studentCount: number;     // total bookings across all their classes
-  avgRating: number | null; // computed from reviews
+  classCount: number;
+  studentCount: number;
+  avgRating: number | null;
   reviewCount: number;
   isVerified: boolean;
 }
 
 // ─── SUBJECT COLORS ────────────────────────────────────────────────────────────
 const SUBJECT_COLORS: Record<string, string> = {
-  Math: "#3b82f6", Mathematics: "#3b82f6",
-  Physics: "#8b5cf6", Chemistry: "#22c55e",
-  Biology: "#10b981", English: "#f59e0b",
-  Arabic: "#ef4444", History: "#f97316",
-  Geography: "#06b6d4", French: "#a78bfa",
-  "Computer Science": "#38bdf8", Science: "#34d399",
-  Economics: "#fbbf24", Accounting: "#fb923c", Business: "#e879f9",
+  Math: "var(--accent)", Mathematics: "var(--accent)",
+  Physics: "var(--accent)", Chemistry: "var(--success)",
+  Biology: "var(--accent)", English: "var(--warning)",
+  Arabic: "var(--error)", History: "var(--warning)",
+  Geography: "var(--accent)", French: "var(--accent)",
+  "Computer Science": "var(--accent)", Science: "var(--success)",
+  Economics: "var(--warning)", Accounting: "var(--warning)", Business: "var(--accent)",
 };
 
 function subjectColor(s: string) {
-  return SUBJECT_COLORS[s] ?? "#3b82f6";
+  return SUBJECT_COLORS[s] ?? "var(--accent)";
 }
 
 // ─── AVATAR ────────────────────────────────────────────────────────────────────
-// Shows photo if available, otherwise a colored initial
-function Avatar({ name, photoUrl, size = 72 }: { name: string; photoUrl: string | null; size?: number }) {
+function Avatar({ name, photoUrl, size = 64 }: { name: string; photoUrl: string | null; size?: number }) {
   const initial = (name[0] || "T").toUpperCase();
-  // Pick a consistent gradient color based on the first char
-  const colors = [
-    ["#60a5fa", "#1d4ed8"], // blue
-    ["#a78bfa", "#6d28d9"], // purple
-    ["#34d399", "#059669"], // green
-    ["#f97316", "#c2410c"], // orange
-    ["#38bdf8", "#0284c7"], // sky
-  ];
-  const pair = colors[initial.charCodeAt(0) % colors.length];
+  const colors = ["var(--accent-bg-soft)", "var(--accent-bg-soft)", "var(--accent-bg)", "var(--warning-bg)", "var(--accent-bg-soft)"];
+  const textColors = ["var(--accent-hover)", "var(--accent)", "var(--success)", "var(--warning)", "var(--accent)"];
+  const idx = initial.charCodeAt(0) % colors.length;
 
   if (photoUrl) {
     return (
@@ -59,8 +52,7 @@ function Avatar({ name, photoUrl, size = 72 }: { name: string; photoUrl: string 
           height: size,
           borderRadius: "50%",
           objectFit: "cover",
-          border: "3px solid #1e293b",
-          boxShadow: "0 0 0 2px #3b82f630",
+          border: "2px solid var(--border-light)",
           flexShrink: 0,
         }}
       />
@@ -73,15 +65,15 @@ function Avatar({ name, photoUrl, size = 72 }: { name: string; photoUrl: string 
         width: size,
         height: size,
         borderRadius: "50%",
-        background: `radial-gradient(circle at 35% 35%, ${pair[0]}, ${pair[1]})`,
+        backgroundColor: colors[idx],
         flexShrink: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontWeight: 800,
+        fontWeight: 700,
         fontSize: size * 0.38,
-        color: "#fff",
-        boxShadow: `0 0 0 3px #1e293b, 0 0 0 5px ${pair[0]}30`,
+        color: textColors[idx],
+        border: "2px solid var(--border-light)",
       }}
     >
       {initial}
@@ -91,9 +83,10 @@ function Avatar({ name, photoUrl, size = 72 }: { name: string; photoUrl: string 
 
 // ─── STAR RATING ───────────────────────────────────────────────────────────────
 function Stars({ rating }: { rating: number }) {
+  const full = Math.round(rating);
   return (
-    <span style={{ color: "#f59e0b", fontSize: 13, letterSpacing: 1 }}>
-      {"★".repeat(Math.round(rating))}{"☆".repeat(5 - Math.round(rating))}
+    <span style={{ color: "var(--rating)", fontSize: 13, letterSpacing: 1 }}>
+      {"★".repeat(full)}{"☆".repeat(5 - full)}
     </span>
   );
 }
@@ -107,66 +100,55 @@ export default function TutorCard({
   index?: number;
 }) {
   const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
-  // Show max 3 subjects on the card, rest collapsed
   const visibleSubjects = tutor.subjects.slice(0, 3);
   const extraSubjects = tutor.subjects.length - 3;
-  // Primary color = first subject's color (used for card accent)
   const primaryColor = subjectColor(tutor.subjects[0] ?? "Math");
 
   return (
-    // Animate in from below with stagger based on index
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: index * 0.06, ease: "easeOut" }}
-      whileHover={{
-        y: -6,
-        boxShadow: `0 20px 48px ${primaryColor}25`,
-      }}
+      transition={{ duration: 0.35, delay: index * 0.05, ease: "easeOut" }}
       style={{
-        backgroundColor: "#1e293b",
-        border: "1px solid #334155",
-        borderRadius: 20,
+        backgroundColor: "var(--bg-card)",
+        border: "1px solid var(--border-light)",
+        borderRadius: 14,
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         cursor: "pointer",
-        transition: "border-color 0.2s",
+        transition: "border-color 0.2s, box-shadow 0.2s",
         position: "relative",
       }}
-      // Hover border glow via CSS transition
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = `${primaryColor}60`;
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.borderColor = "var(--accent-border)";
+        el.style.boxShadow = "0 4px 16px rgba(37,99,235,0.08)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.borderColor = "#334155";
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.borderColor = "var(--border-light)";
+        el.style.boxShadow = "none";
       }}
     >
-      {/* ── Top accent bar (subject color) ── */}
-      <div
-        style={{
-          height: 4,
-          background: `linear-gradient(90deg, ${primaryColor}, ${primaryColor}44)`,
-          flexShrink: 0,
-        }}
-      />
+      {/* Top accent bar */}
+      <div style={{ height: 3, backgroundColor: primaryColor, flexShrink: 0 }} />
 
-      {/* ── Card body ── */}
+      {/* Card body */}
       <div style={{ padding: "20px 20px 0" }}>
 
-        {/* Top row: avatar + name + badges */}
+        {/* Top row: avatar + name + info */}
         <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 14 }}>
-          <Avatar name={displayName} photoUrl={tutor.photoUrl} size={64} />
+          <Avatar name={displayName} photoUrl={tutor.photoUrl} size={56} />
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Name */}
             <div
               style={{
                 fontWeight: 700,
-                fontSize: 16,
-                color: "#f1f5f9",
-                marginBottom: 4,
+                fontSize: 15,
+                color: "var(--text)",
+                marginBottom: 3,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -175,37 +157,40 @@ export default function TutorCard({
               {displayName}
             </div>
 
-            {/* Location */}
-            <div style={{ color: "#64748b", fontSize: 13, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>
-              <span>📍</span>
+            <div style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 5, display: "flex", alignItems: "center", gap: 4 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
               <span>{tutor.city ?? "Egypt"}</span>
               {tutor.center && (
                 <>
-                  <span style={{ color: "#334155" }}>·</span>
-                  <span style={{ color: "#94a3b8", fontWeight: 500 }}>{tutor.center.name}</span>
+                  <span style={{ color: "var(--border)" }}>·</span>
+                  <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>{tutor.center.name}</span>
                 </>
               )}
             </div>
 
-            {/* Verified badge */}
             {tutor.isVerified && (
               <div
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 4,
-                  backgroundColor: "#1e3a5f",
-                  border: "1px solid #38bdf820",
+                  backgroundColor: "var(--accent-bg)",
+                  border: "1px solid var(--accent-border)",
                   borderRadius: 99,
-                  padding: "2px 10px",
+                  padding: "2px 8px",
                   fontSize: 11,
                   fontWeight: 700,
-                  color: "#38bdf8",
-                  letterSpacing: 0.3,
-                  marginTop: 6,
+                  color: "var(--accent)",
+                  letterSpacing: 0.2,
                 }}
               >
-                ✓ Verified
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Verified
               </div>
             )}
           </div>
@@ -213,34 +198,32 @@ export default function TutorCard({
 
         {/* Rating row */}
         {tutor.avgRating !== null ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
             <Stars rating={tutor.avgRating} />
-            <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: 14 }}>
+            <span style={{ fontWeight: 700, color: "var(--text)", fontSize: 13 }}>
               {tutor.avgRating.toFixed(1)}
             </span>
-            <span style={{ color: "#64748b", fontSize: 13 }}>
+            <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
               ({tutor.reviewCount} review{tutor.reviewCount !== 1 ? "s" : ""})
             </span>
           </div>
         ) : (
-          <div style={{ color: "#475569", fontSize: 13, marginBottom: 12 }}>
-            No reviews yet
-          </div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 12 }}>No reviews yet</div>
         )}
 
         {/* Subject tags */}
         {tutor.subjects.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
             {visibleSubjects.map((s) => (
               <span
                 key={s}
                 style={{
-                  backgroundColor: `${subjectColor(s)}18`,
-                  border: `1px solid ${subjectColor(s)}40`,
+                  backgroundColor: `${subjectColor(s)}12`,
+                  border: `1px solid ${subjectColor(s)}30`,
                   color: subjectColor(s),
                   borderRadius: 999,
-                  padding: "3px 10px",
-                  fontSize: 12,
+                  padding: "2px 9px",
+                  fontSize: 11,
                   fontWeight: 600,
                 }}
               >
@@ -250,11 +233,11 @@ export default function TutorCard({
             {extraSubjects > 0 && (
               <span
                 style={{
-                  backgroundColor: "#334155",
-                  color: "#94a3b8",
+                  backgroundColor: "var(--bg-subtle)",
+                  color: "var(--text-secondary)",
                   borderRadius: 999,
-                  padding: "3px 10px",
-                  fontSize: 12,
+                  padding: "2px 9px",
+                  fontSize: 11,
                   fontWeight: 600,
                 }}
               >
@@ -268,10 +251,10 @@ export default function TutorCard({
         {tutor.bio && (
           <p
             style={{
-              color: "#64748b",
+              color: "var(--text-secondary)",
               fontSize: 13,
               lineHeight: 1.6,
-              margin: "0 0 14px",
+              margin: "0 0 12px",
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
@@ -287,72 +270,81 @@ export default function TutorCard({
           style={{
             display: "flex",
             gap: 16,
-            paddingBottom: 16,
-            borderBottom: "1px solid #334155",
+            paddingBottom: 14,
+            borderBottom: "1px solid var(--bg-subtle)",
           }}
         >
           {[
-            { icon: "📚", value: tutor.classCount, label: "Classes" },
-            { icon: "👥", value: tutor.studentCount, label: "Students" },
+            { value: tutor.classCount, label: "Classes" },
+            { value: tutor.studentCount, label: "Students" },
           ].map((stat) => (
-            <div key={stat.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <span style={{ fontSize: 14 }}>{stat.icon}</span>
-              <span style={{ fontWeight: 700, color: "#cbd5e1", fontSize: 14 }}>{stat.value}</span>
-              <span style={{ color: "#475569", fontSize: 13 }}>{stat.label}</span>
+            <div key={stat.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ fontWeight: 700, color: "var(--text)", fontSize: 14 }}>{stat.value}</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{stat.label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── CTA buttons ── */}
-      <div style={{ padding: "14px 20px 20px", display: "flex", gap: 8 }}>
+      {/* CTA buttons */}
+      <div style={{ padding: "12px 20px 18px", display: "flex", gap: 8 }}>
         <Link
           href={`/tutors/${tutor.id}`}
           style={{
             flex: 1,
             display: "block",
             textAlign: "center",
-            backgroundColor: "#0f172a",
-            border: "1px solid #334155",
-            color: "#f1f5f9",
-            borderRadius: 10,
-            padding: "9px 0",
+            backgroundColor: "var(--bg-alt)",
+            border: "1px solid var(--border-light)",
+            color: "var(--text)",
+            borderRadius: 8,
+            padding: "9px 12px",
             fontSize: 13,
             fontWeight: 600,
             textDecoration: "none",
-            transition: "all 0.2s",
+            transition: "all 0.15s",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.borderColor = `${primaryColor}60`;
-            (e.currentTarget as HTMLAnchorElement).style.color = primaryColor;
+            const el = e.currentTarget as HTMLAnchorElement;
+            el.style.borderColor = "var(--border)";
+            el.style.backgroundColor = "var(--bg-subtle)";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.borderColor = "#334155";
-            (e.currentTarget as HTMLAnchorElement).style.color = "#f1f5f9";
+            const el = e.currentTarget as HTMLAnchorElement;
+            el.style.borderColor = "var(--border-light)";
+            el.style.backgroundColor = "var(--bg-alt)";
           }}
         >
           View Profile
         </Link>
-        {tutor.classCount > 0 && (
-          <Link
-            href={`/tutors/${tutor.id}`}
-            style={{
-              flex: 1,
-              display: "block",
-              textAlign: "center",
-              background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}99)`,
-              color: "#fff",
-              borderRadius: 10,
-              padding: "9px 0",
-              fontSize: 13,
-              fontWeight: 700,
-              textDecoration: "none",
-              boxShadow: `0 4px 14px ${primaryColor}40`,
-            }}
-          >
-            Book Trial
-          </Link>
-        )}
+        <Link
+          href={`/tutors/${tutor.id}`}
+          style={{
+            flex: 1,
+            display: "block",
+            textAlign: "center",
+            backgroundColor: tutor.classCount > 0 ? "var(--accent)" : "var(--bg-subtle)",
+            color: tutor.classCount > 0 ? "var(--bg-card)" : "var(--text-muted)",
+            border: "none",
+            borderRadius: 8,
+            padding: "9px 12px",
+            fontSize: 13,
+            fontWeight: 600,
+            textDecoration: "none",
+            pointerEvents: tutor.classCount > 0 ? "auto" : "none",
+            transition: "background 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            if (tutor.classCount > 0)
+              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent-hover)";
+          }}
+          onMouseLeave={(e) => {
+            if (tutor.classCount > 0)
+              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent)";
+          }}
+        >
+          {tutor.classCount > 0 ? "Book a Class" : "No Classes Yet"}
+        </Link>
       </div>
     </motion.div>
   );

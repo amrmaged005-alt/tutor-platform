@@ -49,8 +49,8 @@ export default function RatingStars({
             {type === "full" && (
               <polygon
                 points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                fill="#f59e0b"
-                stroke="#f59e0b"
+                fill="var(--rating)"
+                stroke="var(--rating)"
                 strokeWidth="1"
               />
             )}
@@ -59,14 +59,14 @@ export default function RatingStars({
                 {/* Left half filled */}
                 <defs>
                   <linearGradient id={`half-${i}`}>
-                    <stop offset="50%" stopColor="#f59e0b" />
-                    <stop offset="50%" stopColor="#334155" />
+                    <stop offset="50%" stopColor="var(--rating)" />
+                    <stop offset="50%" stopColor="var(--text-secondary)" />
                   </linearGradient>
                 </defs>
                 <polygon
                   points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
                   fill={`url(#half-${i})`}
-                  stroke="#f59e0b"
+                  stroke="var(--rating)"
                   strokeWidth="1"
                 />
               </>
@@ -74,8 +74,8 @@ export default function RatingStars({
             {type === "empty" && (
               <polygon
                 points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                fill="#334155"
-                stroke="#475569"
+                fill="var(--text-secondary)"
+                stroke="var(--text-secondary)"
                 strokeWidth="1"
               />
             )}
@@ -89,7 +89,7 @@ export default function RatingStars({
           style={{
             fontSize,
             fontWeight: 700,
-            color: "#f1f5f9",
+            color: "var(--text)",
           }}
         >
           {rating.toFixed(1)}
@@ -101,7 +101,7 @@ export default function RatingStars({
         <span
           style={{
             fontSize,
-            color: "#64748b",
+            color: "var(--text-muted)",
             fontWeight: 400,
           }}
         >

@@ -43,22 +43,22 @@ const SORT_OPTIONS = [
 ];
 
 const SUBJECT_META: Record<string, { bg: string; text: string; glow: string; emoji: string }> = {
-  Math:      { bg: "#1e3a5f", text: "#60a5fa", glow: "#3b82f6", emoji: "📐" },
-  Physics:   { bg: "#2e1065", text: "#c084fc", glow: "#8b5cf6", emoji: "⚡" },
-  Chemistry: { bg: "#064e3b", text: "#34d399", glow: "#10b981", emoji: "🧪" },
-  Biology:   { bg: "#052e16", text: "#4ade80", glow: "#22c55e", emoji: "🧬" },
-  English:   { bg: "#422006", text: "#fb923c", glow: "#f97316", emoji: "📝" },
-  Arabic:    { bg: "#450a0a", text: "#f87171", glow: "#ef4444", emoji: "✍️" },
-  History:   { bg: "#1c1917", text: "#a8a29e", glow: "#78716c", emoji: "📜" },
-  Geography: { bg: "#042f2e", text: "#2dd4bf", glow: "#14b8a6", emoji: "🌍" },
-  CS:        { bg: "#0c1a2e", text: "#38bdf8", glow: "#0ea5e9", emoji: "💻" },
-  default:   { bg: "#1e293b", text: "#94a3b8", glow: "#64748b", emoji: "📚" },
+  Math:      { bg: "var(--text)", text: "var(--accent)", glow: "var(--accent)", emoji: "📐" },
+  Physics:   { bg: "var(--text)", text: "#5d3a5f", glow: "#5d3a5f", emoji: "⚡" },
+  Chemistry: { bg: "var(--text)", text: "var(--success)", glow: "var(--success)", emoji: "🧪" },
+  Biology:   { bg: "var(--text)", text: "var(--success)", glow: "var(--success)", emoji: "🧬" },
+  English:   { bg: "var(--text)", text: "#8a5e1a", glow: "#8a5e1a", emoji: "📝" },
+  Arabic:    { bg: "var(--text)", text: "var(--error)", glow: "var(--error)", emoji: "✍️" },
+  History:   { bg: "var(--text)", text: "#a8a29e", glow: "#78716c", emoji: "📜" },
+  Geography: { bg: "var(--text)", text: "var(--accent)", glow: "var(--accent)", emoji: "🌍" },
+  CS:        { bg: "var(--text)", text: "#1c6e7a", glow: "var(--accent)", emoji: "💻" },
+  default:   { bg: "var(--text)", text: "var(--text-muted)", glow: "var(--text-muted)", emoji: "📚" },
 };
 
 const FORMAT_META: Record<string, { label: string; color: string; bg: string }> = {
-  IN_PERSON: { label: "In-Person", color: "#4ade80", bg: "#052e16" },
-  ONLINE:    { label: "Online",    color: "#38bdf8", bg: "#0c2a3f" },
-  HYBRID:    { label: "Hybrid",    color: "#c084fc", bg: "#1e1040" },
+  IN_PERSON: { label: "In-Person", color: "var(--success)", bg: "var(--text)" },
+  ONLINE:    { label: "Online",    color: "#1c6e7a", bg: "var(--text)" },
+  HYBRID:    { label: "Hybrid",    color: "#5d3a5f", bg: "var(--text)" },
 };
 
 const CURRICULUM_LABEL: Record<string, string> = {
@@ -71,13 +71,13 @@ const TRENDING_TAGS = ["Math", "Physics", "IGCSE", "Grade 11", "Online", "Chemis
 // ── Skeleton Card ─────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 20, padding: "1.5rem", overflow: "hidden" }}>
+    <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 20, padding: "1.5rem", overflow: "hidden" }}>
       {[["60%","1rem"],["90%","1.2rem"],["40%","0.9rem"],["75%","0.9rem"],["50%","0.9rem"]].map(([w, h], i) => (
         <motion.div
           key={i}
           animate={{ opacity: [0.4, 0.8, 0.4] }}
           transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
-          style={{ width: w, height: h, backgroundColor: "#334155", borderRadius: 8, marginBottom: "0.75rem" }}
+          style={{ width: w, height: h, backgroundColor: "var(--text-secondary)", borderRadius: 8, marginBottom: "0.75rem" }}
         />
       ))}
     </div>
@@ -88,16 +88,16 @@ function SkeletonCard() {
 function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
   const pct = Math.min((booked / capacity) * 100, 100);
   const left = capacity - booked;
-  const color = pct > 80 ? "#ef4444" : pct > 50 ? "#f59e0b" : "#22c55e";
+  const color = pct > 80 ? "var(--error)" : pct > 50 ? "var(--rating)" : "var(--success)";
   return (
     <div style={{ marginTop: "0.75rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 11, color: "#64748b" }}>{booked} booked</span>
-        <span style={{ fontSize: 11, color: left <= 5 ? "#f87171" : "#64748b", fontWeight: left <= 5 ? 700 : 400 }}>
+        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{booked} booked</span>
+        <span style={{ fontSize: 11, color: left <= 5 ? "var(--error)" : "var(--text-muted)", fontWeight: left <= 5 ? 700 : 400 }}>
           {left <= 0 ? "FULL" : left <= 5 ? `⚡ Only ${left} left!` : `${left} spots left`}
         </span>
       </div>
-      <div style={{ height: 4, backgroundColor: "#334155", borderRadius: 99, overflow: "hidden" }}>
+      <div style={{ height: 4, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden" }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: pct + "%" }}
@@ -116,7 +116,7 @@ function HeartButton({ id }: { id: string }) {
     <motion.button
       whileTap={{ scale: 1.4 }}
       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSaved(s => !s); }}
-      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: 0, color: saved ? "#ef4444" : "#334155", transition: "color 0.2s" }}
+      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: 0, color: saved ? "var(--error)" : "var(--text-secondary)", transition: "color 0.2s" }}
       title={saved ? "Saved" : "Save class"}
     >
       {saved ? "❤️" : "🤍"}
@@ -128,7 +128,7 @@ function HeartButton({ id }: { id: string }) {
 function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
   const [hovered, setHovered] = useState(false);
   const meta = SUBJECT_META[cls.subject] ?? SUBJECT_META.default;
-  const fmt = FORMAT_META[cls.format] ?? { label: cls.format, color: "#94a3b8", bg: "#1e293b" };
+  const fmt = FORMAT_META[cls.format] ?? { label: cls.format, color: "var(--text-muted)", bg: "var(--text)" };
   const spotsLeft = cls.capacity ? cls.capacity - cls._count.bookings : null;
   const isFull = spotsLeft !== null && spotsLeft <= 0;
   const isUrgent = spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 5;
@@ -150,8 +150,8 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
           onHoverEnd={() => setHovered(false)}
           whileHover={{ y: -6, boxShadow: `0 20px 60px ${meta.glow}20` }}
           style={{
-            backgroundColor: "#1e293b",
-            border: `1px solid ${hovered ? meta.glow + "50" : "#334155"}`,
+            backgroundColor: "var(--bg-card)",
+            border: `1px solid ${hovered ? meta.glow + "50" : "var(--text-secondary)"}`,
             borderRadius: 20,
             padding: "1.5rem",
             height: "100%",
@@ -173,7 +173,7 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
             <motion.div
               animate={{ opacity: [1, 0.7, 1] }}
               transition={{ duration: 1.5, repeat: Infinity }}
-              style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #ef4444, #f59e0b)", borderRadius: "20px 20px 0 0" }}
+              style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, var(--error), var(--rating))", borderRadius: "20px 20px 0 0" }}
             />
           )}
 
@@ -191,22 +191,22 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
           </div>
 
           {/* Title */}
-          <h2 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "0.5rem", lineHeight: 1.4 }}>
+          <h2 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text)", marginBottom: "0.5rem", lineHeight: 1.4 }}>
             {cls.title}
           </h2>
 
           {/* Tags */}
           <div style={{ display: "flex", gap: 6, marginBottom: "0.75rem", flexWrap: "wrap" }}>
-            <span style={{ backgroundColor: "#0f172a", color: "#64748b", fontSize: 11, padding: "2px 8px", borderRadius: 20, border: "1px solid #1e293b" }}>
+            <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 20, border: "1px solid var(--text)" }}>
               {CURRICULUM_LABEL[cls.curriculum] ?? cls.curriculum}
             </span>
             {cls.gradeLevel && (
-              <span style={{ backgroundColor: "#0f172a", color: "#64748b", fontSize: 11, padding: "2px 8px", borderRadius: 20, border: "1px solid #1e293b" }}>
+              <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 20, border: "1px solid var(--text)" }}>
                 {cls.gradeLevel}
               </span>
             )}
             {isFull && (
-              <span style={{ backgroundColor: "#450a0a", color: "#fca5a5", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>
+              <span style={{ backgroundColor: "var(--bg-card)", color: "var(--error-border)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>
                 FULL
               </span>
             )}
@@ -214,30 +214,30 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
 
           {/* Description */}
           {cls.description && (
-            <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: "1rem", lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: "1rem", lineHeight: 1.6 }}>
               {cls.description.length > 85 ? cls.description.slice(0, 85) + "…" : cls.description}
             </p>
           )}
 
           {/* Info rows */}
-          <div style={{ fontSize: 13, color: "#cbd5e1", display: "flex", flexDirection: "column", gap: 4, marginBottom: "0.5rem" }}>
+          <div style={{ fontSize: 13, color: "var(--border)", display: "flex", flexDirection: "column", gap: 4, marginBottom: "0.5rem" }}>
             {(cls.location || cls.city) && (
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span>📍</span>
-                <span style={{ color: "#94a3b8" }}>{cls.location ?? cls.city}</span>
+                <span style={{ color: "var(--text-muted)" }}>{cls.location ?? cls.city}</span>
               </div>
             )}
             {cls.schedule && (
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span>🕐</span>
-                <span style={{ color: "#94a3b8" }}>{cls.schedule}</span>
+                <span style={{ color: "var(--text-muted)" }}>{cls.schedule}</span>
               </div>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span>{isCenter ? "🏫" : "👤"}</span>
-              <span style={{ color: "#94a3b8" }}>{displayName}</span>
+              <span style={{ color: "var(--text-muted)" }}>{displayName}</span>
               {isCenter && (
-                <span style={{ backgroundColor: "#1d4ed820", color: "#60a5fa", fontSize: 10, padding: "1px 6px", borderRadius: 10, border: "1px solid #1d4ed840", fontWeight: 600 }}>
+                <span style={{ backgroundColor: "rgba(13,89,70,0.13)", color: "var(--accent)", fontSize: 10, padding: "1px 6px", borderRadius: 10, border: "1px solid rgba(13,89,70,0.25)", fontWeight: 600 }}>
                   CENTER
                 </span>
               )}
@@ -250,18 +250,18 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
           )}
 
           {/* Footer */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1.25rem", paddingTop: "1rem", borderTop: "1px solid #334155" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1.25rem", paddingTop: "1rem", borderTop: "1px solid var(--border-light)" }}>
             <div>
-              <div style={{ fontSize: "1.3rem", fontWeight: 900, color: cls.priceEgp === 0 ? "#4ade80" : "#38bdf8" }}>
+              <div style={{ fontSize: "1.3rem", fontWeight: 900, color: cls.priceEgp === 0 ? "var(--success)" : "#1c6e7a" }}>
                 {cls.priceEgp === 0 ? "Free" : cls.priceEgp.toLocaleString() + " EGP"}
               </div>
               {cls.priceEgp > 0 && (
-                <div style={{ fontSize: 10, color: "#64748b" }}>per month</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)" }}>per month</div>
               )}
             </div>
             <motion.div
               animate={{ x: hovered ? 4 : 0 }}
-              style={{ backgroundColor: isFull ? "#1e293b" : "#3b82f620", color: isFull ? "#64748b" : "#60a5fa", border: `1px solid ${isFull ? "#334155" : "#3b82f640"}`, borderRadius: 10, padding: "6px 14px", fontSize: 13, fontWeight: 600 }}
+              style={{ backgroundColor: isFull ? "var(--text)" : "rgba(13,89,70,0.13)", color: isFull ? "var(--text-muted)" : "var(--accent)", border: `1px solid ${isFull ? "var(--text-secondary)" : "rgba(13,89,70,0.25)"}`, borderRadius: 10, padding: "6px 14px", fontSize: 13, fontWeight: 600 }}
             >
               {isFull ? "Full" : "View →"}
             </motion.div>
@@ -280,9 +280,9 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
       style={{
-        backgroundColor: active ? "#3b82f6" : "#1e293b",
-        color: active ? "#fff" : "#94a3b8",
-        border: `1px solid ${active ? "#3b82f6" : "#334155"}`,
+        backgroundColor: active ? "var(--accent)" : "var(--text)",
+        color: active ? "var(--bg-card)" : "var(--text-muted)",
+        border: `1px solid ${active ? "var(--accent)" : "var(--text-secondary)"}`,
         borderRadius: 20,
         padding: "6px 14px",
         fontSize: 13,
@@ -346,9 +346,9 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
   const activeFilterCount = [search, subject, curriculum, gradeLevel, format, minPrice || maxPrice, location].filter(Boolean).length;
 
   const selectStyle: React.CSSProperties = {
-    backgroundColor: "#0f172a",
-    color: "#cbd5e1",
-    border: "1px solid #334155",
+    backgroundColor: "var(--bg-card)",
+    color: "var(--border)",
+    border: "1px solid var(--border-light)",
     borderRadius: 10,
     padding: "0.55rem 0.75rem",
     fontSize: 13,
@@ -372,9 +372,9 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             onChange={e => setSearch(e.target.value)}
             style={{
               width: "100%",
-              backgroundColor: "#1e293b",
-              color: "#f1f5f9",
-              border: "1px solid #334155",
+              backgroundColor: "var(--bg-card)",
+              color: "var(--text)",
+              border: "1px solid var(--border-light)",
               borderRadius: 14,
               padding: "1rem 1rem 1rem 3rem",
               fontSize: 16,
@@ -382,13 +382,13 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
               boxSizing: "border-box",
               transition: "border-color 0.2s",
             }}
-            onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
-            onBlur={e => e.currentTarget.style.borderColor = "#334155"}
+            onFocus={e => e.currentTarget.style.borderColor = "var(--accent)"}
+            onBlur={e => e.currentTarget.style.borderColor = "var(--text-secondary)"}
           />
           {search && (
             <button
               onClick={() => setSearch("")}
-              style={{ position: "absolute", right: 14, background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: 18 }}
+              style={{ position: "absolute", right: 14, background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 18 }}
             >×</button>
           )}
         </div>
@@ -397,7 +397,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
       {/* ── Trending tags ── */}
       <div style={{ maxWidth: 1100, margin: "0 auto 1.5rem", padding: "0 1.5rem", overflowX: "auto" }}>
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ color: "#64748b", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>🔥 Trending:</span>
+          <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>🔥 Trending:</span>
           {TRENDING_TAGS.map(tag => (
             <FilterChip
               key={tag}
@@ -422,9 +422,9 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             whileTap={{ scale: 0.97 }}
             onClick={() => setFiltersOpen(o => !o)}
             style={{
-              backgroundColor: filtersOpen ? "#3b82f6" : "#1e293b",
-              color: filtersOpen ? "#fff" : "#94a3b8",
-              border: `1px solid ${filtersOpen ? "#3b82f6" : "#334155"}`,
+              backgroundColor: filtersOpen ? "var(--accent)" : "var(--text)",
+              color: filtersOpen ? "var(--bg-card)" : "var(--text-muted)",
+              border: `1px solid ${filtersOpen ? "var(--accent)" : "var(--text-secondary)"}`,
               borderRadius: 10,
               padding: "0.6rem 1.2rem",
               fontSize: 14,
@@ -438,7 +438,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             <span>⚙️</span>
             Filters
             {activeFilterCount > 0 && (
-              <span style={{ backgroundColor: filtersOpen ? "#fff" : "#3b82f6", color: filtersOpen ? "#3b82f6" : "#fff", borderRadius: 99, fontSize: 11, padding: "1px 7px", fontWeight: 700 }}>
+              <span style={{ backgroundColor: filtersOpen ? "var(--bg-card)" : "var(--accent)", color: filtersOpen ? "var(--accent)" : "var(--bg-card)", borderRadius: 99, fontSize: 11, padding: "1px 7px", fontWeight: 700 }}>
                 {activeFilterCount}
               </span>
             )}
@@ -450,26 +450,26 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
               animate={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.03 }}
               onClick={clearAll}
-              style={{ background: "none", border: "1px solid #f87171", color: "#f87171", borderRadius: 10, padding: "0.6rem 1rem", fontSize: 13, cursor: "pointer", fontWeight: 600 }}
+              style={{ background: "none", border: "1px solid var(--error)", color: "var(--error)", borderRadius: 10, padding: "0.6rem 1rem", fontSize: 13, cursor: "pointer", fontWeight: 600 }}
             >
               ✕ Clear all
             </motion.button>
           )}
 
-          <span style={{ color: "#64748b", fontSize: 13 }}>
+          <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
             {loading ? (
               <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1, repeat: Infinity }}>
                 Searching…
               </motion.span>
             ) : (
-              <><span style={{ color: "#f1f5f9", fontWeight: 700 }}>{classes.length}</span> {classes.length === 1 ? "class" : "classes"} found</>
+              <><span style={{ color: "var(--text)", fontWeight: 700 }}>{classes.length}</span> {classes.length === 1 ? "class" : "classes"} found</>
             )}
           </span>
         </div>
 
         {/* Sort */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ color: "#64748b", fontSize: 13 }}>Sort:</span>
+          <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Sort:</span>
           <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ ...selectStyle, width: "auto", minWidth: 160 }}>
             {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -486,12 +486,12 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             transition={{ duration: 0.25 }}
             style={{ overflow: "hidden", maxWidth: 1100, margin: "0 auto 1.5rem", padding: "0 1.5rem" }}
           >
-            <div style={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 16, padding: "1.5rem" }}>
+            <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16, padding: "1.5rem" }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "1.25rem" }}>
 
                 {/* Subject */}
                 <div>
-                  <label style={{ display: "block", fontSize: 11, color: "#64748b", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Subject</label>
+                  <label style={{ display: "block", fontSize: 11, color: "var(--text-muted)", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Subject</label>
                   <select value={subject} onChange={e => setSubject(e.target.value)} style={selectStyle}>
                     <option value="">All subjects</option>
                     {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -500,7 +500,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
 
                 {/* Curriculum */}
                 <div>
-                  <label style={{ display: "block", fontSize: 11, color: "#64748b", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Curriculum</label>
+                  <label style={{ display: "block", fontSize: 11, color: "var(--text-muted)", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Curriculum</label>
                   <select value={curriculum} onChange={e => setCurriculum(e.target.value)} style={selectStyle}>
                     <option value="">All curricula</option>
                     {CURRICULA.map(c => <option key={c} value={c}>{CURRICULUM_LABEL[c]}</option>)}
@@ -509,7 +509,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
 
                 {/* Grade */}
                 <div>
-                  <label style={{ display: "block", fontSize: 11, color: "#64748b", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Grade / Level</label>
+                  <label style={{ display: "block", fontSize: 11, color: "var(--text-muted)", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Grade / Level</label>
                   <select value={gradeLevel} onChange={e => setGradeLevel(e.target.value)} style={selectStyle}>
                     <option value="">All grades</option>
                     {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
@@ -518,7 +518,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
 
                 {/* Format */}
                 <div>
-                  <label style={{ display: "block", fontSize: 11, color: "#64748b", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Format</label>
+                  <label style={{ display: "block", fontSize: 11, color: "var(--text-muted)", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Format</label>
                   <select value={format} onChange={e => setFormat(e.target.value)} style={selectStyle}>
                     <option value="">Any format</option>
                     {FORMATS.map(f => <option key={f} value={f}>{FORMAT_META[f]?.label ?? f}</option>)}
@@ -527,19 +527,19 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
 
                 {/* Min Price */}
                 <div>
-                  <label style={{ display: "block", fontSize: 11, color: "#64748b", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Min Price (EGP)</label>
+                  <label style={{ display: "block", fontSize: 11, color: "var(--text-muted)", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Min Price (EGP)</label>
                   <input type="number" placeholder="0" value={minPrice} onChange={e => setMinPrice(e.target.value)} style={selectStyle} />
                 </div>
 
                 {/* Max Price */}
                 <div>
-                  <label style={{ display: "block", fontSize: 11, color: "#64748b", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Max Price (EGP)</label>
+                  <label style={{ display: "block", fontSize: 11, color: "var(--text-muted)", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Max Price (EGP)</label>
                   <input type="number" placeholder="Any" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} style={selectStyle} />
                 </div>
 
                 {/* Location */}
                 <div>
-                  <label style={{ display: "block", fontSize: 11, color: "#64748b", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Location</label>
+                  <label style={{ display: "block", fontSize: 11, color: "var(--text-muted)", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>Location</label>
                   <input type="text" placeholder="e.g. Nasr City" value={location} onChange={e => setLocation(e.target.value)} style={selectStyle} />
                 </div>
 
@@ -547,8 +547,8 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
 
               {/* Active filter chips */}
               {hasFilters && (
-                <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid #334155", display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                  <span style={{ color: "#64748b", fontSize: 12 }}>Active:</span>
+                <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid var(--border-light)", display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: 12 }}>Active:</span>
                   {subject && <ActiveChip label={`Subject: ${subject}`} onRemove={() => setSubject("")} />}
                   {curriculum && <ActiveChip label={`Curriculum: ${CURRICULUM_LABEL[curriculum]}`} onRemove={() => setCurriculum("")} />}
                   {gradeLevel && <ActiveChip label={`Grade: ${gradeLevel}`} onRemove={() => setGradeLevel("")} />}
@@ -579,15 +579,15 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             style={{ textAlign: "center", padding: "5rem 2rem" }}
           >
             <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔍</div>
-            <h3 style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 20, marginBottom: 8 }}>No classes found</h3>
-            <p style={{ color: "#64748b", fontSize: 15, marginBottom: "1.5rem" }}>
+            <h3 style={{ color: "var(--text)", fontWeight: 700, fontSize: 20, marginBottom: 8 }}>No classes found</h3>
+            <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: "1.5rem" }}>
               Try adjusting your filters or search term.
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
               onClick={clearAll}
-              style={{ backgroundColor: "#3b82f6", color: "#fff", border: "none", borderRadius: 12, padding: "0.8rem 2rem", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+              style={{ backgroundColor: "var(--accent)", color: "var(--bg-card)", border: "none", borderRadius: 12, padding: "0.8rem 2rem", fontSize: 15, fontWeight: 700, cursor: "pointer" }}
             >
               Clear all filters
             </motion.button>
@@ -619,10 +619,10 @@ function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
-      style={{ display: "flex", alignItems: "center", gap: 6, backgroundColor: "#0f172a", border: "1px solid #3b82f640", borderRadius: 20, padding: "3px 10px 3px 12px", fontSize: 12, color: "#93c5fd" }}
+      style={{ display: "flex", alignItems: "center", gap: 6, backgroundColor: "var(--bg-card)", border: "1px solid rgba(13,89,70,0.25)", borderRadius: 20, padding: "3px 10px 3px 12px", fontSize: 12, color: "var(--accent-border)" }}
     >
       {label}
-      <button onClick={onRemove} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
+      <button onClick={onRemove} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
     </motion.div>
   );
 }

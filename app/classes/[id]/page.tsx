@@ -51,11 +51,14 @@ export async function generateMetadata({
 
 export default async function ClassDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ bookingError?: string }>;
 }) {
   const session = await auth();
   const { id } = await params;
+  const query = searchParams ? await searchParams : {};
   const now = new Date();
 
   const cls = await prisma.class.findUnique({
@@ -85,11 +88,11 @@ export default async function ClassDetailPage({
       <div
         style={{
           minHeight: "100vh",
-          backgroundColor: "#0f172a",
+          backgroundColor: "var(--bg-card)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#f1f5f9",
+          color: "var(--text)",
           fontSize: 20,
           fontFamily: "system-ui, sans-serif",
         }}
@@ -221,6 +224,7 @@ export default async function ClassDetailPage({
       existingUserReview={existingUserReview}
       bookClass={bookClass}
       classId={id}
+      bookingError={query.bookingError === "1"}
     />
   );
 }

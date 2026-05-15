@@ -19,7 +19,7 @@ export default function StatBadge({
   icon,
   value,
   label,
-  color = "#94a3b8",
+  color = "var(--text-muted)",
   layout = "row",
 }: StatBadgeProps) {
   if (layout === "column") {
@@ -38,14 +38,14 @@ export default function StatBadge({
           style={{
             fontSize: "20px",
             fontWeight: 800,
-            color: "#f1f5f9",
+            color: "var(--text)",
             lineHeight: 1,
           }}
         >
           {value}
         </div>
         {label && (
-          <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500 }}>
+          <div style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 500 }}>
             {label}
           </div>
         )}
@@ -65,9 +65,9 @@ export default function StatBadge({
       }}
     >
       <span style={{ fontSize: "14px" }}>{icon}</span>
-      <span style={{ fontWeight: 600, color: "#cbd5e1" }}>{value}</span>
+      <span style={{ fontWeight: 600, color: "var(--border)" }}>{value}</span>
       {label && (
-        <span style={{ color: "#64748b", fontWeight: 400 }}>{label}</span>
+        <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>{label}</span>
       )}
     </div>
   );
