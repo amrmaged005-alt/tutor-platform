@@ -4,7 +4,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home, MapPin } from "lucide-react";
+import { BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home, MapPin, MessageCircle, Mail } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
@@ -130,8 +130,8 @@ function TutorCard({ tutor }: { tutor: CenterTutor }) {
         </Link>
         {tutor.phone && (
           <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer"
-            style={{ flex: 1, textAlign: "center", backgroundColor: "var(--success)", color: "var(--bg-card)", borderRadius: 8, padding: "6px 0", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
-            💬 WhatsApp
+            style={{ flex: 1, textAlign: "center", backgroundColor: "var(--success)", color: "var(--bg-card)", borderRadius: 8, padding: "6px 0", fontSize: 12, fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+            <MessageCircle size={12} strokeWidth={2} /> WhatsApp
           </a>
         )}
       </div>
@@ -283,18 +283,18 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
                 {center.phone && (
                   <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer"
                     style={{ backgroundColor: "var(--success)", color: "var(--bg-card)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
-                    💬 WhatsApp
+                    <MessageCircle size={15} strokeWidth={2} /> WhatsApp
                   </a>
                 )}
                 {center.email && (
-                  <a href={`mailto:${center.email}`} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-muted)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 600, fontSize: 14 }}>
-                    ✉️ Email
+                  <a href={`mailto:${center.email}`} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-muted)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                    <Mail size={15} strokeWidth={2} /> Email
                   </a>
                 )}
                 {center.classes.length > 0 && (
                   <button onClick={() => setActiveTab("classes")}
-                    style={{ background: "var(--accent)", color: "var(--accent-fg)", border: "none", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
-                    📚 View Classes
+                    style={{ background: "var(--accent)", color: "var(--accent-fg)", border: "none", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                    <BookOpen size={15} strokeWidth={2} /> View Classes
                   </button>
                 )}
               </div>
@@ -377,13 +377,13 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
                   <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                     {center.phone && (
                       <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer"
-                        style={{ backgroundColor: "var(--success)", color: "var(--bg-card)", borderRadius: 10, padding: "10px 22px", textDecoration: "none", fontWeight: 700, fontSize: 14 }}>
-                        💬 WhatsApp
+                        style={{ backgroundColor: "var(--success)", color: "var(--bg-card)", borderRadius: 10, padding: "10px 22px", textDecoration: "none", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                        <MessageCircle size={15} strokeWidth={2} /> WhatsApp
                       </a>
                     )}
                     {center.email && (
-                      <a href={`mailto:${center.email}`} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-muted)", borderRadius: 10, padding: "10px 22px", textDecoration: "none", fontWeight: 600, fontSize: 14 }}>
-                        ✉️ {center.email}
+                      <a href={`mailto:${center.email}`} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-muted)", borderRadius: 10, padding: "10px 22px", textDecoration: "none", fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                        <Mail size={15} strokeWidth={2} /> {center.email}
                       </a>
                     )}
                   </div>

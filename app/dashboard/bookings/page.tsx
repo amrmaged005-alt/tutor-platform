@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { MessageCircle, Mail } from "lucide-react";
+import { MessageCircle, Mail, FileText } from "lucide-react";
 import { updateBookingStatus, addBookingNote } from "@/app/actions/bookings";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
@@ -139,8 +139,8 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
       )}
 
       {booking.notes && !showNoteInput && (
-        <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 8, padding: "0.5rem 0.75rem", color: "var(--text-muted)", fontSize: 12 }}>
-          📝 {booking.notes}
+        <div style={{ backgroundColor: "var(--bg-card)", borderRadius: 8, padding: "0.5rem 0.75rem", color: "var(--text-muted)", fontSize: 12, display: "flex", alignItems: "flex-start", gap: 6 }}>
+          <FileText size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> {booking.notes}
         </div>
       )}
 
@@ -188,8 +188,8 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
           </button>
         )}
         {!showNoteInput && (
-          <button onClick={() => setShowNoteInput(true)} style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, cursor: "pointer" }}>
-            📝 {booking.notes ? "Edit Note" : "Add Note"}
+          <button onClick={() => setShowNoteInput(true)} style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "0.5rem 1rem", fontSize: 13, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+            <FileText size={13} strokeWidth={2} /> {booking.notes ? "Edit Note" : "Add Note"}
           </button>
         )}
       </div>

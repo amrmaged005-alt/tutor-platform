@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Heart, User, Building2, MapPin } from "lucide-react";
+import { Search, Heart, User, Building2, MapPin, SlidersHorizontal } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 type Tutor = { id: string; fullName: string | null };
@@ -43,17 +43,17 @@ const SORT_OPTIONS = [
   { value: "popular",    label: "Most popular" },
 ];
 
-const SUBJECT_META: Record<string, { bg: string; text: string; glow: string; emoji: string }> = {
-  Math:      { bg: "var(--accent-bg)",          text: "var(--accent)",   glow: "var(--accent)",   emoji: "📐" },
-  Physics:   { bg: "rgba(93,58,95,0.10)",        text: "#5d3a5f",         glow: "#5d3a5f",         emoji: "⚡" },
-  Chemistry: { bg: "var(--success-bg)",          text: "var(--success)",  glow: "var(--success)",  emoji: "🧪" },
-  Biology:   { bg: "var(--success-bg)",          text: "var(--success)",  glow: "var(--success)",  emoji: "🧬" },
-  English:   { bg: "var(--warning-bg)",          text: "#8a5e1a",         glow: "#8a5e1a",         emoji: "📝" },
-  Arabic:    { bg: "var(--error-bg)",            text: "var(--error)",    glow: "var(--error)",    emoji: "✍️" },
-  History:   { bg: "var(--warning-bg)",          text: "#8a5e1a",         glow: "#78716c",         emoji: "📜" },
-  Geography: { bg: "rgba(28,110,122,0.10)",      text: "#1c6e7a",         glow: "var(--accent)",   emoji: "🌍" },
-  CS:        { bg: "rgba(28,110,122,0.10)",      text: "#1c6e7a",         glow: "var(--accent)",   emoji: "💻" },
-  default:   { bg: "var(--bg-alt)",              text: "var(--text-secondary)", glow: "var(--text-muted)", emoji: "📚" },
+const SUBJECT_META: Record<string, { bg: string; text: string; glow: string }> = {
+  Math:      { bg: "var(--accent-bg)",          text: "var(--accent)",        glow: "var(--accent)"   },
+  Physics:   { bg: "rgba(93,58,95,0.10)",        text: "#5d3a5f",              glow: "#5d3a5f"         },
+  Chemistry: { bg: "var(--success-bg)",          text: "var(--success)",       glow: "var(--success)"  },
+  Biology:   { bg: "var(--success-bg)",          text: "var(--success)",       glow: "var(--success)"  },
+  English:   { bg: "var(--warning-bg)",          text: "#8a5e1a",              glow: "#8a5e1a"         },
+  Arabic:    { bg: "var(--error-bg)",            text: "var(--error)",         glow: "var(--error)"    },
+  History:   { bg: "var(--warning-bg)",          text: "#8a5e1a",              glow: "#78716c"         },
+  Geography: { bg: "rgba(28,110,122,0.10)",      text: "#1c6e7a",              glow: "var(--accent)"   },
+  CS:        { bg: "rgba(28,110,122,0.10)",      text: "#1c6e7a",              glow: "var(--accent)"   },
+  default:   { bg: "var(--bg-alt)",              text: "var(--text-secondary)", glow: "var(--text-muted)" },
 };
 
 const FORMAT_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -180,8 +180,8 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
 
           {/* Header row */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-            <span style={{ backgroundColor: meta.bg, color: meta.text, fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 20, display: "inline-flex", alignItems: "center", gap: 5 }}>
-              <span>{meta.emoji}</span> {cls.subject}
+            <span style={{ backgroundColor: meta.bg, color: meta.text, fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 20, display: "inline-flex", alignItems: "center" }}>
+              {cls.subject}
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ backgroundColor: fmt.bg, color: fmt.color, fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, border: `1px solid ${fmt.color}30` }}>
@@ -436,7 +436,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
               gap: 8,
             }}
           >
-            <span>⚙️</span>
+            <SlidersHorizontal size={15} strokeWidth={2} />
             Filters
             {activeFilterCount > 0 && (
               <span style={{ backgroundColor: filtersOpen ? "var(--bg-card)" : "var(--accent)", color: filtersOpen ? "var(--accent)" : "var(--bg-card)", borderRadius: 99, fontSize: 11, padding: "1px 7px", fontWeight: 700 }}>
@@ -555,7 +555,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
                   {gradeLevel && <ActiveChip label={`Grade: ${gradeLevel}`} onRemove={() => setGradeLevel("")} />}
                   {format && <ActiveChip label={`Format: ${FORMAT_META[format]?.label}`} onRemove={() => setFormat("")} />}
                   {(minPrice || maxPrice) && <ActiveChip label={`Price: ${minPrice || "0"}–${maxPrice || "∞"} EGP`} onRemove={() => { setMinPrice(""); setMaxPrice(""); }} />}
-                  {location && <ActiveChip label={`📍 ${location}`} onRemove={() => setLocation("")} />}
+                  {location && <ActiveChip label={`Location: ${location}`} onRemove={() => setLocation("")} />}
                 </div>
               )}
             </div>
