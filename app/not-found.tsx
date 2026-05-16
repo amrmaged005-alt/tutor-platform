@@ -20,7 +20,7 @@ export default function NotFound() {
                     style={{
                         fontSize: "clamp(5rem, 14vw, 9rem)",
                         fontWeight: 900,
-                        color: "var(--border-light)",
+                        color: "var(--border-strong)",
                         lineHeight: 1,
                         marginBottom: 16,
                     }}

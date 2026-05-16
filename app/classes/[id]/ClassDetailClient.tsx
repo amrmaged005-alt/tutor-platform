@@ -27,22 +27,22 @@ import {
 
 // Subject color map
 const SUBJECT_COLORS: Record<string, { glow: string; badge: string; bg: string }> = {
-  Math: { glow: "var(--accent)", badge: "var(--accent)", bg: "var(--text)" },
-  Mathematics: { glow: "var(--accent)", badge: "var(--accent)", bg: "var(--text)" },
-  Physics: { glow: "#5d3a5f", badge: "#5d3a5f", bg: "var(--text)" },
-  Chemistry: { glow: "var(--success)", badge: "var(--success)", bg: "var(--text)" },
-  Biology: { glow: "var(--success)", badge: "var(--success)", bg: "var(--text)" },
-  English: { glow: "var(--rating)", badge: "var(--rating)", bg: "var(--text)" },
-  Arabic: { glow: "var(--error)", badge: "var(--error)", bg: "var(--text)" },
-  History: { glow: "#8a5e1a", badge: "#8a5e1a", bg: "var(--text)" },
-  Geography: { glow: "#1c6e7a", badge: "#1c6e7a", bg: "var(--text)" },
-  French: { glow: "#5d3a5f", badge: "#5d3a5f", bg: "var(--text)" },
-  Computer: { glow: "#1c6e7a", badge: "#1c6e7a", bg: "var(--text)" },
-  Science: { glow: "var(--success)", badge: "var(--success)", bg: "var(--text)" },
+  Math:        { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
+  Mathematics: { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
+  Physics:     { glow: "#5d3a5f",        badge: "#5d3a5f",        bg: "rgba(93,58,95,0.10)" },
+  Chemistry:   { glow: "var(--success)", badge: "var(--success)", bg: "var(--success-bg)" },
+  Biology:     { glow: "var(--success)", badge: "var(--success)", bg: "var(--success-bg)" },
+  English:     { glow: "var(--rating)",  badge: "var(--rating)",  bg: "var(--warning-bg)" },
+  Arabic:      { glow: "var(--error)",   badge: "var(--error)",   bg: "var(--error-bg)" },
+  History:     { glow: "#8a5e1a",        badge: "#8a5e1a",        bg: "var(--warning-bg)" },
+  Geography:   { glow: "#1c6e7a",        badge: "#1c6e7a",        bg: "rgba(28,110,122,0.10)" },
+  French:      { glow: "#5d3a5f",        badge: "#5d3a5f",        bg: "rgba(93,58,95,0.10)" },
+  Computer:    { glow: "#1c6e7a",        badge: "#1c6e7a",        bg: "rgba(28,110,122,0.10)" },
+  Science:     { glow: "var(--success)", badge: "var(--success)", bg: "var(--success-bg)" },
 };
 
 function getSubjectColor(subject: string) {
-  return SUBJECT_COLORS[subject] ?? { glow: "var(--accent)", badge: "#1c6e7a", bg: "var(--text)" };
+  return SUBJECT_COLORS[subject] ?? { glow: "var(--accent)", badge: "#1c6e7a", bg: "rgba(28,110,122,0.10)" };
 }
 
 // Animated progress bar
@@ -318,9 +318,9 @@ export default function ClassDetailClient({
         <div
           style={{
             textAlign: "center" as const,
-            backgroundColor: "var(--bg-card)",
-            border: "1px solid var(--error)",
-            color: "var(--error-border)",
+            backgroundColor: "var(--error-bg)",
+            border: "1px solid var(--error-border)",
+            color: "var(--error)",
             padding: "14px",
             borderRadius: 12,
             fontWeight: 700,
@@ -439,22 +439,22 @@ export default function ClassDetailClient({
             <Badge color={subjectColor.badge} bg={subjectColor.bg}>
               {cls.subject}
             </Badge>
-            <Badge color="#5d3a5f" bg="var(--text)">
+            <Badge color="#5d3a5f" bg="rgba(93,58,95,0.10)">
               {cls.curriculum}
             </Badge>
             <Badge
               color={cls.format === "ONLINE" ? "#1c6e7a" : cls.format === "IN_PERSON" ? "var(--success)" : "var(--rating)"}
-              bg={cls.format === "ONLINE" ? "var(--text)" : cls.format === "IN_PERSON" ? "var(--text)" : "var(--text)"}
+              bg={cls.format === "ONLINE" ? "rgba(28,110,122,0.10)" : cls.format === "IN_PERSON" ? "var(--success-bg)" : "var(--warning-bg)"}
             >
               {cls.format === "IN_PERSON" ? "In-person" : cls.format === "ONLINE" ? "Online" : "Hybrid"}
             </Badge>
             {cls.gradeLevel && (
-              <Badge color="var(--rating)" bg="var(--text)">
+              <Badge color="var(--rating)" bg="var(--warning-bg)">
                 Grade {cls.gradeLevel}
               </Badge>
             )}
             {cls.language && (
-              <Badge color="var(--text-muted)" bg="var(--text)">
+              <Badge color="var(--text-secondary)" bg="var(--bg-alt)">
                 {cls.language}
               </Badge>
             )}
@@ -992,7 +992,7 @@ export default function ClassDetailClient({
                     <span style={{ color: "var(--accent)", display: "inline-flex" }}>
                       {m.isLocked ? <Lock size={18} strokeWidth={1.8} aria-hidden /> : <FileText size={18} strokeWidth={1.8} aria-hidden />}
                     </span>
-                    <span style={{ color: "var(--border)", fontSize: 14, fontWeight: 500 }}>
+                    <span style={{ color: "var(--text-secondary)", fontSize: 14, fontWeight: 500 }}>
                       {m.title}
                     </span>
                   </div>
@@ -1162,9 +1162,9 @@ export default function ClassDetailClient({
             {bookingError && (
               <div
                 style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--error)",
-                  color: "var(--error-border)",
+                  backgroundColor: "var(--error-bg)",
+                  border: "1px solid var(--error-border)",
+                  color: "var(--error)",
                   padding: "10px 12px",
                   borderRadius: 10,
                   marginBottom: "1rem",

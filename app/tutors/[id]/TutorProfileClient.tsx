@@ -138,7 +138,7 @@ function ClassCard({ cls }: { cls: TutorClass }) {
             {cls.priceEgp === 0 ? "Free" : `${cls.priceEgp} EGP`}
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {isFull && <span style={{ backgroundColor: "var(--bg-card)", color: "var(--error-border)", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>FULL</span>}
+            {isFull && <span style={{ backgroundColor: "var(--error-bg)", color: "var(--error)", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--error-border)" }}>FULL</span>}
             {!isFull && spotsLeft !== null && spotsLeft <= 5 && (
               <span style={{ backgroundColor: "var(--bg-card)", color: "var(--warning)", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>{spotsLeft} left</span>
             )}
@@ -235,7 +235,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
             style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
             <Link href="/tutors" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>Back to Tutors</Link>
             {isOwner && (
-              <Link href={`/tutors/${tutor.id}/edit`} style={{ backgroundColor: "var(--text-secondary)", color: "var(--text)", padding: "7px 16px", borderRadius: 9, fontSize: 13, fontWeight: 600, textDecoration: "none", border: "1px solid var(--border-light)" }}>
+              <Link href={`/tutors/${tutor.id}/edit`} style={{ backgroundColor: "var(--bg-alt)", color: "var(--text)", padding: "7px 16px", borderRadius: 9, fontSize: 13, fontWeight: 600, textDecoration: "none", border: "1px solid var(--border)" }}>
                 Edit Profile
               </Link>
             )}

@@ -563,7 +563,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                   textAlign: "center",
                 }}
               >
-                <div style={{ marginBottom: 16, color: "var(--border)" }}>
+                <div style={{ marginBottom: 16, color: "var(--text-dim)" }}>
                   <Search size={48} strokeWidth={1.5} style={{ margin: "0 auto", display: "block" }} aria-hidden />
                 </div>
                 <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 17, marginBottom: 8 }}>

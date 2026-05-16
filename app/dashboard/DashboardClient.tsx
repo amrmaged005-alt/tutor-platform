@@ -1152,7 +1152,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                                 {cls.format}
                               </span>
                               {cls.capacity && cls.bookingsCount >= cls.capacity && (
-                                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, backgroundColor: "var(--bg-card)", color: "var(--error-border)" }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, backgroundColor: "var(--error-bg)", color: "var(--error)", border: "1px solid var(--error-border)" }}>
                                   FULL
                                 </span>
                               )}
@@ -1549,7 +1549,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                                 {cls.format}
                               </span>
                               {cls.capacity && cls.bookingsCount >= cls.capacity && (
-                                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, backgroundColor: "var(--bg-card)", color: "var(--error-border)" }}>FULL</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, backgroundColor: "var(--error-bg)", color: "var(--error)", border: "1px solid var(--error-border)" }}>FULL</span>
                               )}
                             </div>
                             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const, alignItems: "center" }}>

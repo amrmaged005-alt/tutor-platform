@@ -165,9 +165,9 @@ function ClassCard({ cls }: { cls: CenterClass }) {
             {cls.priceEgp === 0 ? "Free" : `${cls.priceEgp} EGP`}
           </span>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            {isFull && <span style={{ backgroundColor: "var(--bg-card)", color: "var(--error-border)", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999 }}>FULL</span>}
+            {isFull && <span style={{ backgroundColor: "var(--error-bg)", color: "var(--error)", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999, border: "1px solid var(--error-border)" }}>FULL</span>}
             {!isFull && cls.spotsLeft !== null && cls.spotsLeft <= 5 && (
-              <span style={{ backgroundColor: "var(--bg-card)", color: "var(--warning-bg)", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999 }}>🔥 {cls.spotsLeft} left</span>
+              <span style={{ backgroundColor: "var(--warning-bg)", color: "var(--warning)", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 999 }}>🔥 {cls.spotsLeft} left</span>
             )}
             <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{cls.bookingsCount} enrolled</span>
           </div>

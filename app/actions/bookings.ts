@@ -187,8 +187,15 @@ export async function lockSeat(
       });
     }
 
-    // 6. If in-person, no payment needed — return early
-    if (classData.paymentType === "IN_PERSON") {
+    // 6. If in-person or free, no payment needed — confirm immediately and return
+    if (classData.paymentType === "IN_PERSON" || amountEgp === 0) {
+      if (amountEgp === 0) {
+        // Auto-confirm free bookings (no tutor cash collection needed)
+        await prisma.booking.update({
+          where: { id: booking.id },
+          data: { status: "CONFIRMED", paymentStatus: "PAID", paidAt: new Date() },
+        });
+      }
       return { success: true, bookingId: booking.id, iframeUrl: null };
     }
 

@@ -325,7 +325,7 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
             </span>
           )}
           {isFull && (
-            <span style={{ backgroundColor: "var(--bg-card)", color: "var(--error-border)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>
+            <span style={{ backgroundColor: "var(--error-bg)", color: "var(--error)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--error-border)" }}>
               {copy.full}
             </span>
           )}

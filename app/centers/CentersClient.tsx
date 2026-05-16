@@ -377,7 +377,7 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
             {filtered.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 14, padding: "64px 32px", textAlign: "center" }}>
-                <div style={{ marginBottom: 16, color: "var(--border)" }}>
+                <div style={{ marginBottom: 16, color: "var(--text-dim)" }}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto", display: "block" }}>
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                     <polyline points="9 22 9 12 15 12 15 22" />

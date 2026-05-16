@@ -206,7 +206,7 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
               </span>
             )}
             {isFull && (
-              <span style={{ backgroundColor: "var(--bg-card)", color: "var(--error-border)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>
+              <span style={{ backgroundColor: "var(--error-bg)", color: "var(--error)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20, border: "1px solid var(--error-border)" }}>
                 FULL
               </span>
             )}
@@ -220,7 +220,7 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
           )}
 
           {/* Info rows */}
-          <div style={{ fontSize: 13, color: "var(--border)", display: "flex", flexDirection: "column", gap: 4, marginBottom: "0.5rem" }}>
+          <div style={{ fontSize: 13, color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: 4, marginBottom: "0.5rem" }}>
             {(cls.location || cls.city) && (
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span>📍</span>
@@ -347,7 +347,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
 
   const selectStyle: React.CSSProperties = {
     backgroundColor: "var(--bg-card)",
-    color: "var(--border)",
+    color: "var(--text-secondary)",
     border: "1px solid var(--border-light)",
     borderRadius: 10,
     padding: "0.55rem 0.75rem",
