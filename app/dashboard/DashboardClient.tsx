@@ -1408,7 +1408,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                     width: 48,
                     height: 48,
                     borderRadius: 12,
-                    background: "linear-gradient(135deg, var(--accent-hover), var(--text))",
+                    background: "linear-gradient(135deg, var(--accent-hover), var(--accent))",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1633,7 +1633,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                               fontSize: 16,
                               color: "var(--bg-card)",
                               flexShrink: 0,
-                              boxShadow: "0 0 0 2px var(--text), 0 0 0 4px rgba(13,89,70,0.19)",
+                              boxShadow: "0 0 0 2px var(--border), 0 0 0 4px rgba(13,89,70,0.19)",
                             }}
                           >
                             {((tutor.fullName || tutor.name || "T")[0] || "T").toUpperCase()}

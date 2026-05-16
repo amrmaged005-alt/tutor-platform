@@ -68,7 +68,7 @@ function Avatar({ name, photoUrl, size = 96 }: { name: string; photoUrl: string 
   const colors = [["var(--accent)","var(--accent-hover)"],["#5d3a5f","var(--accent)"],["var(--success)","var(--success)"],["#8a5e1a","var(--warning)"],["#1c6e7a","var(--accent)"]];
   const pair = colors[(name.charCodeAt(0) ?? 0) % colors.length];
   if (photoUrl) {
-    return <img src={photoUrl} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "4px solid var(--text)", boxShadow: `0 0 0 3px ${pair[0]}40`, flexShrink: 0 }} />;
+    return <img src={photoUrl} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "4px solid var(--bg-card)", boxShadow: `0 0 0 3px ${pair[0]}40`, flexShrink: 0 }} />;
   }
   return (
     <div style={{
@@ -76,7 +76,7 @@ function Avatar({ name, photoUrl, size = 96 }: { name: string; photoUrl: string 
       background: `radial-gradient(circle at 35% 35%, ${pair[0]}, ${pair[1]})`,
       flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
       fontWeight: 800, fontSize: size * 0.38, color: "var(--bg-card)",
-      boxShadow: `0 0 0 4px var(--text), 0 0 0 7px ${pair[0]}30, 0 8px 32px ${pair[0]}40`,
+      boxShadow: `0 0 0 4px var(--border), 0 0 0 7px ${pair[0]}30, 0 8px 32px ${pair[0]}40`,
     }}>
       {(name[0] ?? "T").toUpperCase()}
     </div>
@@ -256,7 +256,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                 <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: "var(--bg-card)", color: "#1c6e7a", border: "1px solid #1c6e7a20", letterSpacing: 0.5 }}>
                   Verified
                 </span>
-                <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: tutor.role === "CENTER_ADMIN" ? "var(--text)" : "var(--text)", color: tutor.role === "CENTER_ADMIN" ? "var(--success)" : "#5d3a5f", border: "1px solid currentColor", letterSpacing: 0.5 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: tutor.role === "CENTER_ADMIN" ? "var(--success-bg)" : "rgba(93,58,95,0.10)", color: tutor.role === "CENTER_ADMIN" ? "var(--success)" : "#5d3a5f", border: "1px solid currentColor", letterSpacing: 0.5 }}>
                   {tutor.role === "CENTER_ADMIN" ? "CENTER ADMIN" : "TUTOR"}
                 </span>
               </div>
@@ -398,7 +398,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                   { icon: "Students", value: tutor.totalStudents, label: "Total Students" },
                   { icon: "Reviews", value: tutor.reviews.length, label: "Reviews" },
                 ].map(s => (
-                  <div key={s.label} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--text)", borderRadius: 12, padding: "14px 12px", textAlign: "center" }}>
+                  <div key={s.label} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 12, padding: "14px 12px", textAlign: "center" }}>
                     <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
                     <div style={{ fontWeight: 800, fontSize: 20, color: "var(--text)" }}>{s.value}</div>
                     <div style={{ color: "var(--text-secondary)", fontSize: 11, fontWeight: 600, marginTop: 2 }}>{s.label}</div>
@@ -472,7 +472,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                 <button key={f} onClick={() => setActiveFilter(f)} style={{
                   padding: "5px 14px", borderRadius: 999,
                   border: activeFilter === f ? "none" : "1px solid var(--text-secondary)",
-                  backgroundColor: activeFilter === f ? (f === "All" ? "var(--accent)" : `${subjectColor(f)}22`) : "var(--text)",
+                  backgroundColor: activeFilter === f ? (f === "All" ? "var(--accent)" : `${subjectColor(f)}22`) : "var(--bg-alt)",
                   color: activeFilter === f ? (f === "All" ? "var(--bg-card)" : subjectColor(f)) : "var(--text-muted)",
                   fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
                 }}>

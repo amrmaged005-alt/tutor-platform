@@ -4,8 +4,8 @@ export default function TutorsLoading() {
             {/* Hero section skeleton */}
             <div
                 style={{
-                    background: "linear-gradient(135deg, var(--text) 0%, var(--text) 50%, var(--text) 100%)",
-                    borderBottom: "1px solid var(--text)",
+                    background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--bg-card) 100%)",
+                    borderBottom: "1px solid var(--border-light)",
                     padding: "56px 24px 48px",
                 }}
             >
@@ -44,7 +44,7 @@ export default function TutorsLoading() {
                                 key={i}
                                 style={{
                                     backgroundColor: "var(--bg-card)",
-                                    border: "1px solid var(--text)",
+                                    border: "1px solid var(--border-light)",
                                     borderRadius: 20,
                                     overflow: "hidden",
                                     animationDelay: `${i * 0.06}s`,
@@ -69,7 +69,7 @@ export default function TutorsLoading() {
                                     </div>
                                     <div className="skeleton skeleton-text long" style={{ marginBottom: 6 }} />
                                     <div className="skeleton skeleton-text medium" style={{ marginBottom: 16 }} />
-                                    <div style={{ borderTop: "1px solid var(--text)", paddingTop: 16, display: "flex", gap: 16 }}>
+                                    <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: 16, display: "flex", gap: 16 }}>
                                         <div className="skeleton" style={{ height: 14, width: 80, borderRadius: 6 }} />
                                         <div className="skeleton" style={{ height: 14, width: 80, borderRadius: 6 }} />
                                     </div>

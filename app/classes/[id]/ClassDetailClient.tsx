@@ -696,7 +696,7 @@ export default function ClassDetailClient({
                     fontWeight: 800,
                     fontSize: 24,
                     color: "var(--bg-card)",
-                    boxShadow: "0 0 0 3px var(--text), 0 0 0 5px rgba(13,89,70,0.25)",
+                    boxShadow: "0 0 0 3px var(--border), 0 0 0 5px rgba(13,89,70,0.25)",
                   }}
                 >
                   {((tutor.fullName || tutor.name || "T")[0] || "T").toUpperCase()}
@@ -863,7 +863,7 @@ export default function ClassDetailClient({
                     fontWeight: 800,
                     fontSize: 24,
                     color: "var(--accent-fg)",
-                    boxShadow: "0 0 0 3px var(--text), 0 0 0 5px rgba(13,89,70,0.25)",
+                    boxShadow: "0 0 0 3px var(--border), 0 0 0 5px rgba(13,89,70,0.25)",
                   }}
                 >
                   {cls.center.name[0].toUpperCase()}

@@ -30,9 +30,9 @@ interface Booking {
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const config = {
-    PENDING:   { label: "Pending",   bg: "var(--text)", color: "var(--rating)" },
-    CONFIRMED: { label: "Confirmed", bg: "var(--text)", color: "var(--success)" },
-    CANCELLED: { label: "Cancelled", bg: "var(--text)", color: "var(--error)" },
+    PENDING:   { label: "Pending",   bg: "var(--warning-bg)", color: "var(--rating)" },
+    CONFIRMED: { label: "Confirmed", bg: "var(--success-bg)", color: "var(--success)" },
+    CANCELLED: { label: "Cancelled", bg: "var(--error-bg)",   color: "var(--error)" },
   }[status];
 
   return (
@@ -44,11 +44,11 @@ function StatusBadge({ status }: { status: BookingStatus }) {
 
 function PaymentBadge({ status }: { status: PaymentStatus }) {
   const config = {
-    UNPAID:             { label: "Unpaid",          bg: "var(--text)", color: "var(--rating)" },
-    PAID:               { label: "Paid",            bg: "var(--text)", color: "var(--success)" },
-    FAILED:             { label: "Failed",          bg: "var(--text)", color: "var(--error)" },
-    REFUNDED:           { label: "Refunded",        bg: "var(--text)", color: "var(--text-muted)" },
-    PARTIALLY_REFUNDED: { label: "Part. Refunded",  bg: "var(--text)", color: "var(--text-muted)" },
+    UNPAID:             { label: "Unpaid",          bg: "var(--warning-bg)",          color: "var(--rating)" },
+    PAID:               { label: "Paid",            bg: "var(--success-bg)",          color: "var(--success)" },
+    FAILED:             { label: "Failed",          bg: "var(--error-bg)",            color: "var(--error)" },
+    REFUNDED:           { label: "Refunded",        bg: "rgba(100,100,100,0.10)",     color: "var(--text-muted)" },
+    PARTIALLY_REFUNDED: { label: "Part. Refunded",  bg: "rgba(100,100,100,0.10)",     color: "var(--text-muted)" },
   }[status];
 
   return (
@@ -241,7 +241,7 @@ export default function BookingsManagementPage() {
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              style={{ backgroundColor: filter === tab ? "var(--accent)" : "var(--text)", color: filter === tab ? "white" : "var(--text-muted)", border: "1px solid", borderColor: filter === tab ? "var(--accent)" : "var(--text-secondary)", borderRadius: 8, padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              style={{ backgroundColor: filter === tab ? "var(--accent)" : "var(--bg-alt)", color: filter === tab ? "white" : "var(--text-muted)", border: "1px solid", borderColor: filter === tab ? "var(--accent)" : "var(--border-light)", borderRadius: 8, padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
             >
               {tab} ({counts[tab]})
             </button>

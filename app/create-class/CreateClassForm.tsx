@@ -42,7 +42,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: "1rem", paddingBottom: "0.5rem", borderBottom: "1px solid var(--text)" }}>
+    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: "1rem", paddingBottom: "0.5rem", borderBottom: "1px solid var(--border)" }}>
       {children}
     </div>
   );

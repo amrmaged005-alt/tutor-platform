@@ -17,7 +17,7 @@ export default function RootLoading() {
                         position: "absolute",
                         inset: 0,
                         borderRadius: "50%",
-                        border: "3px solid var(--text)",
+                        border: "3px solid var(--border)",
                     }}
                 />
                 <div

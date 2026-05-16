@@ -195,7 +195,7 @@ export default function TutorEditClient({
                 fontWeight: 800,
                 fontSize: 28,
                 color: "#fff",
-                boxShadow: "0 0 0 3px var(--text), 0 0 0 6px rgba(13,89,70,0.19)",
+                boxShadow: "0 0 0 3px var(--border), 0 0 0 6px rgba(13,89,70,0.19)",
               }}
             >
               {(displayName[0] || "T").toUpperCase()}
@@ -516,7 +516,7 @@ export default function TutorEditClient({
               style={{
                 flex: 1,
                 minWidth: 160,
-                background: saving ? "var(--text)" : "linear-gradient(135deg,var(--accent),var(--accent-hover))",
+                background: saving ? "var(--accent-hover)" : "linear-gradient(135deg,var(--accent),var(--accent-hover))",
                 color: "var(--accent-fg)",
                 border: "none",
                 borderRadius: 12,

@@ -4,8 +4,8 @@ export default function ClassesLoading() {
             {/* Hero section skeleton */}
             <div
                 style={{
-                    background: "linear-gradient(135deg, var(--text) 0%, var(--text) 50%, var(--text) 100%)",
-                    borderBottom: "1px solid var(--text)",
+                    background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--bg-card) 100%)",
+                    borderBottom: "1px solid var(--border-light)",
                     padding: "56px 24px 48px",
                 }}
             >
@@ -45,7 +45,7 @@ export default function ClassesLoading() {
                                 className="fade-in"
                                 style={{
                                     backgroundColor: "var(--bg-card)",
-                                    border: "1px solid var(--text)",
+                                    border: "1px solid var(--border-light)",
                                     borderRadius: 20,
                                     overflow: "hidden",
                                     animationDelay: `${i * 0.07}s`,
@@ -68,7 +68,7 @@ export default function ClassesLoading() {
                                     <div className="skeleton" style={{ height: 4, borderRadius: 99, marginBottom: 6 }} />
                                 </div>
                                 <div style={{ padding: "12px 18px 18px" }}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: "1px solid var(--text)", marginBottom: 10 }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: "1px solid var(--border-light)", marginBottom: 10 }}>
                                         <div className="skeleton" style={{ height: 28, width: 80, borderRadius: 8 }} />
                                     </div>
                                     <div className="skeleton" style={{ height: 40, width: "100%", borderRadius: 10 }} />
