@@ -185,7 +185,7 @@ function SectionTitle({ children, count, color = "var(--accent)" }: { children: 
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
       <div style={{ width: 4, height: 18, background: `linear-gradient(180deg,${color},transparent)`, borderRadius: 2 }} />
       <h2 style={{ color: "var(--text)", fontSize: 16, fontWeight: 700, margin: 0 }}>{children}</h2>
-      {count !== undefined && <span style={{ backgroundColor: "var(--text-secondary)", color: "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>{count}</span>}
+      {count !== undefined && <span style={{ backgroundColor: "var(--bg-alt)", color: "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>{count}</span>}
     </div>
   );
 }

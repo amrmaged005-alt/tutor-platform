@@ -838,7 +838,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 {profileComplete}/{profileFields.length} done
               </span>
             </div>
-            <div style={{ height: 6, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden" }}>
+            <div style={{ height: 6, backgroundColor: "var(--border-light)", borderRadius: 99, overflow: "hidden" }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${profilePct}%` }}

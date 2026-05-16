@@ -348,7 +348,7 @@ export default function AdminClient({ data }: { data: AdminData }) {
                         }}
                     >
                         <AdminIcon name={tab.icon} size={16} /> {tab.label}
-                        <span style={{ backgroundColor: activeTab === tab.id ? "rgba(251,250,246,0.18)" : "var(--text-secondary)", padding: "2px 8px", borderRadius: 99, fontSize: 11 }}>{tab.count}</span>
+                        <span style={{ backgroundColor: activeTab === tab.id ? "rgba(251,250,246,0.18)" : "var(--bg-alt)", color: activeTab === tab.id ? "inherit" : "var(--text-muted)", padding: "2px 8px", borderRadius: 99, fontSize: 11 }}>{tab.count}</span>
                     </button>
                 ))}
             </div>

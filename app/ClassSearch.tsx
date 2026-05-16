@@ -78,7 +78,7 @@ function SkeletonCard() {
           key={i}
           animate={{ opacity: [0.4, 0.8, 0.4] }}
           transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1 }}
-          style={{ width: w, height: h, backgroundColor: "var(--text-secondary)", borderRadius: 8, marginBottom: "0.75rem" }}
+          style={{ width: w, height: h, backgroundColor: "var(--border-light)", borderRadius: 8, marginBottom: "0.75rem" }}
         />
       ))}
     </div>
@@ -95,10 +95,10 @@ function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
         <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{booked} booked</span>
         <span style={{ fontSize: 11, color: left <= 5 ? "var(--error)" : "var(--text-muted)", fontWeight: left <= 5 ? 700 : 400 }}>
-          {left <= 0 ? "FULL" : left <= 5 ? `⚡ Only ${left} left!` : `${left} spots left`}
+          {left <= 0 ? "FULL" : left <= 5 ? `Only ${left} left!` : `${left} spots left`}
         </span>
       </div>
-      <div style={{ height: 4, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden" }}>
+      <div style={{ height: 4, backgroundColor: "var(--border-light)", borderRadius: 99, overflow: "hidden" }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: pct + "%" }}

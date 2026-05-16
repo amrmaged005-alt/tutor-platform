@@ -96,7 +96,7 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
 function MiniBar({ capacity, booked, color }: { capacity: number; booked: number; color: string }) {
   const pct = Math.min((booked / capacity) * 100, 100);
   return (
-    <div style={{ height: 3, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden", marginTop: 8 }}>
+    <div style={{ height: 3, backgroundColor: "var(--border-light)", borderRadius: 99, overflow: "hidden", marginTop: 8 }}>
       <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: "easeOut" }}
         style={{ height: "100%", borderRadius: 99, background: pct > 80 ? "var(--error)" : pct > 50 ? "var(--rating)" : color }} />
     </div>
@@ -184,7 +184,7 @@ function SectionTitle({ children, count }: { children: React.ReactNode; count?: 
       <div style={{ width: 4, height: 18, background: "linear-gradient(180deg,var(--accent),transparent)", borderRadius: 2 }} />
       <h2 style={{ color: "var(--text)", fontSize: 16, fontWeight: 700, margin: 0 }}>{children}</h2>
       {count !== undefined && (
-        <span style={{ backgroundColor: "var(--text-secondary)", color: "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>{count}</span>
+        <span style={{ backgroundColor: "var(--bg-alt)", color: "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>{count}</span>
       )}
     </div>
   );
@@ -320,7 +320,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                     WhatsApp
                   </a>
                 ) : isOwner ? (
-                  <Link href={`/tutors/${tutor.id}/edit`} style={{ backgroundColor: "var(--text-secondary)", color: "var(--text-muted)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 600, fontSize: 14 }}>
+                  <Link href={`/tutors/${tutor.id}/edit`} style={{ backgroundColor: "var(--bg-alt)", color: "var(--text-secondary)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 600, fontSize: 14, border: "1px solid var(--border-light)" }}>
                     + Add WhatsApp
                   </Link>
                 ) : null}
@@ -349,7 +349,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
             style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--warning)", borderRadius: 14, padding: "16px 20px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <div style={{ flex: 1, minWidth: 200 }}>
               <div style={{ color: "var(--rating)", fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Complete your profile ({profilePct}%)</div>
-              <div style={{ height: 4, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden" }}>
+              <div style={{ height: 4, backgroundColor: "var(--border-light)", borderRadius: 99, overflow: "hidden" }}>
                 <motion.div initial={{ width: 0 }} animate={{ width: `${profilePct}%` }} transition={{ duration: 0.8, delay: 0.3 }}
                   style={{ height: "100%", background: "linear-gradient(90deg,var(--warning),var(--rating))", borderRadius: 99 }} />
               </div>
@@ -428,7 +428,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                   <div key={star} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ color: "var(--text-muted)", fontSize: 12, width: 12 }}>{star}</span>
                     <span style={{ color: "var(--rating)", fontSize: 11 }}>★</span>
-                    <div style={{ flex: 1, height: 6, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden" }}>
+                    <div style={{ flex: 1, height: 6, backgroundColor: "var(--border-light)", borderRadius: 99, overflow: "hidden" }}>
                       <motion.div initial={{ width: 0 }} whileInView={{ width: `${pct}%` }} viewport={{ once: true }} transition={{ duration: 0.7, delay: (5 - star) * 0.1 }}
                         style={{ height: "100%", background: "var(--rating)", borderRadius: 99 }} />
                     </div>

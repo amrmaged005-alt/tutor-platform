@@ -224,7 +224,7 @@ export default function TutorEditClient({
               <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600 }}>Profile completeness</span>
               <span style={{ color: pct === 100 ? "var(--success)" : "var(--rating)", fontSize: 12, fontWeight: 700 }}>{pct}%</span>
             </div>
-            <div style={{ height: 4, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden" }}>
+            <div style={{ height: 4, backgroundColor: "var(--border-light)", borderRadius: 99, overflow: "hidden" }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
