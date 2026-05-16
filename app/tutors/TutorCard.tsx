@@ -171,7 +171,7 @@ export default function TutorCard({
               <span>{tutor.city ?? "Egypt"}</span>
               {tutor.center && (
                 <>
-                  <span style={{ color: "var(--border)" }}>-</span>
+                  <span style={{ color: "var(--text-muted)" }}>-</span>
                   <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>{tutor.center.name}</span>
                 </>
               )}
