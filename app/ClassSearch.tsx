@@ -197,11 +197,11 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
 
           {/* Tags */}
           <div style={{ display: "flex", gap: 6, marginBottom: "0.75rem", flexWrap: "wrap" }}>
-            <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 20, border: "1px solid var(--text)" }}>
+            <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 20, border: "1px solid var(--border-light)" }}>
               {CURRICULUM_LABEL[cls.curriculum] ?? cls.curriculum}
             </span>
             {cls.gradeLevel && (
-              <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 20, border: "1px solid var(--text)" }}>
+              <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 20, border: "1px solid var(--border-light)" }}>
                 {cls.gradeLevel}
               </span>
             )}

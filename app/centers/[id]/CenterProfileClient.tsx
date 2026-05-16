@@ -217,7 +217,7 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
       {/* ── HERO BANNER ── */}
       <div style={{
         position: "relative", overflow: "hidden",
-        background: "linear-gradient(135deg, var(--text) 0%, var(--text) 50%, var(--text) 100%)",
+        background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--accent-bg-soft) 50%, var(--bg-card) 100%)",
         borderBottom: "1px solid var(--border-light)", padding: "44px 24px 36px", zIndex: 1,
       }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: `linear-gradient(rgba(24,23,21,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,21,0.06) 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />
@@ -234,7 +234,7 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
               {center.logoUrl ? (
                 <img src={center.logoUrl} alt={center.name} style={{ width: 100, height: 100, borderRadius: 20, objectFit: "cover", border: "3px solid var(--text-secondary)" }} />
               ) : (
-                <div style={{ width: 100, height: 100, borderRadius: 20, background: "linear-gradient(135deg, var(--accent-hover), var(--text))", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 40, color: "var(--bg-card)", boxShadow: "0 0 0 4px var(--text), 0 0 0 7px rgba(13,89,70,0.19)" }}>
+                <div style={{ width: 100, height: 100, borderRadius: 20, background: "linear-gradient(135deg, var(--accent), var(--accent-hover))", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 40, color: "var(--accent-fg)", boxShadow: "0 0 0 4px var(--accent-border), 0 0 0 7px rgba(13,89,70,0.19)" }}>
                   {center.name[0]?.toUpperCase()}
                 </div>
               )}
@@ -291,7 +291,7 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
                 )}
                 {center.classes.length > 0 && (
                   <button onClick={() => setActiveTab("classes")}
-                    style={{ background: "linear-gradient(135deg,var(--accent-hover),var(--text))", color: "var(--accent-fg)", border: "none", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                    style={{ background: "var(--accent)", color: "var(--accent-fg)", border: "none", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
                     📚 View Classes
                   </button>
                 )}

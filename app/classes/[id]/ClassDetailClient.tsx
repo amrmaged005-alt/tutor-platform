@@ -744,12 +744,12 @@ export default function ClassDetailClient({
                         <span
                           key={s}
                           style={{
-                            background: "var(--text)",
-                            border: "1px solid var(--border-light)",
+                            background: "var(--accent-bg)",
+                            border: "1px solid var(--accent-border)",
                             borderRadius: 6,
                             padding: "2px 10px",
                             fontSize: 12,
-                            color: "var(--text-muted)",
+                            color: "var(--accent)",
                           }}
                         >
                           {s}
@@ -855,14 +855,14 @@ export default function ClassDetailClient({
                     width: 64,
                     height: 64,
                     borderRadius: 14,
-                    background: "linear-gradient(135deg, var(--accent-hover), var(--text))",
+                    background: "linear-gradient(135deg, var(--accent), var(--accent-hover))",
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontWeight: 800,
                     fontSize: 24,
-                    color: "var(--bg-card)",
+                    color: "var(--accent-fg)",
                     boxShadow: "0 0 0 3px var(--text), 0 0 0 5px rgba(13,89,70,0.25)",
                   }}
                 >
@@ -1017,9 +1017,9 @@ export default function ClassDetailClient({
                         textDecoration: "none",
                         fontWeight: 600,
                         padding: "4px 12px",
-                        background: "var(--text)",
+                        background: "rgba(28,110,122,0.10)",
                         borderRadius: 6,
-                        border: "1px solid #1c6e7a20",
+                        border: "1px solid rgba(28,110,122,0.25)",
                       }}
                     >
                       <Download size={13} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
