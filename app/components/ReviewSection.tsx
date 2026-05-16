@@ -173,12 +173,12 @@ export default function ReviewSection({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             style={{
-              background: "linear-gradient(to bottom right, var(--text), var(--text))",
-              border: "1px solid rgba(13,89,70,0.25)",
+              background: "var(--bg-card)",
+              border: "1px solid var(--accent-border)",
               borderRadius: "16px",
               padding: "24px",
               marginBottom: "24px",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+              boxShadow: "var(--shadow-md)",
               overflow: "hidden"
             }}
           >
@@ -218,8 +218,8 @@ export default function ReviewSection({
                 placeholder="Share your experience..."
                 style={{
                   width: "100%",
-                  background: "var(--text)",
-                  border: "1px solid var(--border-light)",
+                  background: "var(--bg-alt)",
+                  border: "1px solid var(--border)",
                   borderRadius: "10px",
                   color: "var(--text)",
                   padding: "12px",
@@ -286,7 +286,7 @@ export default function ReviewSection({
               transition={{ delay: i * 0.05 }}
               key={review.id}
               style={{
-                background: "var(--text)",
+                background: "var(--bg-card)",
                 border: "1px solid var(--border-light)",
                 borderRadius: "16px",
                 padding: "20px",
