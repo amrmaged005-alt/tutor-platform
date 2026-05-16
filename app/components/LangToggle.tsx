@@ -29,7 +29,7 @@ export default function LangToggle() {
                 boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
             }}
             onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--accent)")}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--text-secondary)")}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border-light)")}
         >
             {lang === "en" ? "عربي" : "English"}
         </button>

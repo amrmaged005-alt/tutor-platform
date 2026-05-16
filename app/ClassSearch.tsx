@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { Search, Heart, User, Building2 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 type Tutor = { id: string; fullName: string | null };
@@ -119,7 +120,7 @@ function HeartButton({ id }: { id: string }) {
       style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: 0, color: saved ? "var(--error)" : "var(--text-secondary)", transition: "color 0.2s" }}
       title={saved ? "Saved" : "Save class"}
     >
-      {saved ? "❤️" : "🤍"}
+      <Heart size={16} strokeWidth={2} fill={saved ? "currentColor" : "none"} />
     </motion.button>
   );
 }
@@ -234,7 +235,7 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
               </div>
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span>{isCenter ? "🏫" : "👤"}</span>
+              {isCenter ? <Building2 size={13} strokeWidth={2} color="var(--text-muted)" /> : <User size={13} strokeWidth={2} color="var(--text-muted)" />}
               <span style={{ color: "var(--text-muted)" }}>{displayName}</span>
               {isCenter && (
                 <span style={{ backgroundColor: "rgba(13,89,70,0.13)", color: "var(--accent)", fontSize: 10, padding: "1px 6px", borderRadius: 10, border: "1px solid rgba(13,89,70,0.25)", fontWeight: 600 }}>
@@ -363,7 +364,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
       {/* ── Hero search bar ── */}
       <div style={{ maxWidth: 760, margin: "0 auto 1.5rem", padding: "0 1.5rem" }}>
         <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-          <span style={{ position: "absolute", left: 16, fontSize: 18, pointerEvents: "none" }}>🔍</span>
+          <Search size={18} strokeWidth={2} color="var(--text-muted)" style={{ position: "absolute", left: 16, pointerEvents: "none" }} />
           <input
             ref={searchRef}
             type="text"
@@ -383,7 +384,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
               transition: "border-color 0.2s",
             }}
             onFocus={e => e.currentTarget.style.borderColor = "var(--accent)"}
-            onBlur={e => e.currentTarget.style.borderColor = "var(--text-secondary)"}
+            onBlur={e => e.currentTarget.style.borderColor = "var(--border-light)"}
           />
           {search && (
             <button
@@ -578,7 +579,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             animate={{ opacity: 1, y: 0 }}
             style={{ textAlign: "center", padding: "5rem 2rem" }}
           >
-            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔍</div>
+            <div style={{ marginBottom: "1rem", opacity: 0.4 }}><Search size={48} strokeWidth={1.5} color="var(--text-muted)" /></div>
             <h3 style={{ color: "var(--text)", fontWeight: 700, fontSize: 20, marginBottom: 8 }}>No classes found</h3>
             <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: "1.5rem" }}>
               Try adjusting your filters or search term.

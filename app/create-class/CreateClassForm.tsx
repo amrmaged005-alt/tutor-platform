@@ -107,7 +107,7 @@ export default function CreateClassForm() {
     e.target.style.boxShadow = "0 0 0 3px rgba(59,130,246,0.12)";
   };
   const blurInput = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    e.target.style.borderColor = "var(--text-secondary)";
+    e.target.style.borderColor = "var(--border-light)";
     e.target.style.boxShadow = "none";
   };
 

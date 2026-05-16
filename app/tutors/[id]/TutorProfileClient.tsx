@@ -113,7 +113,7 @@ function ClassCard({ cls }: { cls: TutorClass }) {
     <motion.div
       whileHover={{ y: -4, boxShadow: `0 12px 32px ${color}20` }}
       onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = `${color}50`}
-      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "var(--text-secondary)"}
+      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border-light)"}
       style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16, overflow: "hidden", transition: "border-color 0.2s" }}
     >
       <div style={{ height: 3, background: `linear-gradient(90deg, ${color}, ${color}44)` }} />

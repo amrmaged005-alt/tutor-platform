@@ -1,8 +1,10 @@
 "use client";
 
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
+import { BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
@@ -61,7 +63,7 @@ const SUBJECT_COLORS: Record<string, string> = {
 function subjectColor(s: string) { return SUBJECT_COLORS[s] ?? "var(--accent)"; }
 
 const FORMAT_LABELS: Record<string, string> = {
-  IN_PERSON: "📍 In-Person", ONLINE: "💻 Online", HYBRID: "🔀 Hybrid",
+  IN_PERSON: "In-Person", ONLINE: "Online", HYBRID: "Hybrid",
 };
 const CURRICULUM_LABELS: Record<string, string> = {
   NATIONAL: "National", IGCSE: "IGCSE", AMERICAN: "American",
@@ -93,7 +95,7 @@ function TutorCard({ tutor }: { tutor: CenterTutor }) {
     <motion.div
       whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(13,89,70,0.13)" }}
       onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(13,89,70,0.31)"}
-      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "var(--text-secondary)"}
+      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border-light)"}
       style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16, padding: "18px", transition: "border-color 0.2s" }}
     >
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
@@ -107,8 +109,8 @@ function TutorCard({ tutor }: { tutor: CenterTutor }) {
             </div>
           )}
           <div style={{ display: "flex", gap: 10, fontSize: 12, color: "var(--text-muted)" }}>
-            <span>📚 {tutor.classCount}</span>
-            <span>👥 {tutor.studentCount}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}><BookOpen size={12} strokeWidth={2} />{tutor.classCount}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Users size={12} strokeWidth={2} />{tutor.studentCount}</span>
           </div>
         </div>
       </div>
@@ -146,7 +148,7 @@ function ClassCard({ cls }: { cls: CenterClass }) {
     <motion.div
       whileHover={{ y: -4, boxShadow: `0 12px 32px ${color}20` }}
       onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = `${color}50`}
-      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "var(--text-secondary)"}
+      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border-light)"}
       style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16, overflow: "hidden", transition: "border-color 0.2s" }}
     >
       <div style={{ height: 3, background: `linear-gradient(90deg, ${color}, ${color}44)` }} />
@@ -198,10 +200,10 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
   // Unique subjects across all classes
   const allSubjects = Array.from(new Set(center.classes.map(c => c.subject)));
 
-  const tabs: { key: Tab; label: string; icon: string }[] = [
-    { key: "overview", label: "Overview", icon: "🏠" },
-    { key: "tutors",   label: `Tutors (${center.tutors.length})`,  icon: "👨‍🏫" },
-    { key: "classes",  label: `Classes (${center.classes.length})`, icon: "📚" },
+  const tabs: { key: Tab; label: string; Icon: React.ElementType }[] = [
+    { key: "overview", label: "Overview",                              Icon: Home },
+    { key: "tutors",   label: `Tutors (${center.tutors.length})`,     Icon: GraduationCap },
+    { key: "classes",  label: `Classes (${center.classes.length})`,   Icon: BookOpen },
   ];
 
   return (
@@ -262,12 +264,12 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
               {/* Stats */}
               <div style={{ display: "flex", gap: 28, marginBottom: 20, flexWrap: "wrap" }}>
                 {[
-                  { icon: "👨‍🏫", value: center.tutors.length, label: "Tutors" },
-                  { icon: "📚", value: center.classes.length, label: "Classes" },
-                  { icon: "👥", value: center.totalStudents, label: "Students" },
+                  { Icon: GraduationCap, value: center.tutors.length, label: "Tutors" },
+                  { Icon: BookOpen, value: center.classes.length, label: "Classes" },
+                  { Icon: Users, value: center.totalStudents, label: "Students" },
                 ].map(s => (
                   <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 16 }}>{s.icon}</span>
+                    <s.Icon size={16} strokeWidth={2} color="var(--accent)" />
                     <div>
                       <div style={{ fontWeight: 800, color: "var(--text)", fontSize: 18, lineHeight: 1 }}>{s.value}</div>
                       <div style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>{s.label}</div>
@@ -312,7 +314,7 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
               borderBottom: `2px solid ${activeTab === tab.key ? "var(--accent)" : "transparent"}`,
               transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
             }}>
-              <span>{tab.icon}</span> {tab.label}
+              <tab.Icon size={15} strokeWidth={2} /> {tab.label}
             </button>
           ))}
         </div>
@@ -353,15 +355,15 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
                 <SectionTitle>What We Offer</SectionTitle>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
                   {[
-                    { icon: "🏛️", label: "Classrooms" },
-                    { icon: "📖", label: "Library Access" },
-                    { icon: "💻", label: "Online Classes" },
-                    { icon: "🎯", label: "Exam Prep" },
-                    { icon: "👥", label: "Group Sessions" },
-                    { icon: "📝", label: "Practice Tests" },
+                    { Icon: Building2,     label: "Classrooms" },
+                    { Icon: BookOpen,      label: "Library Access" },
+                    { Icon: Monitor,       label: "Online Classes" },
+                    { Icon: Target,        label: "Exam Prep" },
+                    { Icon: Users,         label: "Group Sessions" },
+                    { Icon: FileText,      label: "Practice Tests" },
                   ].map(f => (
                     <div key={f.label} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px", display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "var(--bg-card)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{f.icon}</div>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "var(--accent-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><f.Icon size={18} strokeWidth={2} color="var(--accent)" /></div>
                       <span style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>{f.label}</span>
                     </div>
                   ))}
@@ -415,7 +417,7 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
             <motion.div key="classes" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
               {center.classes.length === 0 ? (
                 <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "48px", textAlign: "center" }}>
-                  <div style={{ fontSize: "3rem", marginBottom: 12 }}>📚</div>
+                  <div style={{ marginBottom: 12, opacity: 0.4 }}><BookOpen size={48} strokeWidth={1.5} color="var(--text-muted)" /></div>
                   <p style={{ color: "var(--text-muted)", fontSize: 15 }}>No classes listed yet.</p>
                 </div>
               ) : (

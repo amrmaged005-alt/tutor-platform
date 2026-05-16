@@ -273,7 +273,7 @@ export default function TutorEditClient({
                   placeholder="e.g. Ahmed Hassan"
                   style={inputStyle}
                   onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-                  onBlur={(e) => (e.target.style.borderColor = "var(--text-secondary)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border-light)")}
                 />
               </div>
               <div>
@@ -284,7 +284,7 @@ export default function TutorEditClient({
                   placeholder="e.g. +201012345678"
                   style={inputStyle}
                   onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-                  onBlur={(e) => (e.target.style.borderColor = "var(--text-secondary)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border-light)")}
                 />
               </div>
             </div>
@@ -329,7 +329,7 @@ export default function TutorEditClient({
                 minHeight: 120,
               }}
               onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-              onBlur={(e) => (e.target.style.borderColor = "var(--text-secondary)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border-light)")}
             />
             <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 5 }}>
               A good bio helps students trust you. Aim for 2–4 sentences.

@@ -918,7 +918,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 fontFamily: "inherit", transition: "border-color 0.2s",
               }}
               onFocus={e => (e.target.style.borderColor = "#1c6e7a")}
-              onBlur={e => (e.target.style.borderColor = "var(--text-secondary)")}
+              onBlur={e => (e.target.style.borderColor = "var(--border-light)")}
             />
             {search && (
               <button onClick={() => setSearch("")} aria-label="Clear search" style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "inline-flex", padding: 4 }}><X size={16} strokeWidth={2} /></button>
