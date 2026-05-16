@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Heart, User, Building2 } from "lucide-react";
+import { Search, Heart, User, Building2, MapPin } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 type Tutor = { id: string; fullName: string | null };
@@ -224,7 +224,7 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
           <div style={{ fontSize: 13, color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: 4, marginBottom: "0.5rem" }}>
             {(cls.location || cls.city) && (
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span>📍</span>
+                <MapPin size={13} strokeWidth={2} color="var(--text-muted)" />
                 <span style={{ color: "var(--text-muted)" }}>{cls.location ?? cls.city}</span>
               </div>
             )}

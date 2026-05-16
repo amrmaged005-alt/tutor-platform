@@ -4,7 +4,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home } from "lucide-react";
+import { BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home, MapPin } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
@@ -246,11 +246,11 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
                 <h1 style={{ color: "var(--text)", fontSize: "clamp(1.4rem, 3vw, 2rem)", fontWeight: 800, margin: 0, letterSpacing: -0.5 }}>{center.name}</h1>
                 <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: "var(--bg-card)", color: "#1c6e7a", border: "1px solid #1c6e7a20" }}>✓ Verified</span>
-                <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: "var(--bg-card)", color: "#5d3a5f", border: "1px solid #5d3a5f30" }}>🏫 CENTER</span>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: "rgba(93,58,95,0.10)", color: "#5d3a5f", border: "1px solid #5d3a5f30" }}>CENTER</span>
               </div>
 
               <p style={{ color: "var(--text-muted)", fontSize: 14, margin: "0 0 12px", display: "flex", alignItems: "center", gap: 5 }}>
-                <span>📍</span><span>{center.city}{center.location ? ` · ${center.location}` : ""}</span>
+                <MapPin size={14} strokeWidth={2} /><span>{center.city}{center.location ? ` · ${center.location}` : ""}</span>
               </p>
 
               {center.avgRating !== null && (
@@ -397,7 +397,7 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
             <motion.div key="tutors" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
               {center.tutors.length === 0 ? (
                 <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "48px", textAlign: "center" }}>
-                  <div style={{ fontSize: "3rem", marginBottom: 12 }}>👨‍🏫</div>
+                  <div style={{ marginBottom: 12, opacity: 0.4 }}><GraduationCap size={48} strokeWidth={1.5} color="var(--text-muted)" /></div>
                   <p style={{ color: "var(--text-muted)", fontSize: 15 }}>No tutors listed yet.</p>
                 </div>
               ) : (
