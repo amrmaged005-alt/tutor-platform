@@ -1,14 +1,40 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 import { ClassCreateSchema } from "@/schemas/class";
+import { isRateLimited, generalLimiter } from "@/lib/ratelimit";
 
-export async function POST(req: Request) {
+function isSameOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  const host = req.headers.get("host");
+  if (!origin || !host) return false;
   try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
+export async function POST(req: NextRequest) {
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    const contentLength = Number(req.headers.get("content-length") ?? 0);
+    if (contentLength > 32_768) {
+      return NextResponse.json({ error: "Request too large" }, { status: 413 });
+    }
+
     const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+    }
+
+    const limited = await isRateLimited(generalLimiter, `class:${session.user.id ?? session.user.email}`);
+    if (limited) {
+      return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429 });
     }
 
     const user = await prisma.user.findUnique({

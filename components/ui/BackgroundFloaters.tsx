@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 // Each floater is a blurred color orb. You can pass in custom colors,
 // or leave it blank and it'll use the default Coursaty palette.
@@ -47,6 +47,7 @@ export default function BackgroundFloaters({
   floaters,
   count = 4,
 }: BackgroundFloatersProps) {
+  const prefersReducedMotion = useReducedMotion();
   // Use custom floaters if passed, otherwise use a preset
   const activeFloaters = floaters ?? PRESETS[count] ?? PRESETS[4];
 
@@ -67,7 +68,7 @@ export default function BackgroundFloaters({
         <motion.div
           key={i}
           // Slow drift animation — moves up/down and side to side gently
-          animate={{
+          animate={prefersReducedMotion ? undefined : {
             y: [0, -24, 0, 16, 0],
             x: [0, 12, 0, -10, 0],
           }}
@@ -87,8 +88,8 @@ export default function BackgroundFloaters({
             background: f.color,
             // This is the magic — heavy blur turns a solid circle
             // into a soft atmospheric glow
-            filter: "blur(120px)",
-            opacity: 0.10,             // very subtle — 10% opacity
+            filter: "blur(72px)",
+            opacity: 0.07,
             willChange: "transform",   // tells GPU to handle this animation
           }}
         />

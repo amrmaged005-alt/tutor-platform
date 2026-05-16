@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { MapPin, Check, Star } from "lucide-react";
 
-// ─── TYPES ─────────────────────────────────────────────────────────────────────
+// Types
 export interface TutorCardData {
   id: string;
   fullName: string | null;
@@ -20,7 +21,7 @@ export interface TutorCardData {
   isVerified: boolean;
 }
 
-// ─── SUBJECT COLORS ────────────────────────────────────────────────────────────
+// Subject colors
 const SUBJECT_COLORS: Record<string, string> = {
   Math: "var(--accent)", Mathematics: "var(--accent)",
   Physics: "var(--accent)", Chemistry: "var(--success)",
@@ -35,7 +36,7 @@ function subjectColor(s: string) {
   return SUBJECT_COLORS[s] ?? "var(--accent)";
 }
 
-// ─── AVATAR ────────────────────────────────────────────────────────────────────
+// Avatar
 function Avatar({ name, photoUrl, size = 64 }: { name: string; photoUrl: string | null; size?: number }) {
   const initial = (name[0] || "T").toUpperCase();
   const colors = ["var(--accent-bg-soft)", "var(--accent-bg-soft)", "var(--accent-bg)", "var(--warning-bg)", "var(--accent-bg-soft)"];
@@ -81,17 +82,25 @@ function Avatar({ name, photoUrl, size = 64 }: { name: string; photoUrl: string 
   );
 }
 
-// ─── STAR RATING ───────────────────────────────────────────────────────────────
+// Star rating
 function Stars({ rating }: { rating: number }) {
   const full = Math.round(rating);
   return (
-    <span style={{ color: "var(--rating)", fontSize: 13, letterSpacing: 1 }}>
-      {"★".repeat(full)}{"☆".repeat(5 - full)}
+    <span style={{ display: "inline-flex", gap: 1 }}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <Star
+          key={i}
+          size={12}
+          strokeWidth={i < full ? 0 : 1.5}
+          fill={i < full ? "var(--rating)" : "none"}
+          color={i < full ? "var(--rating)" : "var(--text-dim)"}
+        />
+      ))}
     </span>
   );
 }
 
-// ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
+// Main component
 export default function TutorCard({
   tutor,
   index = 0,
@@ -158,14 +167,11 @@ export default function TutorCard({
             </div>
 
             <div style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 5, display: "flex", alignItems: "center", gap: 4 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
+              <MapPin size={12} strokeWidth={2} />
               <span>{tutor.city ?? "Egypt"}</span>
               {tutor.center && (
                 <>
-                  <span style={{ color: "var(--border)" }}>·</span>
+                  <span style={{ color: "var(--border)" }}>-</span>
                   <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>{tutor.center.name}</span>
                 </>
               )}
@@ -187,9 +193,7 @@ export default function TutorCard({
                   letterSpacing: 0.2,
                 }}
               >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+                <Check size={10} strokeWidth={3} />
                 Verified
               </div>
             )}
@@ -286,7 +290,7 @@ export default function TutorCard({
         </div>
       </div>
 
-      {/* CTA buttons */}
+      {/* CTA */}
       <div style={{ padding: "12px 20px 18px", display: "flex", gap: 8 }}>
         <Link
           href={`/tutors/${tutor.id}`}
@@ -317,35 +321,46 @@ export default function TutorCard({
         >
           View Profile
         </Link>
-        <Link
-          href={`/tutors/${tutor.id}`}
-          style={{
+        {tutor.classCount > 0 ? (
+          <Link
+            href={`/classes?tutor=${tutor.id}`}
+            style={{
+              flex: 1,
+              display: "block",
+              textAlign: "center",
+              backgroundColor: "var(--accent)",
+              color: "var(--accent-fg)",
+              border: "none",
+              borderRadius: 8,
+              padding: "9px 12px",
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: "none",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent-hover)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent)"; }}
+          >
+            Browse Classes
+          </Link>
+        ) : (
+          <div style={{
             flex: 1,
-            display: "block",
-            textAlign: "center",
-            backgroundColor: tutor.classCount > 0 ? "var(--accent)" : "var(--bg-subtle)",
-            color: tutor.classCount > 0 ? "var(--bg-card)" : "var(--text-muted)",
-            border: "none",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            backgroundColor: "var(--bg-subtle)",
+            color: "var(--text-muted)",
+            border: "1px solid var(--border-light)",
             borderRadius: 8,
             padding: "9px 12px",
-            fontSize: 13,
-            fontWeight: 600,
-            textDecoration: "none",
-            pointerEvents: tutor.classCount > 0 ? "auto" : "none",
-            transition: "background 0.15s",
-          }}
-          onMouseEnter={(e) => {
-            if (tutor.classCount > 0)
-              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent-hover)";
-          }}
-          onMouseLeave={(e) => {
-            if (tutor.classCount > 0)
-              (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent)";
-          }}
-        >
-          {tutor.classCount > 0 ? "Book a Class" : "No Classes Yet"}
-        </Link>
+            fontSize: 12,
+            fontWeight: 500,
+          }}>
+            No Classes Yet
+          </div>
+        )}
       </div>
     </motion.div>
   );
 }
+
+

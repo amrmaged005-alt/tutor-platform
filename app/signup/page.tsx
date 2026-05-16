@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AlertCircle, ShieldCheck } from "lucide-react";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -102,7 +103,7 @@ export default function SignupPage() {
             Coursaty
           </Link>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem", fontSize: 14 }}>
-            Join Egypt&apos;s tutoring marketplace — free forever
+            Join Egypt&apos;s tutoring marketplace - free forever
           </p>
         </div>
 
@@ -180,7 +181,7 @@ export default function SignupPage() {
                 htmlFor="role"
                 style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
               >
-                I am a…
+                I am a...
               </label>
               <select
                 id="role"
@@ -213,11 +214,7 @@ export default function SignupPage() {
                   gap: 8,
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
+                <AlertCircle size={14} strokeWidth={2} aria-hidden />
                 {error}
               </div>
             )}
@@ -238,7 +235,7 @@ export default function SignupPage() {
                 transition: "background 0.15s",
               }}
             >
-              {loading ? "Creating account…" : "Create Free Account"}
+              {loading ? "Creating account..." : "Create Free Account"}
             </button>
           </form>
 
@@ -256,9 +253,7 @@ export default function SignupPage() {
         <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
           {["Free to join", "No credit card", "Instant access"].map((badge) => (
             <span key={badge} style={{ color: "var(--text-muted)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              <ShieldCheck size={12} strokeWidth={2.4} color="var(--accent)" aria-hidden />
               {badge}
             </span>
           ))}

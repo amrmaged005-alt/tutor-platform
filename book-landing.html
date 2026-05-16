@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Story — A Book Landing Page</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════════════════
+       CSS CUSTOM PROPERTIES
+    ═══════════════════════════════════════════════════════════════════════ */
+    :root {
+      --bg:             #1A1008;
+      --parchment:      #FDF6E3;
+      --parchment-alt:  #F5EDD0;
+      --parchment-edge: #EAD9A8;
+      --text:           #2C1810;
+      --text-muted:     #6B4F3A;
+      --spine:          #7B2D42;
+      --spine-light:    #9B3D52;
+      --spine-dark:     #4A1828;
+      --cta:            #F59E0B;
+      --cta-hover:      #D97706;
+
+      --book-w:         900px;
+      --book-h:         580px;
+      --page-w:         calc(var(--book-w) / 2);
+
+      --flip-dur:       680ms;
+      --open-dur:       1300ms;
+      --open-ease:      cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { background: var(--bg); }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;   /* scroll is handled via JS wheel/touch */
+    }
+
+    /* ─── Radial vignette ─────────────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(0,0,0,0.72) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       SCENE & BOOK
+    ═══════════════════════════════════════════════════════════════════════ */
+    #scene {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 2200px;
+      perspective-origin: 50% 46%;
+      z-index: 1;
+    }
+
+    #book {
+      position: relative;
+      width: var(--book-w);
+      height: var(--book-h);
+      transform-style: preserve-3d;
+    }
+
+    /* Book ground shadow */
+    #book::after {
+      content: '';
+      position: absolute;
+      bottom: -28px;
+      left: 8%;
+      width: 84%;
+      height: 28px;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.65) 0%, transparent 72%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* ─── Page stack edge (visible right-side stacking) ──────────────────── */
+    #page-stack {
+      position: absolute;
+      right: -2px;
+      top: 5px;
+      bottom: 5px;
+      width: 8px;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--parchment-edge) 0px, var(--parchment-edge) 2px,
+        #D9C890 2px, #D9C890 3.5px
+      );
+      border-radius: 0 3px 3px 0;
+      z-index: 0;
+      box-shadow: 2px 0 6px rgba(0,0,0,0.3);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       COVERS
+    ═══════════════════════════════════════════════════════════════════════ */
+    .book-cover {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      transform-style: preserve-3d;
+      z-index: 100;
+    }
+
+    .book-cover-left {
+      left: 0;
+      transform-origin: right center;
+      background: linear-gradient(150deg, #943852 0%, #6A2236 40%, #3D1220 100%);
+      border-radius: 7px 0 0 7px;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.5), inset -4px 0 12px rgba(0,0,0,0.3);
+    }
+
+    .book-cover-right {
+      left: 50%;
+      transform-origin: left center;
+      background: linear-gradient(30deg, #943852 0%, #6A2236 40%, #3D1220 100%);
+      border-radius: 0 7px 7px 0;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.5), inset 4px 0 12px rgba(0,0,0,0.3);
+    }
+
+    /* Cloth texture on covers via SVG noise */
+    .book-cover::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* Gold ornamental border inset */
+    .cover-inset {
+      position: absolute;
+      inset: 14px;
+      border: 1px solid rgba(245,158,11,0.22);
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    .cover-inset::after {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(245,158,11,0.1);
+      border-radius: 2px;
+    }
+
+    /* Cover text content */
+    .cover-body {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 2rem;
+      color: rgba(253,246,227,0.92);
+    }
+
+    .cover-eyebrow {
+      font-family: 'Lora', serif;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .cover-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem;
+      font-weight: 900;
+      line-height: 1.05;
+      text-align: center;
+      letter-spacing: -0.01em;
+    }
+
+    .cover-subtitle {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.82rem;
+      opacity: 0.65;
+      text-align: center;
+      max-width: 160px;
+    }
+
+    .cover-ornament {
+      font-size: 1.4rem;
+      opacity: 0.45;
+      margin: 4px 0;
+    }
+
+    /* ─── Book spine ──────────────────────────────────────────────────────── */
+    #spine {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 16px;
+      height: 100%;
+      transform: translateX(-50%);
+      background: linear-gradient(to right, var(--spine-dark) 0%, var(--spine) 35%, var(--spine-light) 50%, var(--spine) 65%, var(--spine-dark) 100%);
+      z-index: 200;
+      box-shadow: 0 0 14px rgba(0,0,0,0.55);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       SPREADS (page pairs)
+    ═══════════════════════════════════════════════════════════════════════ */
+    .spread {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      z-index: 10;
+      transition: z-index 0s;
+    }
+
+    /* Stacking order — current spread always has highest z-index */
+    .spread[data-z="6"] { z-index: 60; }
+    .spread[data-z="5"] { z-index: 50; }
+    .spread[data-z="4"] { z-index: 40; }
+    .spread[data-z="3"] { z-index: 30; }
+    .spread[data-z="2"] { z-index: 20; }
+    .spread[data-z="1"] { z-index: 10; }
+    .spread[data-z="0"] { z-index: 5; }
+
+    .page {
+      width: 50%;
+      height: 100%;
+      background: var(--parchment);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-left {
+      border-radius: 7px 0 0 7px;
+      border-right: 1px solid rgba(150,100,50,0.18);
+      box-shadow:
+        inset -10px 0 24px rgba(180,130,60,0.12),
+        inset 5px 0 14px rgba(0,0,0,0.04);
+    }
+
+    .page-right {
+      border-radius: 0 7px 7px 0;
+      box-shadow:
+        inset 10px 0 24px rgba(180,130,60,0.12),
+        inset -5px 0 14px rgba(0,0,0,0.04);
+    }
+
+    /* Yellowed right edge gradient */
+    .page-right::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 20px; height: 100%;
+      background: linear-gradient(to right, transparent, rgba(200,160,60,0.12));
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Page curl bottom-right */
+    .page-right::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 32px; height: 32px;
+      background: linear-gradient(225deg, #c8b87a 40%, var(--parchment) 60%);
+      clip-path: polygon(100% 0, 100% 100%, 0 100%);
+      box-shadow: -3px -3px 7px rgba(0,0,0,0.14);
+      z-index: 2;
+    }
+
+    /* Subtle paper noise texture */
+    .page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Page content wrapper ────────────────────────────────────────────── */
+    .page-inner {
+      position: relative;
+      z-index: 1;
+      padding: 38px 44px 32px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chapter-label {
+      font-size: 9.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--spine);
+      font-family: 'Lora', serif;
+      margin-bottom: 10px;
+      opacity: 0.85;
+    }
+
+    .page-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    .page-heading.large {
+      font-size: 2.1rem;
+      font-weight: 900;
+    }
+
+    .divider {
+      width: 44px;
+      height: 2px;
+      background: linear-gradient(to right, var(--spine), transparent);
+      margin: 10px 0 14px;
+    }
+
+    .page-body {
+      font-size: 0.855rem;
+      line-height: 1.9;
+      color: #3D2010;
+      flex: 1;
+    }
+
+    .page-number {
+      position: absolute;
+      bottom: 16px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      font-family: 'Lora', serif;
+      font-style: italic;
+      opacity: 0.65;
+    }
+    .page-left .page-number  { left: 28px; }
+    .page-right .page-number { right: 28px; }
+
+    /* Drop cap */
+    .drop-cap::first-letter {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.4em;
+      font-weight: 900;
+      color: var(--spine);
+      float: left;
+      line-height: 0.78;
+      margin: 4px 8px 0 0;
+      padding: 0;
+    }
+
+    /* ─── CTA button ─────────────────────────────────────────────────────── */
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--cta);
+      color: #1A0D04;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 11px 24px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
+      letter-spacing: 0.02em;
+      margin-top: 18px;
+      box-shadow: 0 3px 10px rgba(245,158,11,0.35);
+    }
+    .cta-btn:hover { background: var(--cta-hover); transform: translateY(-1px); box-shadow: 0 5px 14px rgba(245,158,11,0.4); }
+    .cta-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+
+    /* ─── Step list ──────────────────────────────────────────────────────── */
+    .steps { display: flex; flex-direction: column; gap: 18px; margin-top: 8px; }
+
+    .step { display: flex; gap: 14px; align-items: flex-start; }
+
+    .step-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--spine);
+      color: var(--parchment);
+      font-family: 'Playfair Display', serif;
+      font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+
+    .step h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.88rem; font-weight: 700;
+      color: var(--text); margin-bottom: 3px;
+    }
+
+    .step p { font-size: 0.77rem; line-height: 1.7; color: var(--text-muted); }
+
+    /* ─── Feature grid ───────────────────────────────────────────────────── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .feature-item {
+      background: rgba(123,45,66,0.055);
+      border: 1px solid rgba(123,45,66,0.13);
+      border-radius: 7px;
+      padding: 12px 14px;
+    }
+
+    .feature-item h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.82rem; font-weight: 700;
+      color: var(--spine); margin-bottom: 4px;
+    }
+
+    .feature-item p { font-size: 0.73rem; line-height: 1.68; color: var(--text-muted); }
+
+    /* ─── Testimonials ───────────────────────────────────────────────────── */
+    .testimonial {
+      border-left: 2.5px solid var(--spine);
+      background: rgba(123,45,66,0.045);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .testimonial blockquote {
+      font-style: italic;
+      font-size: 0.79rem; line-height: 1.78;
+      color: var(--text); margin-bottom: 8px;
+    }
+
+    .t-author { display: flex; align-items: center; gap: 9px; }
+
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--spine);
+      color: var(--parchment);
+      font-size: 11px; font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .author-name { font-size: 0.74rem; font-weight: 600; color: var(--text); }
+    .author-role { font-size: 0.68rem; color: var(--text-muted); font-style: italic; }
+    .stars { color: var(--cta); font-size: 11px; letter-spacing: 1.5px; }
+
+    /* ─── Email form ─────────────────────────────────────────────────────── */
+    .email-form { display: flex; gap: 8px; margin-top: 14px; }
+
+    .email-input {
+      flex: 1;
+      background: rgba(44,24,16,0.07);
+      border: 1px solid rgba(44,24,16,0.18);
+      border-radius: 5px;
+      padding: 9px 13px;
+      font-size: 0.78rem;
+      font-family: 'Lora', serif;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .email-input:focus { border-color: var(--spine); }
+    .email-input::placeholder { color: var(--text-muted); }
+
+    /* ─── Social links ───────────────────────────────────────────────────── */
+    .social-links { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+
+    .social-link {
+      color: var(--spine);
+      font-size: 11px; letter-spacing: 0.06em;
+      text-decoration: none;
+      font-family: 'Lora', serif;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+      text-transform: uppercase;
+    }
+    .social-link:hover { opacity: 1; }
+    .social-link:focus-visible { outline: 2px solid var(--spine); outline-offset: 2px; border-radius: 2px; }
+
+    /* ─── Illustration panel ─────────────────────────────────────────────── */
+    .illustration-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .illus-circle {
+      width: 110px; height: 110px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(123,45,66,0.12), rgba(123,45,66,0.04));
+      border: 1.5px solid rgba(123,45,66,0.18);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .illus-icon { font-size: 2.8rem; line-height: 1; }
+
+    .illus-label {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-align: center;
+      max-width: 160px;
+      line-height: 1.6;
+    }
+
+    /* Pull quote style */
+    .pull-quote {
+      border-top: 2px solid var(--spine);
+      border-bottom: 2px solid var(--spine);
+      padding: 14px 0;
+      margin: 16px 0;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      line-height: 1.5;
+      color: var(--spine);
+      text-align: center;
+    }
+
+    /* Ornament */
+    .ornament {
+      text-align: center;
+      color: var(--spine);
+      opacity: 0.45;
+      font-size: 1.1rem;
+      margin: 6px 0;
+    }
+
+    /* ─── Tag chips ──────────────────────────────────────────────────────── */
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .tag {
+      background: rgba(123,45,66,0.08);
+      border: 1px solid rgba(123,45,66,0.16);
+      color: var(--spine);
+      border-radius: 99px;
+      padding: 3px 11px;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       PAGE FLIP MECHANISM
+    ═══════════════════════════════════════════════════════════════════════ */
+    #flip-layer {
+      position: absolute;
+      top: 0; left: 50%;
+      width: 50%; height: 100%;
+      transform-style: preserve-3d;
+      transform-origin: left center;
+      z-index: 150;
+      pointer-events: none;
+      /* drop shadow changes during flip via JS class */
+    }
+
+    #flip-front, #flip-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      overflow: hidden;
+    }
+
+    #flip-front {
+      background: var(--parchment);
+      border-radius: 0 7px 7px 0;
+      box-shadow: inset 10px 0 24px rgba(180,130,60,0.12), inset -5px 0 14px rgba(0,0,0,0.04);
+      transform: rotateY(0deg);
+    }
+
+    #flip-back {
+      background: var(--parchment-alt);
+      border-radius: 7px 0 0 7px;
+      box-shadow: inset -10px 0 24px rgba(180,130,60,0.12), inset 5px 0 14px rgba(0,0,0,0.04);
+      transform: rotateY(180deg);
+    }
+
+    /* Paper noise on flip layers */
+    #flip-front::before, #flip-back::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Page curl on flip-front */
+    #flip-front::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 32px; height: 32px;
+      background: linear-gradient(225deg, #c8b87a 40%, var(--parchment) 60%);
+      clip-path: polygon(100% 0, 100% 100%, 0 100%);
+      box-shadow: -3px -3px 7px rgba(0,0,0,0.14);
+      z-index: 2;
+    }
+
+    /* Flip content wrappers */
+    #flip-front-inner, #flip-back-inner {
+      position: relative;
+      z-index: 1;
+      padding: 38px 44px 32px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── Flip animation states ──────────────────────────────────────────── */
+    #flip-layer.state-closed {
+      transform: rotateY(0deg);
+      filter: drop-shadow(4px 0 10px rgba(0,0,0,0.28));
+    }
+
+    #flip-layer.state-mid {
+      transform: rotateY(-90deg);
+      filter: drop-shadow(0 0 22px rgba(0,0,0,0.55));
+      transition: transform calc(var(--flip-dur) / 2) ease-in, filter calc(var(--flip-dur) / 2) ease-in;
+    }
+
+    #flip-layer.state-open {
+      transform: rotateY(-180deg);
+      filter: drop-shadow(-4px 0 10px rgba(0,0,0,0.2));
+      transition: transform calc(var(--flip-dur) / 2) ease-out, filter calc(var(--flip-dur) / 2) ease-out;
+    }
+
+    /* Smooth initial transition */
+    #flip-layer.transitioning {
+      transition: transform var(--flip-dur) ease-in-out, filter var(--flip-dur) ease-in-out;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       BOOK OPEN ANIMATION
+    ═══════════════════════════════════════════════════════════════════════ */
+    .book-cover-left.is-open {
+      animation: openLeft var(--open-dur) var(--open-ease) forwards;
+    }
+
+    .book-cover-right.is-open {
+      animation: openRight var(--open-dur) var(--open-ease) forwards;
+    }
+
+    @keyframes openLeft {
+      0%   { transform: rotateY(0deg);    box-shadow: -4px 0 20px rgba(0,0,0,0.55); }
+      60%  { transform: rotateY(-185deg); }
+      80%  { transform: rotateY(-168deg); }
+      100% { transform: rotateY(-172deg); box-shadow: 2px 0 12px rgba(0,0,0,0.25); }
+    }
+
+    @keyframes openRight {
+      0%   { transform: rotateY(0deg);   box-shadow: 4px 0 20px rgba(0,0,0,0.55); }
+      60%  { transform: rotateY(185deg); }
+      80%  { transform: rotateY(168deg); }
+      100% { transform: rotateY(172deg); box-shadow: -2px 0 12px rgba(0,0,0,0.25); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       PROGRESS RIBBON
+    ═══════════════════════════════════════════════════════════════════════ */
+    #ribbon {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 7px;
+      height: 100vh;
+      background: rgba(255,255,255,0.06);
+      z-index: 1000;
+      border-radius: 3px 0 0 3px;
+    }
+
+    #ribbon-fill {
+      width: 100%;
+      background: linear-gradient(to bottom, var(--spine), var(--cta));
+      border-radius: 3px 0 0 3px;
+      transition: height 0.4s ease;
+    }
+
+    #ribbon-marker {
+      position: absolute;
+      right: 0;
+      width: 14px;
+      height: 20px;
+      background: var(--cta);
+      clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%);
+      transform: translateX(3.5px);
+      transition: top 0.4s ease;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       CONTROLS
+    ═══════════════════════════════════════════════════════════════════════ */
+    #controls {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .ctrl-btn {
+      background: rgba(253,246,227,0.1);
+      border: 1px solid rgba(253,246,227,0.22);
+      color: var(--parchment);
+      font-family: 'Lora', serif;
+      font-size: 13px;
+      padding: 9px 22px;
+      border-radius: 99px;
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, opacity 0.18s;
+      backdrop-filter: blur(8px);
+      letter-spacing: 0.02em;
+    }
+
+    .ctrl-btn:hover:not(:disabled) {
+      background: rgba(253,246,227,0.2);
+      border-color: rgba(253,246,227,0.4);
+    }
+
+    .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .ctrl-btn:focus-visible { outline: 2px solid var(--cta); outline-offset: 3px; }
+
+    #page-indicator {
+      color: rgba(253,246,227,0.45);
+      font-family: 'Lora', serif;
+      font-size: 12px;
+      font-style: italic;
+      min-width: 70px;
+      text-align: center;
+      user-select: none;
+    }
+
+    /* ─── Sound toggle ───────────────────────────────────────────────────── */
+    #sound-btn {
+      position: fixed;
+      top: 18px;
+      right: 26px;
+      z-index: 1000;
+      background: rgba(253,246,227,0.08);
+      border: 1px solid rgba(253,246,227,0.18);
+      color: rgba(253,246,227,0.7);
+      padding: 7px 14px;
+      border-radius: 99px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Lora', serif;
+      transition: background 0.18s, color 0.18s;
+      backdrop-filter: blur(8px);
+      letter-spacing: 0.04em;
+    }
+    #sound-btn:hover { background: rgba(253,246,227,0.16); color: var(--parchment); }
+    #sound-btn:focus-visible { outline: 2px solid var(--cta); outline-offset: 3px; }
+
+    /* ─── Keyboard nav hint ──────────────────────────────────────────────── */
+    #key-hint {
+      position: fixed;
+      bottom: 28px;
+      right: 32px;
+      color: rgba(253,246,227,0.25);
+      font-family: 'Lora', serif;
+      font-size: 11px;
+      font-style: italic;
+      z-index: 1000;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       REDUCED MOTION
+    ═══════════════════════════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      .book-cover-left.is-open  { animation: none; transform: rotateY(-172deg); }
+      .book-cover-right.is-open { animation: none; transform: rotateY(172deg); }
+      #flip-layer.state-mid, #flip-layer.state-open, #flip-layer.transitioning {
+        transition: none;
+      }
+      .ctrl-btn, .cta-btn { transition: none; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       MOBILE FALLBACK
+    ═══════════════════════════════════════════════════════════════════════ */
+    @media (max-width: 860px) {
+      #scene, #controls, #ribbon, #sound-btn, #key-hint { display: none !important; }
+      #mobile-view { display: block; }
+      body { overflow: auto; }
+    }
+
+    #mobile-view {
+      display: none;
+      padding: 2rem 1.25rem 4rem;
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    .m-cover {
+      background: linear-gradient(150deg, #943852 0%, #4A1828 100%);
+      border-radius: 14px;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+    }
+
+    .m-cover h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--parchment);
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+    }
+
+    .m-cover p { color: rgba(253,246,227,0.7); font-style: italic; font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+    .m-page {
+      background: var(--parchment);
+      border-radius: 12px;
+      padding: 2rem 1.75rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .m-page::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 5px; height: 100%;
+      background: var(--spine);
+      border-radius: 12px 0 0 12px;
+    }
+
+    .m-page .chapter-label { padding-left: 0; }
+    .m-page .page-heading   { font-size: 1.55rem; }
+    .m-page .page-body      { font-size: 0.875rem; }
+  </style>
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       DESKTOP: FIXED 3D BOOK SCENE
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="scene" aria-label="Interactive book" role="region">
+    <div id="book" aria-live="polite">
+
+      <!-- Page stack edge decoration -->
+      <div id="page-stack" aria-hidden="true"></div>
+
+      <!-- ── Spread 0: COVER ──────────────────────────────────────────────── -->
+      <div class="spread" id="spread-0" data-z="6" role="article" aria-label="Cover spread">
+        <div class="page page-left" aria-label="Left cover page">
+          <div class="page-inner">
+            <div class="chapter-label">Est. MMXXIV</div>
+            <div class="ornament">✦ ✦ ✦</div>
+            <div class="pull-quote">
+              "Every great story begins with a single, courageous step."
+            </div>
+            <div class="illustration-panel" style="margin-top: 8px;">
+              <div class="illus-circle">
+                <span class="illus-icon" aria-hidden="true">📖</span>
+              </div>
+              <p class="illus-label">A narrative of transformation and discovery</p>
+            </div>
+            <div class="ornament">— ❧ —</div>
+            <span class="page-number">i</span>
+          </div>
+        </div>
+        <div class="page page-right" aria-label="Right cover page">
+          <div class="page-inner">
+            <div class="chapter-label">Welcome</div>
+            <h1 class="page-heading large">The Story<br/>You've Been<br/>Waiting For</h1>
+            <div class="divider"></div>
+            <p class="page-body">
+              Imagine a world where every challenge you face has already been solved.
+              Where the path forward is clear, the tools are proven, and the community
+              around you lifts you higher.
+            </p>
+            <p class="page-body" style="margin-top:10px;">
+              This is that story. And you're the protagonist.
+            </p>
+            <a href="#" class="cta-btn" aria-label="Begin reading — turn the first page">
+              Begin Reading →
+            </a>
+            <div class="tags" style="margin-top:16px;">
+              <span class="tag">Growth</span>
+              <span class="tag">Strategy</span>
+              <span class="tag">Community</span>
+            </div>
+            <span class="page-number">ii</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Spread 1: CHAPTER 1 — Problem ────────────────────────────────── -->
+      <div class="spread" id="spread-1" data-z="5" role="article" aria-label="Chapter 1: The Problem">
+        <div class="page page-left">
+          <div class="page-inner">
+            <div class="chapter-label">Chapter I</div>
+            <h2 class="page-heading">The Noise<br/>Never Stops</h2>
+            <div class="divider"></div>
+            <p class="page-body drop-cap">
+              Every morning you open your inbox and the chaos begins again.
+              Dozens of tools, conflicting advice, and a to-do list that grows
+              faster than you can check things off.
+            </p>
+            <p class="page-body" style="margin-top:12px;">
+              You've tried the courses, the frameworks, the productivity hacks.
+              And yet — the needle barely moves. Sound familiar?
+            </p>
+            <p class="page-body" style="margin-top:12px;">
+              The problem isn't effort. It's direction. You're working hard,
+              but without a map, every step forward risks being the wrong one.
+            </p>
+            <span class="page-number">1</span>
+          </div>
+        </div>
+        <div class="page page-right">
+          <div class="page-inner">
+            <div class="chapter-label">The Pain</div>
+            <div class="illustration-panel" style="height:55%;">
+              <div class="illus-circle" style="width:120px;height:120px;">
+                <span class="illus-icon" aria-hidden="true">🌀</span>
+              </div>
+              <p class="illus-label">Lost in a cycle of busyness without progress</p>
+            </div>
+            <div class="feature-grid" style="margin-top:0;">
+              <div class="feature-item">
+                <h4>⏰ Time Drain</h4>
+                <p>Hours spent on low-leverage tasks that never compound.</p>
+              </div>
+              <div class="feature-item">
+                <h4>🗺 No Clear Map</h4>
+                <p>Advice is everywhere, but a coherent path is nowhere.</p>
+              </div>
+              <div class="feature-item">
+                <h4>😔 Isolation</h4>
+                <p>Building alone means slow feedback and slower progress.</p>
+              </div>
+              <div class="feature-item">
+                <h4>📉 Plateau</h4>
+                <p>Growth stalls just when momentum should be building.</p>
+              </div>
+            </div>
+            <span class="page-number">2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Spread 2: CHAPTER 2 — Journey / How It Works ─────────────────── -->
+      <div class="spread" id="spread-2" data-z="4" role="article" aria-label="Chapter 2: The Journey">
+        <div class="page page-left">
+          <div class="page-inner">
+            <div class="chapter-label">Chapter II</div>
+            <h2 class="page-heading">A New<br/>Chapter Begins</h2>
+            <div class="divider"></div>
+            <p class="page-body drop-cap">
+              The turning point isn't a single dramatic revelation. It's a series
+              of small, deliberate choices — each one building on the last.
+            </p>
+            <p class="page-body" style="margin-top:12px;">
+              We've distilled the journey of hundreds of successful practitioners
+              into a clear, repeatable arc. Not theory — lived experience.
+            </p>
+            <div class="pull-quote" style="margin-top:14px;font-size:0.9rem;">
+              "Clarity is the first act of courage."
+            </div>
+            <span class="page-number">3</span>
+          </div>
+        </div>
+        <div class="page page-right">
+          <div class="page-inner">
+            <div class="chapter-label">How It Works</div>
+            <h3 class="page-heading" style="font-size:1.4rem;">Three Acts</h3>
+            <div class="divider"></div>
+            <div class="steps">
+              <div class="step">
+                <div class="step-num" aria-hidden="true">1</div>
+                <div>
+                  <h4>Diagnose Your Situation</h4>
+                  <p>A guided assessment reveals exactly where you are, what's working, and what's holding you back — in under 15 minutes.</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num" aria-hidden="true">2</div>
+                <div>
+                  <h4>Follow Your Custom Arc</h4>
+                  <p>Based on your diagnosis, a curated path of resources, exercises, and community checkpoints guides your next 90 days.</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num" aria-hidden="true">3</div>
+                <div>
+                  <h4>Compound Your Progress</h4>
+                  <p>Weekly reviews and peer accountability sessions transform individual wins into lasting, exponential momentum.</p>
+                </div>
+              </div>
+            </div>
+            <span class="page-number">4</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Spread 3: CHAPTER 3 — Features ───────────────────────────────── -->
+      <div class="spread" id="spread-3" data-z="3" role="article" aria-label="Chapter 3: Features and Benefits">
+        <div class="page page-left">
+          <div class="page-inner">
+            <div class="chapter-label">Chapter III</div>
+            <h2 class="page-heading">What You<br/>Gain</h2>
+            <div class="divider"></div>
+            <p class="page-body">
+              Everything here is designed to compound. Each feature reinforces
+              the others, creating a system greater than the sum of its parts.
+            </p>
+            <div class="feature-grid" style="margin-top:16px;">
+              <div class="feature-item">
+                <h4>🧭 Clarity Engine</h4>
+                <p>Proprietary assessment maps your exact position on the journey.</p>
+              </div>
+              <div class="feature-item">
+                <h4>📚 Deep Library</h4>
+                <p>600+ distilled frameworks from the world's top practitioners.</p>
+              </div>
+              <div class="feature-item">
+                <h4>🤝 Peer Circles</h4>
+                <p>Curated accountability groups matched by stage and goals.</p>
+              </div>
+              <div class="feature-item">
+                <h4>🎯 Weekly Sprints</h4>
+                <p>Structured 7-day challenges that build real-world skills fast.</p>
+              </div>
+            </div>
+            <span class="page-number">5</span>
+          </div>
+        </div>
+        <div class="page page-right">
+          <div class="page-inner">
+            <div class="chapter-label">More Benefits</div>
+            <div class="feature-grid" style="margin-top:4px;">
+              <div class="feature-item">
+                <h4>⚡ Live Sessions</h4>
+                <p>Bi-weekly expert sessions you can actually ask questions in.</p>
+              </div>
+              <div class="feature-item">
+                <h4>🔍 Deep Dives</h4>
+                <p>Monthly case study breakdowns of real projects and results.</p>
+              </div>
+              <div class="feature-item">
+                <h4>📊 Progress Map</h4>
+                <p>Visual dashboard tracks your arc across every dimension.</p>
+              </div>
+              <div class="feature-item">
+                <h4>🏆 Milestones</h4>
+                <p>Recognition system that celebrates and amplifies your wins.</p>
+              </div>
+            </div>
+            <div class="pull-quote" style="margin-top:14px;font-size:0.82rem;padding:10px 0;">
+              Join 4,200+ members already writing their next chapter.
+            </div>
+            <span class="page-number">6</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Spread 4: CHAPTER 4 — Testimonials ───────────────────────────── -->
+      <div class="spread" id="spread-4" data-z="2" role="article" aria-label="Chapter 4: Testimonials">
+        <div class="page page-left">
+          <div class="page-inner">
+            <div class="chapter-label">Chapter IV</div>
+            <h2 class="page-heading">Voices From<br/>the Journey</h2>
+            <div class="divider"></div>
+            <div class="testimonial" role="blockquote">
+              <blockquote>"Within 60 days I had more clarity about my direction than in the previous 3 years. The peer circle alone was worth the entire investment."</blockquote>
+              <div class="t-author">
+                <div class="avatar" aria-hidden="true">S</div>
+                <div>
+                  <div class="author-name">Sara M.</div>
+                  <div class="author-role">Product Designer, Berlin</div>
+                </div>
+                <div class="stars" style="margin-left:auto;" aria-label="5 stars">★★★★★</div>
+              </div>
+            </div>
+            <div class="testimonial" role="blockquote">
+              <blockquote>"I've done every online course imaginable. This is the first thing that changed my actual behavior, not just my knowledge."</blockquote>
+              <div class="t-author">
+                <div class="avatar" aria-hidden="true">J</div>
+                <div>
+                  <div class="author-name">James K.</div>
+                  <div class="author-role">Founder, Lagos</div>
+                </div>
+                <div class="stars" style="margin-left:auto;" aria-label="5 stars">★★★★★</div>
+              </div>
+            </div>
+            <span class="page-number">7</span>
+          </div>
+        </div>
+        <div class="page page-right">
+          <div class="page-inner">
+            <div class="chapter-label">More Stories</div>
+            <div class="testimonial" style="margin-top:12px;" role="blockquote">
+              <blockquote>"The weekly sprints are deceptively simple — and relentlessly effective. In 12 weeks my output doubled and my stress halved."</blockquote>
+              <div class="t-author">
+                <div class="avatar" aria-hidden="true">L</div>
+                <div>
+                  <div class="author-name">Leila N.</div>
+                  <div class="author-role">Consultant, Dubai</div>
+                </div>
+                <div class="stars" style="margin-left:auto;" aria-label="5 stars">★★★★★</div>
+              </div>
+            </div>
+            <div style="margin-top:20px; text-align:center;">
+              <div style="font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:900;color:var(--spine);">4.9</div>
+              <div class="stars" style="font-size:16px;display:block;text-align:center;margin:4px 0;" aria-label="4.9 out of 5 stars">★★★★★</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);font-style:italic;">Average rating across 1,800+ reviews</div>
+            </div>
+            <div class="ornament" style="margin-top:16px;">— ❧ —</div>
+            <p style="text-align:center;font-size:0.78rem;color:var(--text-muted);font-style:italic;margin-top:6px;">"The best time to start was a year ago. The second best time is now."</p>
+            <span class="page-number">8</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Spread 5: FINAL — Big CTA ─────────────────────────────────────── -->
+      <div class="spread" id="spread-5" data-z="1" role="article" aria-label="Final page: Call to Action">
+        <div class="page page-left">
+          <div class="page-inner">
+            <div class="chapter-label">Epilogue</div>
+            <h2 class="page-heading large">Your Story<br/>Starts Here</h2>
+            <div class="divider"></div>
+            <p class="page-body">
+              You've read the chapters. You know the pattern. Now it's time to
+              write your own version — with the guidance, community, and tools
+              to make it real.
+            </p>
+            <p class="page-body" style="margin-top:10px;">
+              Join today and your first sprint begins within the hour.
+            </p>
+            <a href="#" class="cta-btn" style="font-size:1rem;padding:13px 28px;margin-top:20px;" aria-label="Join the story — get started today">
+              Join the Story →
+            </a>
+            <p style="margin-top:10px;font-size:0.72rem;color:var(--text-muted);font-style:italic;">
+              30-day full refund. No questions asked.
+            </p>
+            <span class="page-number">9</span>
+          </div>
+        </div>
+        <div class="page page-right">
+          <div class="page-inner">
+            <div class="chapter-label">Stay in Touch</div>
+            <h3 class="page-heading" style="font-size:1.35rem;">Get the<br/>Free Excerpt</h3>
+            <div class="divider"></div>
+            <p class="page-body" style="font-size:0.82rem;">
+              Subscribe for a free chapter, weekly dispatches, and early access
+              to new sessions — delivered directly to your inbox.
+            </p>
+            <form class="email-form" aria-label="Email subscription form" onsubmit="return false;">
+              <input
+                type="email"
+                class="email-input"
+                placeholder="your@email.com"
+                aria-label="Email address"
+              />
+              <button type="submit" class="cta-btn" style="margin-top:0;white-space:nowrap;font-size:0.8rem;padding:9px 16px;">
+                Subscribe
+              </button>
+            </form>
+            <div class="ornament" style="margin-top:20px;">— ❧ —</div>
+            <p style="font-size:0.76rem;color:var(--text-muted);margin-top:10px;font-style:italic;">Follow the journey:</p>
+            <nav class="social-links" aria-label="Social media links">
+              <a href="#" class="social-link" aria-label="Twitter">Twitter</a>
+              <a href="#" class="social-link" aria-label="LinkedIn">LinkedIn</a>
+              <a href="#" class="social-link" aria-label="Instagram">Instagram</a>
+              <a href="#" class="social-link" aria-label="Newsletter">Newsletter</a>
+            </nav>
+            <p style="margin-top:20px;font-size:0.7rem;color:var(--text-muted);font-style:italic;opacity:0.6;">
+              © 2024 The Story. All rights reserved.
+            </p>
+            <span class="page-number">10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Flip layer (shared, content injected by JS) ───────────────────── -->
+      <div id="flip-layer" role="presentation" aria-hidden="true">
+        <div id="flip-front">
+          <div id="flip-front-inner"></div>
+        </div>
+        <div id="flip-back">
+          <div id="flip-back-inner"></div>
+        </div>
+      </div>
+
+      <!-- ── Book spine ─────────────────────────────────────────────────────── -->
+      <div id="spine" aria-hidden="true"></div>
+
+      <!-- ── Covers (on top of everything before opening) ──────────────────── -->
+      <div class="book-cover book-cover-left" id="cover-left" aria-hidden="true">
+        <div class="cover-inset"></div>
+        <div class="cover-body">
+          <span class="cover-eyebrow">A Complete Guide</span>
+          <div class="cover-ornament">✦</div>
+          <h2 class="cover-title">The<br/>Story</h2>
+          <div class="cover-ornament">— ❧ —</div>
+          <p class="cover-subtitle">A narrative of transformation</p>
+        </div>
+      </div>
+      <div class="book-cover book-cover-right" id="cover-right" aria-hidden="true">
+        <div class="cover-inset"></div>
+        <div class="cover-body">
+          <span class="cover-eyebrow">2024 Edition</span>
+          <div class="cover-ornament">✦</div>
+          <p class="cover-subtitle" style="max-width:120px;font-size:0.75rem;">Turn the page to begin your journey</p>
+        </div>
+      </div>
+
+    </div><!-- #book -->
+  </div><!-- #scene -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       PROGRESS RIBBON
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="ribbon" aria-hidden="true" role="progressbar" aria-label="Reading progress">
+    <div id="ribbon-fill" style="height:0%"></div>
+    <div id="ribbon-marker" style="top:0px"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       PAGE CONTROLS
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <nav id="controls" aria-label="Book navigation">
+    <button class="ctrl-btn" id="btn-prev" aria-label="Previous page" disabled>← Prev</button>
+    <span id="page-indicator" aria-live="polite" aria-atomic="true">Cover</span>
+    <button class="ctrl-btn" id="btn-next" aria-label="Next page">Next →</button>
+  </nav>
+
+  <!-- Sound toggle -->
+  <button id="sound-btn" aria-pressed="false" aria-label="Toggle page-turn sound (currently muted)">
+    🔇 Sound
+  </button>
+
+  <!-- Keyboard hint -->
+  <p id="key-hint" aria-hidden="true">← → Arrow keys or scroll</p>
+
+  <!-- Page-turn audio (muted by default) -->
+  <audio id="flip-audio" preload="auto" aria-hidden="true">
+    <!-- Inline tiny WAV: a soft swoosh approximation via data URI -->
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav" />
+  </audio>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MOBILE FALLBACK
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="mobile-view" aria-label="Book content">
+
+    <div class="m-cover" role="banner">
+      <h1>The Story</h1>
+      <p>A narrative of transformation and discovery</p>
+      <a href="#" class="cta-btn">Begin Reading →</a>
+    </div>
+
+    <article class="m-page">
+      <div class="chapter-label">Chapter I</div>
+      <h2 class="page-heading">The Noise Never Stops</h2>
+      <div class="divider"></div>
+      <p class="page-body drop-cap">Every morning you open your inbox and the chaos begins again. Dozens of tools, conflicting advice, and a to-do list that grows faster than you can check things off.</p>
+      <p class="page-body" style="margin-top:10px;">The problem isn't effort — it's direction. You're working hard, but without a map, every step forward risks being the wrong one.</p>
+    </article>
+
+    <article class="m-page">
+      <div class="chapter-label">Chapter II</div>
+      <h2 class="page-heading">How It Works</h2>
+      <div class="divider"></div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div><h4>Diagnose</h4><p>A guided assessment reveals exactly where you are in under 15 minutes.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div><h4>Follow Your Arc</h4><p>A curated path of resources and community checkpoints guides your next 90 days.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div><h4>Compound Progress</h4><p>Weekly reviews transform individual wins into lasting momentum.</p></div></div>
+      </div>
+    </article>
+
+    <article class="m-page">
+      <div class="chapter-label">Chapter III — Features</div>
+      <h2 class="page-heading">What You Gain</h2>
+      <div class="divider"></div>
+      <div class="feature-grid">
+        <div class="feature-item"><h4>🧭 Clarity Engine</h4><p>Maps your exact position on the journey.</p></div>
+        <div class="feature-item"><h4>📚 Deep Library</h4><p>600+ distilled frameworks from top practitioners.</p></div>
+        <div class="feature-item"><h4>🤝 Peer Circles</h4><p>Curated accountability groups matched by stage.</p></div>
+        <div class="feature-item"><h4>🎯 Weekly Sprints</h4><p>7-day challenges that build real skills fast.</p></div>
+      </div>
+    </article>
+
+    <article class="m-page">
+      <div class="chapter-label">Chapter IV — Testimonials</div>
+      <h2 class="page-heading">Voices From the Journey</h2>
+      <div class="divider"></div>
+      <div class="testimonial"><blockquote>"Within 60 days I had more clarity than in the previous 3 years."</blockquote><div class="t-author"><div class="avatar">S</div><div><div class="author-name">Sara M.</div><div class="author-role">Product Designer, Berlin</div></div><div class="stars" style="margin-left:auto;">★★★★★</div></div></div>
+      <div class="testimonial"><blockquote>"This is the first thing that changed my actual behavior, not just my knowledge."</blockquote><div class="t-author"><div class="avatar">J</div><div><div class="author-name">James K.</div><div class="author-role">Founder, Lagos</div></div><div class="stars" style="margin-left:auto;">★★★★★</div></div></div>
+    </article>
+
+    <article class="m-page">
+      <div class="chapter-label">Epilogue</div>
+      <h2 class="page-heading">Your Story Starts Here</h2>
+      <div class="divider"></div>
+      <p class="page-body">Join today and your first sprint begins within the hour. 30-day full refund, no questions asked.</p>
+      <a href="#" class="cta-btn" style="margin-top:16px;">Join the Story →</a>
+      <form class="email-form" style="margin-top:16px;" onsubmit="return false;">
+        <input type="email" class="email-input" placeholder="your@email.com" aria-label="Email address" />
+        <button type="submit" class="cta-btn" style="margin-top:0;font-size:0.8rem;padding:9px 14px;">Subscribe</button>
+      </form>
+      <nav class="social-links" style="margin-top:16px;" aria-label="Social links">
+        <a href="#" class="social-link">Twitter</a>
+        <a href="#" class="social-link">LinkedIn</a>
+        <a href="#" class="social-link">Instagram</a>
+      </nav>
+    </article>
+
+  </div><!-- #mobile-view -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       JAVASCRIPT
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <script>
+  (function () {
+    'use strict';
+
+    /* ── State ──────────────────────────────────────────────────────────── */
+    const TOTAL_SPREADS = 6;   // 0–5
+    let currentSpread  = 0;
+    let isFlipping     = false;
+    let soundEnabled   = false;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ── DOM refs ───────────────────────────────────────────────────────── */
+    const coverLeft    = document.getElementById('cover-left');
+    const coverRight   = document.getElementById('cover-right');
+    const flipLayer    = document.getElementById('flip-layer');
+    const flipFrontIn  = document.getElementById('flip-front-inner');
+    const flipBackIn   = document.getElementById('flip-back-inner');
+    const btnPrev      = document.getElementById('btn-prev');
+    const btnNext      = document.getElementById('btn-next');
+    const indicator    = document.getElementById('page-indicator');
+    const ribbonFill   = document.getElementById('ribbon-fill');
+    const ribbonMarker = document.getElementById('ribbon-marker');
+    const soundBtn     = document.getElementById('sound-btn');
+    const flipAudio    = document.getElementById('flip-audio');
+
+    /* ── Spread labels ──────────────────────────────────────────────────── */
+    const SPREAD_LABELS = [
+      'Cover', 'Chapter I', 'Chapter II', 'Chapter III', 'Chapter IV', 'Epilogue'
+    ];
+
+    /* ── Page right-side content per spread (for flip-front) ───────────── */
+    function getRightInner(spreadIdx) {
+      const el = document.querySelector(`#spread-${spreadIdx} .page-right .page-inner`);
+      return el ? el.innerHTML : '';
+    }
+
+    /* ── Page left-side content per spread (for flip-back) ─────────────── */
+    function getLeftInner(spreadIdx) {
+      const el = document.querySelector(`#spread-${spreadIdx} .page-left .page-inner`);
+      return el ? el.innerHTML : '';
+    }
+
+    /* ── Update ribbon progress ─────────────────────────────────────────── */
+    function updateRibbon() {
+      const pct = (currentSpread / (TOTAL_SPREADS - 1)) * 100;
+      ribbonFill.style.height = pct + '%';
+      const topPx = (pct / 100) * window.innerHeight;
+      ribbonMarker.style.top = topPx + 'px';
+    }
+
+    /* ── Update nav state ───────────────────────────────────────────────── */
+    function updateNav() {
+      btnPrev.disabled = currentSpread === 0;
+      btnNext.disabled = currentSpread === TOTAL_SPREADS - 1;
+      indicator.textContent = SPREAD_LABELS[currentSpread] || `Page ${currentSpread + 1}`;
+      updateRibbon();
+    }
+
+    /* ── Set z-index ordering ───────────────────────────────────────────── */
+    function reorderSpreads() {
+      for (let i = 0; i < TOTAL_SPREADS; i++) {
+        const el = document.getElementById(`spread-${i}`);
+        if (!el) continue;
+        // Current and previous spreads are below; future ones stack above
+        const zRank = i <= currentSpread
+          ? (i === currentSpread ? TOTAL_SPREADS : i)          // current on top, past below
+          : (TOTAL_SPREADS - i);                                // future spreads behind
+        el.setAttribute('data-z', zRank);
+      }
+    }
+
+    /* ── Play flip sound (if enabled and not reduced motion) ────────────── */
+    function playFlip() {
+      if (!soundEnabled || prefersReduced) return;
+      try {
+        flipAudio.currentTime = 0;
+        flipAudio.play().catch(() => {});
+      } catch (_) {}
+    }
+
+    /* ── Core flip function ─────────────────────────────────────────────── */
+    const FLIP_DUR = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue('--flip-dur') || '680'
+    );
+
+    function flipTo(targetSpread) {
+      if (isFlipping || targetSpread < 0 || targetSpread >= TOTAL_SPREADS) return;
+      if (targetSpread === currentSpread) return;
+
+      const forward = targetSpread > currentSpread;
+      isFlipping = true;
+      playFlip();
+
+      if (forward) {
+        /* ── Forward flip ── */
+        // Front face shows current spread's right page
+        flipFrontIn.innerHTML = getRightInner(currentSpread);
+        // Back face shows next spread's left page
+        flipBackIn.innerHTML  = getLeftInner(targetSpread);
+
+        // Reset to closed state (right page position)
+        flipLayer.className   = 'state-closed';
+
+        if (prefersReduced) {
+          // Instant transition
+          flipLayer.className = 'state-open';
+          finishFlip(targetSpread, forward);
+          return;
+        }
+
+        // Animate mid (ease-in), then open (ease-out)
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            flipLayer.className = 'state-mid';
+          });
+        });
+
+        setTimeout(() => {
+          flipLayer.className = 'state-open';
+          // Promote target spread before layer fully opens
+          currentSpread = targetSpread;
+          reorderSpreads();
+          updateNav();
+        }, FLIP_DUR / 2);
+
+        setTimeout(() => finishFlip(targetSpread, forward), FLIP_DUR + 60);
+
+      } else {
+        /* ── Backward flip ── */
+        // Start already flipped (showing back), flip back to closed
+        flipFrontIn.innerHTML = getRightInner(targetSpread);
+        flipBackIn.innerHTML  = getLeftInner(currentSpread);
+
+        // Position as if already flipped open
+        flipLayer.className = 'state-open';
+
+        if (prefersReduced) {
+          flipLayer.className = 'state-closed';
+          finishFlip(targetSpread, forward);
+          return;
+        }
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            flipLayer.className = 'state-mid';
+          });
+        });
+
+        setTimeout(() => {
+          flipLayer.className = 'state-closed';
+          currentSpread = targetSpread;
+          reorderSpreads();
+          updateNav();
+        }, FLIP_DUR / 2);
+
+        setTimeout(() => finishFlip(targetSpread, forward), FLIP_DUR + 60);
+      }
+    }
+
+    function finishFlip(target, forward) {
+      currentSpread = target;
+      reorderSpreads();
+      updateNav();
+      isFlipping = false;
+    }
+
+    /* ── Open book on load ──────────────────────────────────────────────── */
+    function openBook() {
+      if (prefersReduced) {
+        coverLeft.classList.add('is-open');
+        coverRight.classList.add('is-open');
+        return;
+      }
+      // Small delay for drama
+      setTimeout(() => {
+        coverLeft.classList.add('is-open');
+        coverRight.classList.add('is-open');
+      }, 350);
+    }
+
+    /* ── Button handlers ────────────────────────────────────────────────── */
+    btnPrev.addEventListener('click', () => flipTo(currentSpread - 1));
+    btnNext.addEventListener('click', () => flipTo(currentSpread + 1));
+
+    /* ── Keyboard navigation ────────────────────────────────────────────── */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        e.preventDefault();
+        flipTo(currentSpread + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        flipTo(currentSpread - 1);
+      }
+    });
+
+    /* ── Wheel scroll handler ───────────────────────────────────────────── */
+    let wheelAccum = 0;
+    const WHEEL_THRESHOLD = 100;
+
+    document.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      wheelAccum += e.deltaY;
+      if (Math.abs(wheelAccum) >= WHEEL_THRESHOLD) {
+        if (wheelAccum > 0) flipTo(currentSpread + 1);
+        else                flipTo(currentSpread - 1);
+        wheelAccum = 0;
+      }
+    }, { passive: false });
+
+    /* ── Touch swipe ────────────────────────────────────────────────────── */
+    let touchStartX = 0;
+
+    document.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) flipTo(currentSpread + 1);
+        else        flipTo(currentSpread - 1);
+      }
+    }, { passive: true });
+
+    /* ── Sound toggle ───────────────────────────────────────────────────── */
+    soundBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundBtn.textContent  = soundEnabled ? '🔊 Sound' : '🔇 Sound';
+      soundBtn.setAttribute('aria-pressed', soundEnabled);
+      soundBtn.setAttribute('aria-label',
+        `Toggle page-turn sound (currently ${soundEnabled ? 'on' : 'muted'})`
+      );
+    });
+
+    /* ── Init ───────────────────────────────────────────────────────────── */
+    flipLayer.className = 'state-closed';
+    reorderSpreads();
+    updateNav();
+    openBook();
+
+  }());
+  </script>
+
+</body>
+</html>

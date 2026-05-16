@@ -1,14 +1,40 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { signOut } from "next-auth/react";
 import { Sun, Moon, Menu, X, Plus } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
 import { useTheme } from "@/app/components/Theme";
 
+const subscribeClient = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
+function useHasHydrated() {
+    return useSyncExternalStore(subscribeClient, getClientSnapshot, getServerSnapshot);
+}
+
 function ThemeToggle({ compact = false }: { compact?: boolean }) {
     const { theme, toggle } = useTheme();
+    const mounted = useHasHydrated();
+
+    if (!mounted) {
+        return (
+            <div
+                aria-hidden="true"
+                style={{
+                    width: compact ? 36 : 60,
+                    height: 36,
+                    borderRadius: compact ? 8 : 999,
+                    border: "1px solid var(--border-light)",
+                    display: "inline-flex",
+                    flexShrink: 0,
+                }}
+            />
+        );
+    }
+
     const Icon = theme === "dark" ? Sun : Moon;
     return (
         <button
@@ -40,6 +66,24 @@ function ThemeToggle({ compact = false }: { compact?: boolean }) {
 
 function LangToggle({ compact = false }: { compact?: boolean }) {
     const { lang, setLang } = useI18n();
+    const mounted = useHasHydrated();
+
+    if (!mounted) {
+        return (
+            <div
+                aria-hidden="true"
+                style={{
+                    width: compact ? 54 : 62,
+                    height: 36,
+                    borderRadius: compact ? 8 : 999,
+                    border: "1px solid var(--border-light)",
+                    display: "inline-flex",
+                    flexShrink: 0,
+                }}
+            />
+        );
+    }
+
     return (
         <button
             type="button"

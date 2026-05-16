@@ -1,0 +1,381 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "Coursaty home" [ref=e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e4]: C
+      - text: Coursaty
+    - button "Open menu" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+  - dialog "Mobile navigation" [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - button "Switch to light mode" [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+        - button "Toggle language" [ref=e17] [cursor=pointer]: عربي
+      - button "Close menu" [ref=e18] [cursor=pointer]:
+        - img [ref=e19]
+    - generic [ref=e22]:
+      - link "Home" [ref=e23] [cursor=pointer]:
+        - /url: /
+      - link "Classes" [ref=e24] [cursor=pointer]:
+        - /url: /classes
+      - link "Tutors" [ref=e25] [cursor=pointer]:
+        - /url: /tutors
+      - link "Centers" [ref=e26] [cursor=pointer]:
+        - /url: /centers
+      - link "For Tutors" [ref=e27] [cursor=pointer]:
+        - /url: /signup?role=tutor
+    - generic [ref=e29]:
+      - link "Browse Classes" [ref=e30] [cursor=pointer]:
+        - /url: /classes
+      - link "Sign In" [ref=e31] [cursor=pointer]:
+        - /url: /login
+  - main [ref=e32]:
+    - generic [ref=e34]:
+      - navigation "Landing page chapters" [ref=e35]:
+        - link "Cover" [ref=e36] [cursor=pointer]:
+          - /url: "#cover"
+        - link "Contents" [ref=e37] [cursor=pointer]:
+          - /url: "#contents"
+        - link "How it works" [ref=e38] [cursor=pointer]:
+          - /url: "#find"
+        - link "Discovery" [ref=e39] [cursor=pointer]:
+          - /url: "#compare"
+        - link "Trust" [ref=e40] [cursor=pointer]:
+          - /url: "#book"
+        - link "Outcomes" [ref=e41] [cursor=pointer]:
+          - /url: "#learn"
+      - generic [ref=e43]:
+        - article [ref=e44]:
+          - generic [ref=e45]:
+            - generic [ref=e46]:
+              - generic [ref=e47]: Premium tutoring marketplace
+              - heading "Open the right path to better tutoring." [level=1] [ref=e48]
+              - paragraph [ref=e49]: Coursaty helps students and parents browse verified tutors, compare classes, and book academic support without scattered recommendations or message chaos.
+              - generic [ref=e50]:
+                - link "Browse classes" [ref=e51] [cursor=pointer]:
+                  - /url: /classes
+                  - text: Browse classes
+                  - img [ref=e52]
+                - link "Find a tutor" [ref=e54] [cursor=pointer]:
+                  - /url: /tutors
+              - generic [ref=e55]:
+                - generic [ref=e56]:
+                  - strong [ref=e57]:
+                    - generic [ref=e58]: 0+
+                  - text: verified tutors
+                - generic [ref=e59]:
+                  - strong [ref=e60]:
+                    - generic [ref=e61]: 0+
+                  - text: active classes
+                - generic [ref=e62]:
+                  - strong [ref=e63]:
+                    - generic [ref=e64]: 0+
+                  - text: seats booked
+                - generic [ref=e65]:
+                  - strong [ref=e66]: "0"
+                  - text: curricula covered
+            - generic [ref=e77]:
+              - generic [ref=e78]:
+                - generic [ref=e79]: Coursaty Field Guide
+                - heading [level=2] [ref=e80]: Find the right tutor
+              - generic [ref=e83]:
+                - generic [ref=e84]: Verified
+                - generic [ref=e85]: Comparable
+                - generic [ref=e86]: Bookable
+        - article:
+          - generic:
+            - generic:
+              - generic: Table of contents
+              - heading [level=2]: A guided journey from search to first session.
+              - paragraph: "Start with the question every family has: who can help, when are they available, and how quickly can learning begin?"
+              - generic: Follow the path from discovery to booking with the important details visible at each step.
+            - generic:
+              - generic:
+                - link:
+                  - /url: "#find"
+                  - generic: "01"
+                  - generic:
+                    - strong: Find a tutor
+                    - text: Search by subject, curriculum, location, and format.
+                - link:
+                  - /url: "#compare"
+                  - generic: "02"
+                  - generic:
+                    - strong: Compare classes
+                    - text: Review prices, schedules, seats, ratings, and profiles.
+                - link:
+                  - /url: "#book"
+                  - generic: "03"
+                  - generic:
+                    - strong: Book a session
+                    - text: Reserve a seat and keep every booking organized.
+                - link:
+                  - /url: "#learn"
+                  - generic: "04"
+                  - generic:
+                    - strong: Start learning
+                    - text: Move from scattered search to academic support faster.
+        - article:
+          - generic:
+            - generic:
+              - generic: How it works
+              - heading [level=2]: Four pages from uncertainty to a confirmed class.
+              - paragraph: "Coursaty is structured around the real workflow families already use: find credible options, compare fit, reserve the right session, and stay organized."
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - heading [level=3]: 01 - Search
+                    - paragraph: Filter by subject, grade, curriculum, location, format, and price.
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - heading [level=3]: 02 - Compare
+                    - paragraph: Read profiles, ratings, class details, and availability before committing.
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - heading [level=3]: 03 - Book
+                    - paragraph: Reserve a seat and keep the booking visible in your dashboard.
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - heading [level=3]: 04 - Learn
+                    - paragraph: Attend the class, contact the tutor, and stay organized from one place.
+        - article:
+          - generic:
+            - generic:
+              - generic: Tutor and class discovery
+              - heading [level=2]: A catalog that students can actually compare.
+              - paragraph: "Tutor profiles and class cards are treated like clean catalog entries: subject, curriculum, schedule, location, seats, price, and trust signals are all visible."
+              - generic:
+                - link:
+                  - /url: /tutors/cmp786pcc0000v2skme696wq2
+                  - generic:
+                    - generic:
+                      - generic: A
+                      - generic:
+                        - heading [level=3]: ahmed elshafei
+                        - generic:
+                          - img
+                          - generic: Cairo
+                  - paragraph: ahmed elshafei teaches core subjects with clear class options.
+                  - generic:
+                    - generic: 0 classes
+                - link:
+                  - /url: /tutors/cmm8a38f10004v21wnk5y96wp
+                  - generic:
+                    - generic:
+                      - generic: A
+                      - generic:
+                        - heading [level=3]: Ahmed Hassan
+                        - generic:
+                          - img
+                          - generic: Cairo
+                  - paragraph: Ahmed Hassan teaches core subjects with clear class options.
+                  - generic:
+                    - generic: 0 classes
+                - link:
+                  - /url: /tutors/cmm6mnt9t0000v2d4t7iaszhw
+                  - generic:
+                    - generic:
+                      - generic: A
+                      - generic:
+                        - heading [level=3]: Amr Maged
+                        - generic:
+                          - img
+                          - generic: Cairo
+                  - paragraph: Amr Maged teaches core subjects with clear class options.
+                  - generic:
+                    - generic: 1 classes
+            - generic:
+              - generic:
+                - link:
+                  - /url: /classes/cmm70h0af0001v2ascgxpy244
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: Math
+                        - generic: NATIONAL
+                      - heading [level=3]: science
+                      - generic:
+                        - img
+                        - generic: In person
+                        - img
+                        - generic: sun 2pm
+                    - generic:
+                      - strong: 600 EGP
+                      - generic: Amr Maged
+                  - paragraph: Grade 8 can compare the class, schedule, and seat availability before booking.
+                  - generic:
+                    - generic: Grade 8
+                    - generic: 65 spots left
+                - link:
+                  - /url: /classes/cmm6tl05t0001kz04xioofl05
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: Math
+                        - generic: NATIONAL
+                      - heading [level=3]: calculus
+                      - generic:
+                        - img
+                        - generic: In person
+                        - img
+                        - generic: Tuesday 3pm
+                    - generic:
+                      - strong: 500 EGP
+                      - generic: Amr Again
+                  - paragraph: Thanaweya Amma can compare the class, schedule, and seat availability before booking.
+                  - generic:
+                    - generic: Thanaweya Amma
+                    - generic: 68 spots left
+                - link:
+                  - /url: /classes/cmm6onfqx0001v2owpcdi9vav
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: Math
+                        - generic: IGCSE
+                      - heading [level=3]: Calculus 1
+                      - generic:
+                        - img
+                        - generic: In person
+                        - img
+                        - generic: Wednesday 2pm
+                    - generic:
+                      - strong: 600 EGP
+                      - generic: Amr Again
+                  - paragraph: dbsbsbksjbcbiubrb
+                  - generic:
+                    - generic: Grade 11
+                    - generic: 50 spots left
+                - link:
+                  - /url: /classes
+                  - text: Explore all classes
+                  - img
+        - article:
+          - generic:
+            - generic:
+              - generic: Trust and quality
+              - heading [level=2]: More trustworthy than a forwarded phone number.
+              - paragraph: Coursaty turns discovery into a clearer decision. Students see the essentials before booking, while tutors and centers manage demand in one place.
+              - generic: The goal is not more decoration. It is a calmer system for choosing academic support with fewer unknowns.
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - heading [level=3]: Verified tutors
+                  - paragraph: Profiles are reviewed so students and parents have a stronger starting point.
+                - generic:
+                  - generic:
+                    - img
+                  - heading [level=3]: Organized booking
+                  - paragraph: Classes, seats, payment status, and schedules live in one structured flow.
+                - generic:
+                  - generic:
+                    - img
+                  - heading [level=3]: Payment-ready
+                  - paragraph: Online and in-person options support different class formats and local needs.
+                - generic:
+                  - generic:
+                    - img
+                  - heading [level=3]: Less chat chaos
+                  - paragraph: Coursaty turns scattered WhatsApp discovery into searchable, comparable choices.
+        - article:
+          - generic:
+            - generic:
+              - generic: Student outcome
+              - heading [level=2]: Find support faster, then focus on the learning.
+              - paragraph: "The platform helps families move from uncertainty to action: fewer dead ends, better comparison, and a single record of what was booked."
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - heading [level=3]: Less time searching
+                  - paragraph: Filtering narrows the options quickly so students can spend less time asking around.
+                - generic:
+                  - generic:
+                    - img
+                  - heading [level=3]: Better class fit
+                  - paragraph: Curriculum, level, price, format, and schedule are visible before the first message.
+            - generic:
+              - generic: Final page
+              - heading [level=2]: Start with the class that fits.
+              - paragraph: Browse current classes, compare available tutors, or create an educator profile if you are ready to teach through Coursaty.
+              - generic:
+                - link:
+                  - /url: /classes
+                  - text: Browse all classes
+                  - img
+                - link:
+                  - /url: /signup?role=tutor
+                  - text: Join as a tutor
+              - generic: "Coursaty is built for Egypt's tutoring market: verified educators, organized classes, and booking flows that respect how students actually choose support."
+  - contentinfo [ref=e87]:
+    - generic [ref=e89]:
+      - generic [ref=e90]:
+        - img [ref=e92]
+        - text: Verified tutors
+      - generic [ref=e94]:
+        - img [ref=e96]
+        - text: Free for students
+      - generic [ref=e98]:
+        - img [ref=e100]
+        - text: All curricula
+      - generic [ref=e102]:
+        - img [ref=e104]
+        - text: Instant booking
+    - generic [ref=e106]:
+      - generic [ref=e107]:
+        - link "C Coursaty" [ref=e108] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e109]: C
+          - generic [ref=e110]: Coursaty
+        - paragraph [ref=e111]: Egypt's tutoring marketplace — verified tutors, trusted centers, every curriculum.
+        - link "Browse Classes" [ref=e112] [cursor=pointer]:
+          - /url: /classes
+      - generic [ref=e113]:
+        - generic [ref=e114]: Platform
+        - navigation "Platform navigation" [ref=e115]:
+          - link "Browse Classes" [ref=e116] [cursor=pointer]:
+            - /url: /classes
+          - link "Tutors" [ref=e117] [cursor=pointer]:
+            - /url: /tutors
+          - link "Centers" [ref=e118] [cursor=pointer]:
+            - /url: /centers
+      - generic [ref=e119]:
+        - generic [ref=e120]: For Partners
+        - navigation "Partner navigation" [ref=e121]:
+          - link "For Tutors" [ref=e122] [cursor=pointer]:
+            - /url: /signup?role=tutor
+          - link "Learning centers" [ref=e123] [cursor=pointer]:
+            - /url: /signup?role=center
+          - link "Dashboard" [ref=e124] [cursor=pointer]:
+            - /url: /dashboard
+      - generic [ref=e125]:
+        - generic [ref=e126]: Account
+        - navigation "Account navigation" [ref=e127]:
+          - link "Create Account" [ref=e128] [cursor=pointer]:
+            - /url: /signup
+          - link "Sign In" [ref=e129] [cursor=pointer]:
+            - /url: /login
+    - generic [ref=e131]:
+      - generic [ref=e132]: © 2026 Coursaty. All rights reserved.
+      - generic [ref=e133]:
+        - link "Privacy" [ref=e134] [cursor=pointer]:
+          - /url: /privacy
+        - link "Terms" [ref=e135] [cursor=pointer]:
+          - /url: /terms
+        - link "Contact" [ref=e136] [cursor=pointer]:
+          - /url: mailto:hello@coursaty.com
+  - button "Open Next.js Dev Tools" [ref=e142] [cursor=pointer]:
+    - img [ref=e143]
+  - alert [ref=e146]

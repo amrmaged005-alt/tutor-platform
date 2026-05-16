@@ -1,12 +1,31 @@
-"use client";
+﻿"use client";
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import ReviewSection from "../../components/ReviewSection";
 import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Armchair,
+  CalendarDays,
+  CheckCircle,
+  ClipboardList,
+  Download,
+  DollarSign,
+  FileText,
+  Flame,
+  Globe2,
+  Lock,
+  MapPin,
+  MessageCircle,
+  Monitor,
+  User,
+  Users,
+} from "lucide-react";
 
-// ─── Subject color map ───────────────────────────────────────────────────────
+// Subject color map
 const SUBJECT_COLORS: Record<string, { glow: string; badge: string; bg: string }> = {
   Math: { glow: "var(--accent)", badge: "var(--accent)", bg: "var(--text)" },
   Mathematics: { glow: "var(--accent)", badge: "var(--accent)", bg: "var(--text)" },
@@ -26,7 +45,7 @@ function getSubjectColor(subject: string) {
   return SUBJECT_COLORS[subject] ?? { glow: "var(--accent)", badge: "#1c6e7a", bg: "var(--text)" };
 }
 
-// ─── Animated progress bar ───────────────────────────────────────────────────
+// Animated progress bar
 function SpotsBar({ capacity, spotsLeft }: { capacity: number; spotsLeft: number }) {
   const pct = Math.round(((capacity - spotsLeft) / capacity) * 100);
   const isCritical = spotsLeft <= 3;
@@ -51,7 +70,7 @@ function SpotsBar({ capacity, spotsLeft }: { capacity: number; spotsLeft: number
       <div
         style={{
           height: 6,
-          backgroundColor: "var(--text-secondary)",
+          backgroundColor: "var(--border-light)",
           borderRadius: 99,
           overflow: "hidden",
         }}
@@ -75,7 +94,7 @@ function SpotsBar({ capacity, spotsLeft }: { capacity: number; spotsLeft: number
   );
 }
 
-// ─── Badge ───────────────────────────────────────────────────────────────────
+// Badge
 function Badge({
   children,
   color,
@@ -104,8 +123,8 @@ function Badge({
   );
 }
 
-// ─── Stat tile ────────────────────────────────────────────────────────────────
-function StatTile({ label, value, icon }: { label: string; value: string; icon: string }) {
+// Stat tile
+function StatTile({ label, value, icon: Icon }: { label: string; value: string; icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }) {
   return (
     <div
       style={{
@@ -118,7 +137,7 @@ function StatTile({ label, value, icon }: { label: string; value: string; icon: 
         gap: 12,
       }}
     >
-      <span style={{ fontSize: 20 }}>{icon}</span>
+      <span style={{ color: "var(--accent)", display: "inline-flex" }}><Icon size={20} strokeWidth={1.8} /></span>
       <div>
         <div
           style={{
@@ -138,7 +157,7 @@ function StatTile({ label, value, icon }: { label: string; value: string; icon: 
   );
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Types
 interface ClassData {
   id: string;
   title: string;
@@ -185,7 +204,7 @@ interface ClassData {
 
 interface Props {
   classData: ClassData;
-  session: any;
+  session: { user?: { id?: string | null; role?: string | null } } | null;
   alreadyBooked: boolean;
   currentUserRole: string;
   isEligibleToReview: boolean;
@@ -195,7 +214,7 @@ interface Props {
   bookingError: boolean;
 }
 
-// ─── Main client component ────────────────────────────────────────────────────
+// Main client component
 export default function ClassDetailClient({
   classData: cls,
   session,
@@ -289,7 +308,8 @@ export default function ClassDetailClient({
             fontSize: "1rem",
           }}
         >
-          ✓ Already Booked
+          <CheckCircle size={16} strokeWidth={2.2} aria-hidden style={{ verticalAlign: "-3px", marginRight: 6 }} />
+          Already booked
         </div>
       );
     }
@@ -336,13 +356,13 @@ export default function ClassDetailClient({
             (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 24px rgba(13,89,70,0.31)";
           }}
         >
-          {cls.priceEgp === 0 ? "Book Free — Get Started" : `Book Now — ${cls.priceEgp} EGP`}
+          {cls.priceEgp === 0 ? "Book free - get started" : `Book now - ${cls.priceEgp} EGP`}
         </button>
       </form>
     );
   };
 
-  // ─── Render ────────────────────────────────────────────────────────────────
+  // Render
   return (
     <div
       style={{
@@ -352,18 +372,18 @@ export default function ClassDetailClient({
         color: "var(--text)",
       }}
     >
-      {/* ── Hero Banner ── */}
+      {/* Hero banner */}
       <div
         ref={heroRef}
         style={{
           position: "relative",
           overflow: "hidden",
-          background: `linear-gradient(135deg, var(--text) 0%, ${subjectColor.bg} 60%, var(--text) 100%)`,
+          background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--bg-card) 58%, var(--bg-alt) 100%)",
           borderBottom: "1px solid var(--border-light)",
           padding: "3rem 2rem 2.5rem",
         }}
       >
-        {/* Glow orb */}
+        {/* Subtle subject wash */}
         <div
           style={{
             position: "absolute",
@@ -372,17 +392,7 @@ export default function ClassDetailClient({
             width: 360,
             height: 360,
             borderRadius: "50%",
-            background: `radial-gradient(circle, ${subjectColor.glow}22 0%, transparent 70%)`,
-            pointerEvents: "none",
-          }}
-        />
-        {/* Grid lines */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: `linear-gradient(rgba(24,23,21,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,21,0.06) 1px, transparent 1px)`,
-            backgroundSize: "40px 40px",
+            background: `radial-gradient(circle, ${subjectColor.glow}14 0%, transparent 70%)`,
             pointerEvents: "none",
           }}
         />
@@ -409,13 +419,13 @@ export default function ClassDetailClient({
               onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)")}
               onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)")}
             >
-              ← Browse Classes
+              <ArrowLeft size={14} strokeWidth={2} aria-hidden /> Browse Classes
             </Link>
             <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
             <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{cls.subject}</span>
             <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
             <span style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>
-              {cls.title.length > 40 ? cls.title.slice(0, 40) + "…" : cls.title}
+              {cls.title.length > 40 ? cls.title.slice(0, 40) + "..." : cls.title}
             </span>
           </motion.div>
 
@@ -436,7 +446,7 @@ export default function ClassDetailClient({
               color={cls.format === "ONLINE" ? "#1c6e7a" : cls.format === "IN_PERSON" ? "var(--success)" : "var(--rating)"}
               bg={cls.format === "ONLINE" ? "var(--text)" : cls.format === "IN_PERSON" ? "var(--text)" : "var(--text)"}
             >
-              {cls.format === "IN_PERSON" ? "📍 In-Person" : cls.format === "ONLINE" ? "💻 Online" : "🔀 Hybrid"}
+              {cls.format === "IN_PERSON" ? "In-person" : cls.format === "ONLINE" ? "Online" : "Hybrid"}
             </Badge>
             {cls.gradeLevel && (
               <Badge color="var(--rating)" bg="var(--text)">
@@ -445,7 +455,7 @@ export default function ClassDetailClient({
             )}
             {cls.language && (
               <Badge color="var(--text-muted)" bg="var(--text)">
-                🌐 {cls.language}
+                {cls.language}
               </Badge>
             )}
           </motion.div>
@@ -476,16 +486,19 @@ export default function ClassDetailClient({
             style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" as const }}
           >
             <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
-              👥 <strong style={{ color: "var(--text)" }}>{cls.bookingsCount}</strong> students enrolled
+              <Users size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+              <strong style={{ color: "var(--text)" }}>{cls.bookingsCount}</strong> students enrolled
             </span>
             {cls.capacity && (
               <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
-                📋 Capacity: <strong style={{ color: "var(--text)" }}>{cls.capacity}</strong>
+                <ClipboardList size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+                Capacity: <strong style={{ color: "var(--text)" }}>{cls.capacity}</strong>
               </span>
             )}
             {tutor && (
               <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
-                👤 by{" "}
+                <User size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+                by{" "}
                 <strong style={{ color: "var(--text)" }}>
                   {tutor.fullName || tutor.name || "Tutor"}
                 </strong>
@@ -495,7 +508,7 @@ export default function ClassDetailClient({
         </div>
       </div>
 
-      {/* ── Two-column layout ── */}
+      {/* Two-column layout */}
       <div
         style={{
           maxWidth: 1200,
@@ -508,7 +521,7 @@ export default function ClassDetailClient({
         }}
         className="detail-grid"
       >
-        {/* ── Left column ── */}
+        {/* Left column */}
         <div style={{ minWidth: 0 }}>
           {/* Description */}
           {cls.description && (
@@ -572,12 +585,12 @@ export default function ClassDetailClient({
             }}
           >
             <StatTile
-              icon="💰"
+              icon={DollarSign}
               label="Price"
               value={cls.priceEgp === 0 ? "Free" : cls.priceEgp + " EGP"}
             />
             <StatTile
-              icon="📍"
+              icon={cls.isOnline ? Monitor : MapPin}
               label="Location"
               value={
                 cls.isOnline
@@ -586,11 +599,11 @@ export default function ClassDetailClient({
               }
             />
             {cls.schedule && (
-              <StatTile icon="📅" label="Schedule" value={cls.schedule} />
+              <StatTile icon={CalendarDays} label="Schedule" value={cls.schedule} />
             )}
             {cls.capacity && (
               <StatTile
-                icon="🪑"
+                icon={Armchair}
                 label="Capacity"
                 value={cls.capacity + " students"}
               />
@@ -625,7 +638,8 @@ export default function ClassDetailClient({
                     gap: 6,
                   }}
                 >
-                  🔥 Only {cls.spotsLeft} spot{cls.spotsLeft !== 1 ? "s" : ""} remaining — book now!
+                  <Flame size={14} strokeWidth={2} aria-hidden />
+                  Only {cls.spotsLeft} spot{cls.spotsLeft !== 1 ? "s" : ""} remaining - book now!
                 </motion.div>
               )}
               <SpotsBar capacity={cls.capacity} spotsLeft={cls.spotsLeft} />
@@ -712,7 +726,8 @@ export default function ClassDetailClient({
                           border: "1px solid #1c6e7a20",
                         }}
                       >
-                        ✓ Verified
+                        <CheckCircle size={11} strokeWidth={2.4} aria-hidden />
+                        Verified
                       </span>
                     )}
                   </div>
@@ -768,7 +783,7 @@ export default function ClassDetailClient({
                         transition: "background 0.2s",
                       }}
                     >
-                      View Full Profile →
+                      View full profile <ArrowRight size={13} strokeWidth={2} aria-hidden />
                     </Link>
                     {tutor.phone && (
                       <a
@@ -788,7 +803,8 @@ export default function ClassDetailClient({
                           gap: 6,
                         }}
                       >
-                        💬 WhatsApp
+                        <MessageCircle size={14} strokeWidth={2} aria-hidden />
+                        WhatsApp
                       </a>
                     )}
                   </div>
@@ -865,7 +881,7 @@ export default function ClassDetailClient({
                   </div>
                   <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 10 }}>
                     {cls.center.city}
-                    {cls.center.location ? " · " + cls.center.location : ""}
+                    {cls.center.location ? " - " + cls.center.location : ""}
                   </div>
                   {cls.center.description && (
                     <p
@@ -892,7 +908,7 @@ export default function ClassDetailClient({
                         borderRadius: 8,
                       }}
                     >
-                      View Center →
+                      View center <ArrowRight size={13} strokeWidth={2} aria-hidden />
                     </Link>
                     {cls.center.phone && (
                       <a
@@ -909,7 +925,8 @@ export default function ClassDetailClient({
                           fontSize: 13,
                         }}
                       >
-                        💬 WhatsApp
+                        <MessageCircle size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+                        WhatsApp
                       </a>
                     )}
                   </div>
@@ -972,8 +989,8 @@ export default function ClassDetailClient({
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 18 }}>
-                      {m.isLocked ? "🔒" : "📄"}
+                    <span style={{ color: "var(--accent)", display: "inline-flex" }}>
+                      {m.isLocked ? <Lock size={18} strokeWidth={1.8} aria-hidden /> : <FileText size={18} strokeWidth={1.8} aria-hidden />}
                     </span>
                     <span style={{ color: "var(--border)", fontSize: 14, fontWeight: 500 }}>
                       {m.title}
@@ -1005,7 +1022,8 @@ export default function ClassDetailClient({
                         border: "1px solid #1c6e7a20",
                       }}
                     >
-                      ↓ Download
+                      <Download size={13} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+                      Download
                     </a>
                   )}
                 </motion.div>
@@ -1027,7 +1045,7 @@ export default function ClassDetailClient({
           </motion.div>
         </div>
 
-        {/* ── Right sidebar (sticky booking card) ── */}
+        {/* Right sidebar */}
         <div>
           <motion.div
             initial={{ opacity: 0, x: 24 }}
@@ -1082,52 +1100,35 @@ export default function ClassDetailClient({
               }}
             >
               {[
+                { icon: ClipboardList, label: "Curriculum", value: cls.curriculum },
                 {
-                  icon: "🎓",
-                  label: "Curriculum",
-                  value: cls.curriculum,
-                },
-                {
-                  icon: "💻",
+                  icon: cls.format === "ONLINE" ? Monitor : MapPin,
                   label: "Format",
-                  value:
-                    cls.format === "IN_PERSON"
-                      ? "In-Person"
-                      : cls.format === "ONLINE"
-                        ? "Online"
-                        : "Hybrid",
+                  value: cls.format === "IN_PERSON" ? "In-person" : cls.format === "ONLINE" ? "Online" : "Hybrid",
                 },
-                {
-                  icon: "📅",
-                  label: "Schedule",
-                  value: cls.schedule ?? "Flexible",
-                },
-                {
-                  icon: "📍",
-                  label: "Location",
-                  value: cls.isOnline
-                    ? "Online"
-                    : cls.location ?? cls.city ?? "—",
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span style={{ color: "var(--text-muted)", fontSize: 13, display: "flex", gap: 6 }}>
-                    {item.icon} {item.label}
-                  </span>
-                  <span style={{ color: "var(--text)", fontSize: 13, fontWeight: 600, textAlign: "right" as const, maxWidth: "55%" }}>
-                    {item.value}
-                  </span>
-                </div>
-              ))}
+                { icon: CalendarDays, label: "Schedule", value: cls.schedule ?? "Flexible" },
+                { icon: cls.isOnline ? Globe2 : MapPin, label: "Location", value: cls.isOnline ? "Online" : cls.location ?? cls.city ?? "See details" },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.label}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span style={{ color: "var(--text-muted)", fontSize: 13, display: "flex", gap: 6, alignItems: "center" }}>
+                      <Icon size={14} strokeWidth={1.8} aria-hidden /> {item.label}
+                    </span>
+                    <span style={{ color: "var(--text)", fontSize: 13, fontWeight: 600, textAlign: "right" as const, maxWidth: "55%" }}>
+                      {item.value}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-
             {/* Spots bar in sidebar */}
             {cls.capacity && cls.spotsLeft !== null && (
               <div style={{ marginBottom: "1.25rem" }}>
@@ -1147,12 +1148,13 @@ export default function ClassDetailClient({
                   padding: "10px 12px",
                   marginBottom: "1rem",
                   fontSize: 13,
-                  color: "var(--warning-bg)",
+                  color: "var(--warning)",
                   fontWeight: 600,
                   textAlign: "center" as const,
                 }}
               >
-                🔥 Only {cls.spotsLeft} spot{cls.spotsLeft !== 1 ? "s" : ""} left!
+                <Flame size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+                Only {cls.spotsLeft} spot{cls.spotsLeft !== 1 ? "s" : ""} left
               </motion.div>
             )}
 
@@ -1188,31 +1190,34 @@ export default function ClassDetailClient({
               }}
             >
               {[
-                { icon: "🔒", label: "Secure" },
-                { icon: "✅", label: "Verified" },
-                { icon: "💬", label: "Support" },
-              ].map((t) => (
-                <div
-                  key={t.label}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column" as const,
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>{t.icon}</span>
-                  <span style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>
-                    {t.label}
-                  </span>
-                </div>
-              ))}
+                { icon: CheckCircle, label: "Secure" },
+                { icon: CheckCircle, label: "Verified" },
+                { icon: MessageCircle, label: "Support" },
+              ].map((t) => {
+                const Icon = t.icon;
+                return (
+                  <div
+                    key={t.label}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column" as const,
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <span style={{ color: "var(--accent)", display: "inline-flex" }}><Icon size={16} strokeWidth={2} aria-hidden /></span>
+                    <span style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>
+                      {t.label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </motion.div>
         </div>
       </div>
 
-      {/* ── Related classes ── */}
+      {/* Related classes */}
       {cls.relatedClasses.length > 0 && (
         <div
           style={{
@@ -1308,7 +1313,7 @@ export default function ClassDetailClient({
                         }}
                       >
                         {r.description.length > 80
-                          ? r.description.slice(0, 80) + "…"
+                          ? r.description.slice(0, 80) + "..."
                           : r.description}
                       </div>
                     )}
@@ -1329,7 +1334,7 @@ export default function ClassDetailClient({
         </div>
       )}
 
-      {/* ── Mobile sticky CTA ── */}
+      {/* Mobile sticky CTA */}
       <AnimatePresence>
         {stickyVisible && (
           <motion.div
@@ -1371,7 +1376,7 @@ export default function ClassDetailClient({
         )}
       </AnimatePresence>
 
-      {/* ── Responsive style override ── */}
+      {/* Responsive style override */}
       <style>{`
         @media (max-width: 768px) {
           .detail-grid {
@@ -1396,3 +1401,6 @@ export default function ClassDetailClient({
     </div>
   );
 }
+
+
+

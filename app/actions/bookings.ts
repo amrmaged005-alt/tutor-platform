@@ -31,23 +31,25 @@ export async function lockSeat(
     };
   }
 
-  // TEMP: Email verification disabled
-  // const user = await prisma.user.findUnique({
-  //   where: { id: studentId },
-  //   select: { isEmailVerified: true },
-  // });
-  //
-  // if (!user?.isEmailVerified) {
-  //   return {
-  //     success: false,
-  //     error: "Please verify your email address before booking a class.",
-  //   };
-  // }
+  // Email verification gate — controlled by REQUIRE_EMAIL_VERIFICATION env var.
+  // Set to "true" in production once email delivery is confirmed working.
+  if (process.env.REQUIRE_EMAIL_VERIFICATION === "true") {
+    const user = await prisma.user.findUnique({
+      where: { id: studentId },
+      select: { isEmailVerified: true },
+    });
+    if (!user?.isEmailVerified) {
+      return {
+        success: false,
+        error: "Please verify your email address before booking a class.",
+      };
+    }
+  }
 
   try {
     const now = new Date();
 
-    // 1. Get the class and make sure it exists
+    // 1. Get the class and make sure it exists (pre-flight check, not the capacity gate)
     const classData = await prisma.class.findUnique({
       where: { id: classId },
       select: {
@@ -56,21 +58,6 @@ export async function lockSeat(
         priceEgp: true,
         isActive: true,
         paymentType: true,
-        _count: {
-          select: {
-            bookings: {
-              where: {
-                OR: [
-                  { status: "CONFIRMED" },
-                  {
-                    status: "PENDING",
-                    lockedUntil: { gt: now },
-                  },
-                ],
-              },
-            },
-          },
-        },
       },
     });
 
@@ -104,18 +91,14 @@ export async function lockSeat(
       }
     }
 
-    // 3. Check if there are seats available
-    const activeBookings = classData._count.bookings;
-    if (activeBookings >= classData.capacity) {
-      return { success: false, error: "Sorry, this class is fully booked." };
-    }
-
-    // 4. Calculate the commission (10% to platform, 90% to tutor)
+    // 3. Calculate the commission (10% to platform, 90% to tutor)
     const amountEgp = classData.priceEgp ?? 0;
     const platformFeeEgp = Math.round(amountEgp * 0.1);
     const tutorPayoutEgp = amountEgp - platformFeeEgp;
 
-    // 5. Create or refresh the booking with a 10-minute seat lock
+    // 4. Create or refresh the booking inside a serializable transaction so
+    //    two concurrent requests cannot both pass the capacity check and
+    //    both insert a booking (phantom-read prevention).
     const lockedUntil = new Date(
       now.getTime() + LOCK_DURATION_MINUTES * 60 * 1000
     );
@@ -136,18 +119,55 @@ export async function lockSeat(
         paymobPaymentKey: null,
       } as const;
 
-    const booking = existingBooking
-      ? await prisma.booking.update({
-        where: { id: existingBooking.id },
-        data: bookingData,
-      })
-      : await prisma.booking.create({
-        data: {
-          classId,
-          studentId,
-          ...bookingData,
+    let booking: Awaited<ReturnType<typeof prisma.booking.create>>;
+    try {
+      const txResult = await prisma.$transaction(
+        async (tx) => {
+          // Re-count active bookings inside the transaction so the check and
+          // the write are atomic — prevents overbooking under concurrent load.
+          const activeCount = await tx.booking.count({
+            where: {
+              classId,
+              OR: [
+                { status: "CONFIRMED" },
+                { status: "PENDING", lockedUntil: { gt: now } },
+              ],
+            },
+          });
+
+          if (
+            classData.capacity !== null &&
+            activeCount >= classData.capacity
+          ) {
+            return null; // signal: class is full
+          }
+
+          if (existingBooking) {
+            return tx.booking.update({
+              where: { id: existingBooking.id },
+              data: bookingData,
+            });
+          }
+          return tx.booking.create({
+            data: { classId, studentId, ...bookingData },
+          });
         },
-      });
+        { isolationLevel: "Serializable" }
+      );
+
+      if (!txResult) {
+        return { success: false, error: "Sorry, this class is fully booked." };
+      }
+      booking = txResult;
+    } catch (txError: unknown) {
+      // Serializable transactions can fail with a serialization error when
+      // two concurrent writers conflict — retry once is sufficient.
+      const msg = txError instanceof Error ? txError.message : "";
+      if (msg.includes("could not serialize") || msg.includes("deadlock")) {
+        return { success: false, error: "Sorry, this class is fully booked." };
+      }
+      throw txError;
+    }
 
     if (existingBooking) {
       await log({

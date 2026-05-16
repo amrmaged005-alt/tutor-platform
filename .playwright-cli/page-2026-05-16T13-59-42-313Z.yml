@@ -1,0 +1,307 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "Coursaty home" [ref=e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e4]: C
+      - text: Coursaty
+    - navigation "Main navigation" [ref=e5]:
+      - link "Classes" [ref=e6] [cursor=pointer]:
+        - /url: /classes
+      - link "Tutors" [ref=e7] [cursor=pointer]:
+        - /url: /tutors
+      - link "Centers" [ref=e8] [cursor=pointer]:
+        - /url: /centers
+      - link "For Tutors" [ref=e9] [cursor=pointer]:
+        - /url: /signup?role=tutor
+      - generic [ref=e10]:
+        - button "Switch to dark mode" [ref=e11] [cursor=pointer]:
+          - img [ref=e12]
+        - button "Toggle language" [ref=e14] [cursor=pointer]: عربي
+        - link "Sign In" [ref=e15] [cursor=pointer]:
+          - /url: /login
+        - link "Browse Classes" [ref=e16] [cursor=pointer]:
+          - /url: /classes
+  - dialog "Mobile navigation" [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - button "Switch to dark mode" [ref=e20] [cursor=pointer]:
+          - img [ref=e21]
+        - button "Toggle language" [ref=e23] [cursor=pointer]: عربي
+      - button "Close menu" [ref=e24] [cursor=pointer]:
+        - img [ref=e25]
+    - generic [ref=e28]:
+      - link "Home" [ref=e29] [cursor=pointer]:
+        - /url: /
+      - link "Classes" [ref=e30] [cursor=pointer]:
+        - /url: /classes
+      - link "Tutors" [ref=e31] [cursor=pointer]:
+        - /url: /tutors
+      - link "Centers" [ref=e32] [cursor=pointer]:
+        - /url: /centers
+      - link "For Tutors" [ref=e33] [cursor=pointer]:
+        - /url: /signup?role=tutor
+    - generic [ref=e35]:
+      - link "Browse Classes" [ref=e36] [cursor=pointer]:
+        - /url: /classes
+      - link "Sign In" [ref=e37] [cursor=pointer]:
+        - /url: /login
+  - main:
+    - generic [ref=e38]:
+      - link "Back to Coursaty" [ref=e39] [cursor=pointer]:
+        - /url: /
+      - button "Muted" [ref=e40] [cursor=pointer]
+      - generic "Coursaty interactive book" [ref=e42]:
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - generic [ref=e46]:
+              - generic [ref=e47]: C
+              - heading "Coursaty" [level=2] [ref=e48]
+              - paragraph [ref=e49]: A better way for students, parents, tutors, and centers to find each other.
+            - generic [ref=e50]: i
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - generic [ref=e53]: Start here
+              - heading "Find the Right Tutor. First Time." [level=1] [ref=e54]
+              - paragraph [ref=e56]: Coursaty brings verified tutors, clear schedules, real reviews, and simple booking into one calm place.
+              - link "Browse Classes" [ref=e57] [cursor=pointer]:
+                - /url: /classes
+              - generic [ref=e58]:
+                - generic [ref=e59]: Math
+                - generic [ref=e60]: Physics
+                - generic [ref=e61]: IGCSE
+                - generic [ref=e62]: Arabic
+                - generic [ref=e63]: Online
+                - generic [ref=e64]: Grade 11
+            - generic [ref=e65]: "1"
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - generic [ref=e69]: Chapter I
+              - heading "Finding Good Tutors Shouldn't Be This Hard" [level=2] [ref=e70]
+              - paragraph [ref=e72]: Parents ask friends, scroll chats, compare scattered screenshots, and hope the tutor is the right fit. Students deserve a clearer path.
+              - paragraph [ref=e73]: Coursaty turns a stressful search into a guided choice, with the details that matter visible before anyone commits.
+            - generic [ref=e74]: "2"
+          - generic [ref=e75]:
+            - generic [ref=e77]:
+              - generic [ref=e78]:
+                - heading "No vetting" [level=4] [ref=e79]
+                - paragraph [ref=e80]: Hard to know who is qualified until after the first lesson.
+              - generic [ref=e81]:
+                - heading "Word of mouth" [level=4] [ref=e82]
+                - paragraph [ref=e83]: Useful, but narrow. Great tutors outside your circle stay invisible.
+              - generic [ref=e84]:
+                - heading "Price opacity" [level=4] [ref=e85]
+                - paragraph [ref=e86]: Fees, formats, and payment expectations are often unclear.
+              - generic [ref=e87]:
+                - heading "Schedule chaos" [level=4] [ref=e88]
+                - paragraph [ref=e89]: Availability gets buried across calls and message threads.
+            - generic [ref=e90]: "3"
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - generic [ref=e93]:
+              - generic [ref=e94]: Chapter II
+              - heading "A Better Way to Learn" [level=2] [ref=e95]
+              - paragraph [ref=e97]: "Coursaty gives every class a proper home: subject, curriculum, level, price, format, seats, tutor profile, and reviews."
+              - paragraph [ref=e98]: Search becomes comparison. Booking becomes a decision. Learning starts with more confidence.
+            - generic [ref=e99]: "4"
+          - generic [ref=e100]:
+            - generic [ref=e102]:
+              - generic [ref=e103]:
+                - generic [ref=e104]: "1"
+                - generic [ref=e105]:
+                  - heading "Search & filter" [level=4] [ref=e106]
+                  - paragraph [ref=e107]: Find classes by subject, curriculum, level, location, price, and format.
+              - generic [ref=e108]:
+                - generic [ref=e109]: "2"
+                - generic [ref=e110]:
+                  - heading "Book in seconds" [level=4] [ref=e111]
+                  - paragraph [ref=e112]: Reserve your seat and receive confirmation without chasing messages.
+              - generic [ref=e113]:
+                - generic [ref=e114]: "3"
+                - generic [ref=e115]:
+                  - heading "Learn with confidence" [level=4] [ref=e116]
+                  - paragraph [ref=e117]: Verified profiles, reviews, and clear details help you choose well.
+            - generic [ref=e118]: "5"
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]: Chapter III
+              - heading "Built for Egypt's Students" [level=2] [ref=e123]
+              - generic [ref=e125]:
+                - generic [ref=e126]:
+                  - heading "Local curricula" [level=4] [ref=e127]
+                  - paragraph [ref=e128]: National, IGCSE, American, IB, STEM, and more.
+                - generic [ref=e129]:
+                  - heading "Flexible formats" [level=4] [ref=e130]
+                  - paragraph [ref=e131]: In-person, online, and hybrid classes.
+                - generic [ref=e132]:
+                  - heading "Tutor trust" [level=4] [ref=e133]
+                  - paragraph [ref=e134]: Verification, profiles, ratings, and review history.
+                - generic [ref=e135]:
+                  - heading "Seat visibility" [level=4] [ref=e136]
+                  - paragraph [ref=e137]: Capacity and remaining places are clear before booking.
+            - generic [ref=e138]: "6"
+          - generic [ref=e139]:
+            - generic [ref=e140]:
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - heading "Simple discovery" [level=4] [ref=e143]
+                  - paragraph [ref=e144]: Students can compare options without starting from scratch.
+                - generic [ref=e145]:
+                  - heading "Center support" [level=4] [ref=e146]
+                  - paragraph [ref=e147]: Learning centers can manage classes and instructors.
+                - generic [ref=e148]:
+                  - heading "Booking records" [level=4] [ref=e149]
+                  - paragraph [ref=e150]: Students and tutors see their activity in one dashboard.
+                - generic [ref=e151]:
+                  - heading "Payment-ready" [level=4] [ref=e152]
+                  - paragraph [ref=e153]: Online and in-person payment flows fit local needs.
+              - generic [ref=e154]:
+                - generic [ref=e155]: 1,800+
+                - generic [ref=e156]: Join thousands already learning
+            - generic [ref=e157]: "7"
+        - generic [ref=e158]:
+          - generic [ref=e159]:
+            - generic [ref=e160]:
+              - generic [ref=e161]: Chapter IV
+              - heading "What Our Students Say" [level=2] [ref=e162]
+              - generic [ref=e164]:
+                - blockquote [ref=e165]: "\"The verification process gave me confidence. My daughter loves her Chemistry tutor.\""
+                - generic [ref=e166]:
+                  - generic [ref=e167]: A
+                  - generic [ref=e168]:
+                    - strong [ref=e169]: Ahmed K.
+                    - generic [ref=e170]: Parent
+                  - generic [ref=e171]: ★★★★★
+              - generic [ref=e172]:
+                - blockquote [ref=e173]: "\"I found an IGCSE Physics class in one evening instead of asking around for a week.\""
+                - generic [ref=e174]:
+                  - generic [ref=e175]: M
+                  - generic [ref=e176]:
+                    - strong [ref=e177]: Mariam S.
+                    - generic [ref=e178]: Student
+                  - generic [ref=e179]: ★★★★★
+            - generic [ref=e180]: "8"
+          - generic [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - blockquote [ref=e184]: "\"Coursaty made my schedule visible and brought serious students directly to me.\""
+                - generic [ref=e185]:
+                  - generic [ref=e186]: S
+                  - generic [ref=e187]:
+                    - strong [ref=e188]: Sara M.
+                    - generic [ref=e189]: Private Tutor
+                  - generic [ref=e190]: ★★★★★
+              - generic [ref=e191]:
+                - generic [ref=e192]: "4.9"
+                - generic [ref=e193]: Average rating from 1,800+ reviews
+            - generic [ref=e194]: "9"
+        - generic [ref=e195]:
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - generic [ref=e198]: Epilogue
+              - heading "Your Perfect Tutor Awaits" [level=2] [ref=e199]
+              - paragraph [ref=e201]: Start with a subject, a grade, or a curriculum. Coursaty will help you narrow the path.
+              - generic [ref=e202]:
+                - link "Browse Classes" [ref=e203] [cursor=pointer]:
+                  - /url: /classes
+                - link "Find a Tutor" [ref=e204] [cursor=pointer]:
+                  - /url: /tutors
+            - generic [ref=e205]: "10"
+          - generic [ref=e206]:
+            - generic [ref=e207]:
+              - generic [ref=e208]: For educators
+              - heading "Are You a Tutor?" [level=2] [ref=e209]
+              - paragraph [ref=e211]: Create a profile, publish classes, and meet students who are already searching for your subject.
+              - link "Join as a Tutor" [ref=e212] [cursor=pointer]:
+                - /url: /signup?role=tutor
+              - navigation "Coursaty links" [ref=e213]:
+                - link "Classes" [ref=e214] [cursor=pointer]:
+                  - /url: /classes
+                - link "Tutors" [ref=e215] [cursor=pointer]:
+                  - /url: /tutors
+                - link "Centers" [ref=e216] [cursor=pointer]:
+                  - /url: /centers
+              - paragraph [ref=e217]: Coursaty, built for focused learning across Egypt.
+            - generic [ref=e218]: "11"
+        - generic [ref=e222]:
+          - generic [ref=e223]: Coursaty
+          - generic [ref=e224]: C
+          - strong [ref=e225]: Learning, opened
+        - generic [ref=e228]:
+          - generic [ref=e229]: Egypt's tutoring marketplace
+          - strong [ref=e230]: Find the right tutor
+          - generic [ref=e231]: A short story about replacing guesswork with confidence.
+      - navigation "Book navigation" [ref=e234]:
+        - button "Previous" [disabled] [ref=e235]
+        - generic [ref=e236]: Cover
+        - button "Next" [ref=e237] [cursor=pointer]
+  - contentinfo [ref=e238]:
+    - generic [ref=e240]:
+      - generic [ref=e241]:
+        - img [ref=e243]
+        - text: Verified tutors
+      - generic [ref=e245]:
+        - img [ref=e247]
+        - text: Free for students
+      - generic [ref=e249]:
+        - img [ref=e251]
+        - text: All curricula
+      - generic [ref=e253]:
+        - img [ref=e255]
+        - text: Instant booking
+    - generic [ref=e257]:
+      - generic [ref=e258]:
+        - link "C Coursaty" [ref=e259] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e260]: C
+          - generic [ref=e261]: Coursaty
+        - paragraph [ref=e262]: Egypt's tutoring marketplace — verified tutors, trusted centers, every curriculum.
+        - link "Browse Classes" [ref=e263] [cursor=pointer]:
+          - /url: /classes
+      - generic [ref=e264]:
+        - generic [ref=e265]: Platform
+        - navigation "Platform navigation" [ref=e266]:
+          - link "Browse Classes" [ref=e267] [cursor=pointer]:
+            - /url: /classes
+          - link "Tutors" [ref=e268] [cursor=pointer]:
+            - /url: /tutors
+          - link "Centers" [ref=e269] [cursor=pointer]:
+            - /url: /centers
+      - generic [ref=e270]:
+        - generic [ref=e271]: For Partners
+        - navigation "Partner navigation" [ref=e272]:
+          - link "For Tutors" [ref=e273] [cursor=pointer]:
+            - /url: /signup?role=tutor
+          - link "Learning centers" [ref=e274] [cursor=pointer]:
+            - /url: /signup?role=center
+          - link "Dashboard" [ref=e275] [cursor=pointer]:
+            - /url: /dashboard
+      - generic [ref=e276]:
+        - generic [ref=e277]: Account
+        - navigation "Account navigation" [ref=e278]:
+          - link "Create Account" [ref=e279] [cursor=pointer]:
+            - /url: /signup
+          - link "Sign In" [ref=e280] [cursor=pointer]:
+            - /url: /login
+    - generic [ref=e282]:
+      - generic [ref=e283]: © 2026 Coursaty. All rights reserved.
+      - generic [ref=e284]:
+        - link "Privacy" [ref=e285] [cursor=pointer]:
+          - /url: /privacy
+        - link "Terms" [ref=e286] [cursor=pointer]:
+          - /url: /terms
+        - link "Contact" [ref=e287] [cursor=pointer]:
+          - /url: mailto:hello@coursaty.com
+  - generic [ref=e292] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e293]:
+      - img [ref=e294]
+    - generic [ref=e297]:
+      - button "Open issues overlay" [ref=e298]:
+        - generic [ref=e299]:
+          - generic [ref=e300]: "0"
+          - generic [ref=e301]: "1"
+        - generic [ref=e302]: Issue
+      - button "Collapse issues badge" [ref=e303]:
+        - img [ref=e304]
+  - alert [ref=e306]

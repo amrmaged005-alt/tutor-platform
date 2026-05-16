@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
@@ -217,7 +217,7 @@ function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
           {left <= 0 ? "FULL" : left <= 5 ? `${left} left` : `${left} spots`}
         </span>
       </div>
-      <div style={{ height: 4, backgroundColor: "var(--text-secondary)", borderRadius: 99, overflow: "hidden" }}>
+      <div style={{ height: 4, backgroundColor: "var(--border-light)", borderRadius: 99, overflow: "hidden" }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -248,7 +248,7 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
       transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
       whileHover={{ y: -6, boxShadow: `0 20px 48px ${meta.color}20` }}
       onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = `${meta.color}50`; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--text-secondary)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border-light)"; }}
       style={{
         backgroundColor: "var(--bg-card)",
         border: "1px solid var(--border-light)",
@@ -330,7 +330,7 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
             </span>
           )}
           {isUrgent && !isFull && (
-            <span style={{ backgroundColor: "var(--bg-card)", color: "var(--warning-bg)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>
+            <span style={{ backgroundColor: "var(--warning-bg)", color: "var(--warning)", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>
               {cls.spotsLeft} left
             </span>
           )}
@@ -550,9 +550,10 @@ function FilterSidebar({
           value={selectedGrade}
           onChange={e => setSelectedGrade(e.target.value)}
           style={{
-            width: "100%", backgroundColor: "var(--bg-card)", color: "var(--border)",
+            width: "100%", backgroundColor: "var(--bg-card)", color: "var(--text)",
             border: "1px solid var(--border-light)", borderRadius: 10,
             padding: "8px 12px", fontSize: 13, cursor: "pointer", outline: "none",
+            fontFamily: "inherit",
           }}
         >
           <option value="">{copy.allGrades}</option>
@@ -579,6 +580,204 @@ function FilterSidebar({
   );
 }
 
+// ─── MOBILE FILTER DRAWER ─────────────────────────────────────────────────────
+function MobileFilterDrawer({
+  open, onClose,
+  selectedSubjects, setSelectedSubjects,
+  selectedFormats, setSelectedFormats,
+  selectedCurriculum, setSelectedCurriculum,
+  selectedGrade, setSelectedGrade,
+  maxPrice, setMaxPrice,
+  onClear, hasFilters, copy,
+}: {
+  open: boolean; onClose: () => void;
+  selectedSubjects: string[]; setSelectedSubjects: (s: string[]) => void;
+  selectedFormats: string[]; setSelectedFormats: (f: string[]) => void;
+  selectedCurriculum: string; setSelectedCurriculum: (c: string) => void;
+  selectedGrade: string; setSelectedGrade: (g: string) => void;
+  maxPrice: number; setMaxPrice: (p: number) => void;
+  onClear: () => void; hasFilters: boolean;
+  copy: ClassesCopy;
+}) {
+  useEffect(() => {
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  function toggleSubject(s: string) {
+    setSelectedSubjects(selectedSubjects.includes(s) ? selectedSubjects.filter(x => x !== s) : [...selectedSubjects, s]);
+  }
+  function toggleFormat(f: string) {
+    setSelectedFormats(selectedFormats.includes(f) ? selectedFormats.filter(x => x !== f) : [...selectedFormats, f]);
+  }
+  const sectionLabel: React.CSSProperties = {
+    fontSize: 11, fontWeight: 700, color: "var(--text-muted)",
+    letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10,
+  };
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed", inset: 0,
+          backgroundColor: "rgba(24,23,21,0.42)", backdropFilter: "blur(3px)",
+          zIndex: 997,
+          opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.25s ease",
+        }}
+      />
+      {/* Drawer */}
+      <div
+        role="dialog" aria-modal="true" aria-label="Filters"
+        style={{
+          position: "fixed", bottom: 0, left: 0, right: 0,
+          maxHeight: "85vh",
+          backgroundColor: "var(--bg-elevated)",
+          borderRadius: "20px 20px 0 0",
+          border: "1px solid var(--border-light)",
+          borderBottom: "none",
+          zIndex: 998,
+          transform: open ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          display: "flex", flexDirection: "column",
+          boxShadow: "var(--shadow-xl)",
+          overflowY: "auto",
+        }}
+      >
+        {/* Handle */}
+        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: "var(--border)" }} />
+        </div>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 20px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Target size={16} strokeWidth={2} color="var(--text)" />
+            <span style={{ fontWeight: 700, fontSize: 16, color: "var(--text)" }}>{copy.filters}</span>
+            {hasFilters && (
+              <span style={{
+                backgroundColor: "var(--accent-bg)", border: "1px solid var(--accent-border)",
+                color: "var(--accent)", borderRadius: 99, padding: "2px 8px", fontSize: 12, fontWeight: 600,
+              }}>
+                Active
+              </span>
+            )}
+          </div>
+          <button onClick={onClose} aria-label="Close filters" style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, lineHeight: 1, display: "inline-flex" }}>
+            <X size={20} strokeWidth={1.8} />
+          </button>
+        </div>
+
+        {/* Filter content */}
+        <div style={{ padding: "0 20px 24px", display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* Format */}
+          <div>
+            <div style={sectionLabel}>{copy.format}</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {ALL_FORMATS.map(f => {
+                const fmt = FORMAT_META[f];
+                const FormatIcon = fmt.Icon;
+                const active = selectedFormats.includes(f);
+                return (
+                  <button key={f} onClick={() => toggleFormat(f)} style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    background: active ? `${fmt.color}12` : "var(--bg-card)",
+                    border: `1px solid ${active ? fmt.color + "40" : "var(--border-light)"}`,
+                    borderRadius: 99, padding: "7px 14px",
+                    color: active ? fmt.color : "var(--text-secondary)",
+                    fontWeight: active ? 600 : 400, fontSize: 13, cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}>
+                    <FormatIcon size={13} strokeWidth={1.9} />
+                    {f === "IN_PERSON" ? copy.inPerson : f === "ONLINE" ? copy.online : copy.hybrid}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Subjects */}
+          <div>
+            <div style={sectionLabel}>{copy.subject}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {ALL_SUBJECTS.map(s => {
+                const active = selectedSubjects.includes(s);
+                const meta = getSubjectMeta(s);
+                return (
+                  <button key={s} onClick={() => toggleSubject(s)} style={{
+                    padding: "5px 12px", borderRadius: 99, fontSize: 13, fontWeight: 500, cursor: "pointer",
+                    border: `1px solid ${active ? meta.color : "var(--border-light)"}`,
+                    backgroundColor: active ? meta.bg : "var(--bg-card)",
+                    color: active ? meta.color : "var(--text-secondary)",
+                    transition: "all 0.15s",
+                  }}>{s}</button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Curriculum */}
+          <div>
+            <div style={sectionLabel}>{copy.curriculum}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {["", ...ALL_CURRICULA].map(c => (
+                <button key={c || "all"} onClick={() => setSelectedCurriculum(c === selectedCurriculum ? "" : c)} style={{
+                  padding: "5px 12px", borderRadius: 99, fontSize: 13, cursor: "pointer",
+                  background: selectedCurriculum === c ? "rgba(13,89,70,0.10)" : "var(--bg-card)",
+                  border: `1px solid ${selectedCurriculum === c ? "rgba(13,89,70,0.30)" : "var(--border-light)"}`,
+                  color: selectedCurriculum === c ? "var(--accent)" : "var(--text-secondary)",
+                  fontWeight: selectedCurriculum === c ? 600 : 400,
+                }}>{c === "" ? copy.allCurricula : CURRICULUM_LABELS[c]}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Grade */}
+          <div>
+            <div style={sectionLabel}>{copy.grade}</div>
+            <select value={selectedGrade} onChange={e => setSelectedGrade(e.target.value)} style={{
+              width: "100%", backgroundColor: "var(--bg-card)", color: "var(--text)",
+              border: "1px solid var(--border-light)", borderRadius: 10,
+              padding: "10px 12px", fontSize: 14, cursor: "pointer", outline: "none",
+              fontFamily: "inherit",
+            }}>
+              <option value="">{copy.allGrades}</option>
+              {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+
+          {/* Max price */}
+          <div>
+            <div style={{ ...sectionLabel, marginBottom: 8 }}>
+              {copy.maxPrice} <span style={{ color: "var(--text)", fontWeight: 700 }}>{maxPrice === 2000 ? copy.any : `${maxPrice} EGP`}</span>
+            </div>
+            <input type="range" min={0} max={2000} step={50} value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))} style={{ width: "100%", accentColor: "var(--accent)" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+              <span>{copy.free}</span><span>2000 EGP</span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: "flex", gap: 10, paddingTop: 8 }}>
+            {hasFilters && (
+              <button onClick={() => { onClear(); onClose(); }} style={{
+                flex: 1, padding: "12px", borderRadius: 10, border: "1px solid var(--border)",
+                background: "var(--bg-card)", color: "var(--text)", fontSize: 14, fontWeight: 600, cursor: "pointer",
+              }}>{copy.clearAll}</button>
+            )}
+            <button onClick={onClose} style={{
+              flex: 2, padding: "12px", borderRadius: 10, border: "none",
+              background: "var(--accent)", color: "var(--accent-fg)", fontSize: 14, fontWeight: 600, cursor: "pointer",
+            }}>Apply Filters</button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── MAIN CLIENT COMPONENT ─────────────────────────────────────────────────────
 export default function ClassesClient({ classes }: { classes: ClassCardData[] }) {
   const { lang } = useI18n();
@@ -590,6 +789,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
   const [selectedGrade, setSelectedGrade] = useState("");
   const [maxPrice, setMaxPrice] = useState(2000);
   const [sortBy, setSortBy] = useState<"newest" | "price_asc" | "price_desc" | "popular" | "rating">("newest");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Quick toggle for trending pills
   function toggleTrending(tag: string) {
@@ -658,27 +858,15 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
       {/* ── HERO ── */}
       <div style={{
         position: "relative", overflow: "hidden",
-        background: "linear-gradient(135deg, var(--text) 0%, var(--text) 50%, var(--text) 100%)",
+        background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--bg-card) 58%, var(--bg-alt) 100%)",
         borderBottom: "1px solid var(--border-light)",
         padding: "52px 24px 44px", zIndex: 1,
       }}>
-        {/* Grid texture */}
-        <div style={{
-          position: "absolute", inset: 0, pointerEvents: "none",
-          backgroundImage: `linear-gradient(rgba(251,250,246,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(251,250,246,0.02) 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-        }} />
-        {/* Glow orb */}
+        {/* Subtle wash */}
         <div style={{
           position: "absolute", top: -120, right: -80,
           width: 500, height: 500, borderRadius: "50%",
-          background: "radial-gradient(circle, #1c6e7a20 0%, transparent 65%)",
-          pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", bottom: -80, left: -60,
-          width: 400, height: 400, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(13,89,70,0.08) 0%, transparent 65%)",
+          background: "radial-gradient(circle, rgba(13,89,70,0.10) 0%, transparent 65%)",
           pointerEvents: "none",
         }} />
 
@@ -760,7 +948,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                     padding: "5px 14px", borderRadius: 999, fontSize: 13,
                     fontWeight: 600, cursor: "pointer",
                     border: `1px solid ${isActive ? meta.color : "var(--text-secondary)"}`,
-                    backgroundColor: isActive ? meta.bg : "var(--text)",
+                    backgroundColor: isActive ? meta.bg : "var(--bg-card)",
                     color: isActive ? meta.color : "var(--text-muted)",
                     transition: "all 0.15s",
                   }}
@@ -773,6 +961,18 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
         </div>
       </div>
 
+      {/* Mobile filter drawer */}
+      <MobileFilterDrawer
+        open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)}
+        selectedSubjects={selectedSubjects} setSelectedSubjects={setSelectedSubjects}
+        selectedFormats={selectedFormats} setSelectedFormats={setSelectedFormats}
+        selectedCurriculum={selectedCurriculum} setSelectedCurriculum={setSelectedCurriculum}
+        selectedGrade={selectedGrade} setSelectedGrade={setSelectedGrade}
+        maxPrice={maxPrice} setMaxPrice={setMaxPrice}
+        onClear={clearFilters} hasFilters={hasFilters}
+        copy={copy}
+      />
+
       {/* ── MAIN CONTENT ── */}
       <div style={{
         maxWidth: 1100, margin: "0 auto",
@@ -780,39 +980,64 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
         position: "relative", zIndex: 1,
         display: "flex", gap: 28, alignItems: "flex-start",
       }}>
-        {/* Sidebar */}
-        <FilterSidebar
-          selectedSubjects={selectedSubjects} setSelectedSubjects={setSelectedSubjects}
-          selectedFormats={selectedFormats} setSelectedFormats={setSelectedFormats}
-          selectedCurriculum={selectedCurriculum} setSelectedCurriculum={setSelectedCurriculum}
-          selectedGrade={selectedGrade} setSelectedGrade={setSelectedGrade}
-          maxPrice={maxPrice} setMaxPrice={setMaxPrice}
-          onClear={clearFilters} hasFilters={hasFilters}
-          copy={copy}
-        />
+        {/* Desktop sidebar */}
+        <div className="desktop-only" style={{ flexDirection: "column", flexShrink: 0 }}>
+          <FilterSidebar
+            selectedSubjects={selectedSubjects} setSelectedSubjects={setSelectedSubjects}
+            selectedFormats={selectedFormats} setSelectedFormats={setSelectedFormats}
+            selectedCurriculum={selectedCurriculum} setSelectedCurriculum={setSelectedCurriculum}
+            selectedGrade={selectedGrade} setSelectedGrade={setSelectedGrade}
+            maxPrice={maxPrice} setMaxPrice={setMaxPrice}
+            onClear={clearFilters} hasFilters={hasFilters}
+            copy={copy}
+          />
+        </div>
 
         {/* Cards area */}
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Controls row */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-            <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
-              {copy.showing}{" "}
-              <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span>
-              {" "}{filtered.length === 1 ? copy.classWord : copy.classesWord}
-              {hasFilters && ` ${copy.matchingFilters}`}
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {/* Mobile filters button */}
+              <button
+                className="mobile-only"
+                onClick={() => setMobileFiltersOpen(true)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  backgroundColor: hasFilters ? "var(--accent-bg)" : "var(--bg-card)",
+                  border: `1px solid ${hasFilters ? "var(--accent-border)" : "var(--border-light)"}`,
+                  color: hasFilters ? "var(--accent)" : "var(--text-secondary)",
+                  borderRadius: 8, padding: "8px 14px",
+                  fontSize: 13, fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                <Target size={14} strokeWidth={2} />
+                {copy.filters}
+                {hasFilters && <span style={{ backgroundColor: "var(--accent)", color: "var(--accent-fg)", borderRadius: 99, width: 16, height: 16, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700 }}>
+                  {[selectedSubjects.length > 0, selectedFormats.length > 0, !!selectedCurriculum, !!selectedGrade, maxPrice < 2000].filter(Boolean).length}
+                </span>}
+              </button>
+              <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
+                {copy.showing}{" "}
+                <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span>
+                {" "}{filtered.length === 1 ? copy.classWord : copy.classesWord}
+                {hasFilters && ` ${copy.matchingFilters}`}
+              </span>
+            </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {hasFilters && (
                 <button onClick={clearFilters} style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
                   background: "none", border: "1px solid var(--border-light)", color: "var(--text-muted)",
                   borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer",
                 }}><X size={13} strokeWidth={2} /> {copy.clear}</button>
               )}
               <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)} style={{
-                backgroundColor: "var(--bg-card)", color: "var(--border)",
+                backgroundColor: "var(--bg-card)", color: "var(--text)",
                 border: "1px solid var(--border-light)", borderRadius: 10,
                 padding: "7px 12px", fontSize: 13, cursor: "pointer", outline: "none",
+                fontFamily: "inherit",
               }}>
                 <option value="newest">{copy.newest}</option>
                 <option value="price_asc">{copy.priceLowHigh}</option>

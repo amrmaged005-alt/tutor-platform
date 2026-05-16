@@ -1,11 +1,12 @@
-"use client";
+﻿"use client";
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
+import { BookOpen } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
 
-// ─── TYPES ─────────────────────────────────────────────────────────────────────
+// Types
 interface TutorClass {
   id: string;
   title: string;
@@ -45,7 +46,7 @@ interface TutorData {
   totalStudents: number;
 }
 
-// ─── SUBJECT COLORS ────────────────────────────────────────────────────────────
+// Subject colors
 const SUBJECT_COLORS: Record<string, string> = {
   Math: "var(--accent)", Mathematics: "var(--accent)", Physics: "#5d3a5f",
   Chemistry: "var(--success)", Biology: "var(--success)", English: "var(--rating)",
@@ -59,10 +60,10 @@ function subjectColor(s: string) {
 }
 
 const FORMAT_LABELS: Record<string, string> = {
-  IN_PERSON: "📍 In-Person", ONLINE: "💻 Online", HYBRID: "🔀 Hybrid",
+  IN_PERSON: "In-person", ONLINE: "Online", HYBRID: "Hybrid",
 };
 
-// ─── AVATAR ────────────────────────────────────────────────────────────────────
+// Avatar
 function Avatar({ name, photoUrl, size = 96 }: { name: string; photoUrl: string | null; size?: number }) {
   const colors = [["var(--accent)","var(--accent-hover)"],["#5d3a5f","var(--accent)"],["var(--success)","var(--success)"],["#8a5e1a","var(--warning)"],["#1c6e7a","var(--accent)"]];
   const pair = colors[(name.charCodeAt(0) ?? 0) % colors.length];
@@ -82,7 +83,7 @@ function Avatar({ name, photoUrl, size = 96 }: { name: string; photoUrl: string 
   );
 }
 
-// ─── STARS ─────────────────────────────────────────────────────────────────────
+// Stars
 function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <span style={{ color: "var(--rating)", fontSize: size, letterSpacing: 1 }}>
@@ -91,7 +92,7 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
   );
 }
 
-// ─── MINI SPOTS BAR ────────────────────────────────────────────────────────────
+// Mini spots bar
 function MiniBar({ capacity, booked, color }: { capacity: number; booked: number; color: string }) {
   const pct = Math.min((booked / capacity) * 100, 100);
   return (
@@ -102,7 +103,7 @@ function MiniBar({ capacity, booked, color }: { capacity: number; booked: number
   );
 }
 
-// ─── CLASS CARD (mini version for profile) ─────────────────────────────────────
+// Class card
 function ClassCard({ cls }: { cls: TutorClass }) {
   const color = subjectColor(cls.subject);
   const spotsLeft = cls.capacity !== null ? cls.capacity - cls.bookingsCount : null;
@@ -126,7 +127,7 @@ function ClassCard({ cls }: { cls: TutorClass }) {
           </span>
         </div>
         <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 14, marginBottom: 6, lineHeight: 1.3 }}>{cls.title}</div>
-        {cls.gradeLevel && <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 8 }}>{cls.gradeLevel} · {cls.curriculum}</div>}
+        {cls.gradeLevel && <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 8 }}>{cls.gradeLevel} - {cls.curriculum}</div>}
         {cls.description && (
           <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5, margin: "0 0 10px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
             {cls.description}
@@ -139,7 +140,7 @@ function ClassCard({ cls }: { cls: TutorClass }) {
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             {isFull && <span style={{ backgroundColor: "var(--bg-card)", color: "var(--error-border)", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>FULL</span>}
             {!isFull && spotsLeft !== null && spotsLeft <= 5 && (
-              <span style={{ backgroundColor: "var(--bg-card)", color: "var(--warning-bg)", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>🔥 {spotsLeft} left</span>
+              <span style={{ backgroundColor: "var(--bg-card)", color: "var(--warning)", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>{spotsLeft} left</span>
             )}
             <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{cls.bookingsCount} enrolled</span>
           </div>
@@ -150,7 +151,7 @@ function ClassCard({ cls }: { cls: TutorClass }) {
   );
 }
 
-// ─── REVIEW CARD ───────────────────────────────────────────────────────────────
+// Review card
 function ReviewCard({ review }: { review: TutorReview }) {
   return (
     <motion.div
@@ -176,7 +177,7 @@ function ReviewCard({ review }: { review: TutorReview }) {
   );
 }
 
-// ─── SECTION TITLE ─────────────────────────────────────────────────────────────
+// Section title
 function SectionTitle({ children, count }: { children: React.ReactNode; count?: number }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
@@ -189,7 +190,7 @@ function SectionTitle({ children, count }: { children: React.ReactNode; count?: 
   );
 }
 
-// ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
+// Main component
 export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorData; isOwner: boolean }) {
   const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
   const whatsappNumber = tutor.phone?.replace(/\D/g, "") ?? "";
@@ -217,16 +218,14 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "system-ui, -apple-system, sans-serif", color: "var(--text)", position: "relative" }}>
       <BackgroundFloaters count={3} />
 
-      {/* ── HERO BANNER ── */}
+      {/* Hero banner */}
       <div style={{
         position: "relative", overflow: "hidden",
-        background: `linear-gradient(135deg, var(--text) 0%, ${primaryColor}15 50%, var(--text) 100%)`,
+        background: `linear-gradient(135deg, var(--bg-alt) 0%, ${primaryColor}12 50%, var(--bg-card) 100%)`,
         borderBottom: "1px solid var(--border-light)",
         padding: "40px 24px 36px", zIndex: 1,
       }}>
-        {/* Grid */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `linear-gradient(rgba(24,23,21,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,21,0.06) 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />
-        {/* Glow */}
+        {/* Subtle subject wash */}
         <div style={{ position: "absolute", top: -100, right: -100, width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}20 0%, transparent 70%)`, pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: -60, left: -60, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}10 0%, transparent 70%)`, pointerEvents: "none" }} />
 
@@ -234,10 +233,10 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
           {/* Breadcrumb */}
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
             style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
-            <Link href="/tutors" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>← Back to Tutors</Link>
+            <Link href="/tutors" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>Back to Tutors</Link>
             {isOwner && (
               <Link href={`/tutors/${tutor.id}/edit`} style={{ backgroundColor: "var(--text-secondary)", color: "var(--text)", padding: "7px 16px", borderRadius: 9, fontSize: 13, fontWeight: 600, textDecoration: "none", border: "1px solid var(--border-light)" }}>
-                ✏️ Edit Profile
+                Edit Profile
               </Link>
             )}
           </motion.div>
@@ -255,7 +254,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                   {displayName}
                 </h1>
                 <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: "var(--bg-card)", color: "#1c6e7a", border: "1px solid #1c6e7a20", letterSpacing: 0.5 }}>
-                  ✓ Verified
+                  Verified
                 </span>
                 <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: tutor.role === "CENTER_ADMIN" ? "var(--text)" : "var(--text)", color: tutor.role === "CENTER_ADMIN" ? "var(--success)" : "#5d3a5f", border: "1px solid currentColor", letterSpacing: 0.5 }}>
                   {tutor.role === "CENTER_ADMIN" ? "CENTER ADMIN" : "TUTOR"}
@@ -264,11 +263,11 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
 
               {/* Location + center */}
               <p style={{ color: "var(--text-muted)", fontSize: 14, margin: "0 0 12px", display: "flex", alignItems: "center", gap: 5 }}>
-                <span>📍</span>
+                <span>Location</span>
                 <span>{tutor.center?.city ?? "Egypt"}</span>
                 {tutor.center && (
                   <>
-                    <span style={{ color: "var(--text-secondary)" }}>·</span>
+                    <span style={{ color: "var(--text-secondary)" }}>-</span>
                     <Link href={`/centers/${tutor.center.id}`} style={{ color: "#1c6e7a", textDecoration: "none", fontWeight: 600 }}>
                       {tutor.center.name}
                     </Link>
@@ -299,9 +298,9 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
               {/* Stats row */}
               <div style={{ display: "flex", gap: 28, marginBottom: 20, flexWrap: "wrap" }}>
                 {[
-                  { icon: "📚", value: tutor.classes.length, label: "Classes" },
-                  { icon: "👥", value: tutor.totalStudents, label: "Students" },
-                  { icon: "⭐", value: tutor.reviews.length, label: "Reviews" },
+                  { icon: "Classes", value: tutor.classes.length, label: "Classes" },
+                  { icon: "Students", value: tutor.totalStudents, label: "Students" },
+                  { icon: "Reviews", value: tutor.reviews.length, label: "Reviews" },
                 ].map(s => (
                   <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ fontSize: 16 }}>{s.icon}</span>
@@ -318,7 +317,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                 {tutor.phone ? (
                   <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer"
                     style={{ backgroundColor: "var(--success)", color: "var(--bg-card)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 14px rgba(13,89,70,0.25)" }}>
-                    💬 WhatsApp
+                    WhatsApp
                   </a>
                 ) : isOwner ? (
                   <Link href={`/tutors/${tutor.id}/edit`} style={{ backgroundColor: "var(--text-secondary)", color: "var(--text-muted)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 600, fontSize: 14 }}>
@@ -327,7 +326,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                 ) : null}
                 {tutor.classes.length > 0 && (
                   <a href="#classes" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}99)`, color: "var(--bg-card)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 700, fontSize: 14, boxShadow: `0 4px 14px ${primaryColor}40` }}>
-                    📚 View Classes
+                    View Classes
                   </a>
                 )}
                 {isOwner && (
@@ -341,7 +340,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
         </div>
       </div>
 
-      {/* ── BODY ── */}
+      {/* Body */}
       <div style={{ maxWidth: 920, margin: "0 auto", padding: "36px 24px 80px", position: "relative", zIndex: 1 }}>
 
         {/* Profile completion nudge */}
@@ -359,12 +358,12 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
               </div>
             </div>
             <Link href={`/tutors/${tutor.id}/edit`} style={{ backgroundColor: "var(--warning)", color: "var(--accent-fg)", padding: "8px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
-              Edit Profile →
+              Edit Profile
             </Link>
           </motion.div>
         )}
 
-        {/* ── ABOUT ── */}
+        {/* About */}
         {(tutor.bio || isOwner) && (
           <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "24px", marginBottom: 20 }}>
@@ -381,13 +380,13 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                 </p>
                 {tutor.bio.length > 300 && (
                   <button onClick={() => setBioExpanded(e => !e)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0 }}>
-                    {bioExpanded ? "Show less ↑" : "Read more ↓"}
+                    {bioExpanded ? "Show less" : "Read more"}
                   </button>
                 )}
               </>
             ) : (
               <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
-                No bio yet. <Link href={`/tutors/${tutor.id}/edit`} style={{ color: "var(--accent)" }}>Add one →</Link>
+                No bio yet. <Link href={`/tutors/${tutor.id}/edit`} style={{ color: "var(--accent)" }}>Add one</Link>
               </p>
             )}
 
@@ -395,9 +394,9 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
             {(tutor.classes.length > 0 || tutor.totalStudents > 0) && (
               <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
                 {[
-                  { icon: "📚", value: tutor.classes.length, label: "Active Classes" },
-                  { icon: "👥", value: tutor.totalStudents, label: "Total Students" },
-                  { icon: "⭐", value: tutor.reviews.length, label: "Reviews" },
+                  { icon: "Classes", value: tutor.classes.length, label: "Active Classes" },
+                  { icon: "Students", value: tutor.totalStudents, label: "Total Students" },
+                  { icon: "Reviews", value: tutor.reviews.length, label: "Reviews" },
                 ].map(s => (
                   <div key={s.label} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--text)", borderRadius: 12, padding: "14px 12px", textAlign: "center" }}>
                     <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
@@ -410,7 +409,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
           </motion.div>
         )}
 
-        {/* ── RATINGS & REVIEWS ── */}
+        {/* Ratings and reviews */}
         {tutor.reviews.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "24px", marginBottom: 20 }}>
@@ -449,13 +448,13 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
             {tutor.reviews.length > 3 && (
               <button onClick={() => setShowAllReviews(s => !s)}
                 style={{ marginTop: 16, width: "100%", backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-muted)", borderRadius: 10, padding: "10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                {showAllReviews ? "Show fewer reviews ↑" : `Show all ${tutor.reviews.length} reviews ↓`}
+                {showAllReviews ? "Show fewer reviews" : `Show all ${tutor.reviews.length} reviews`}
               </button>
             )}
           </motion.div>
         )}
 
-        {/* ── CLASSES ── */}
+        {/* Classes */}
         <motion.div id="classes" initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
             <SectionTitle count={tutor.classes.length}>Classes Offered</SectionTitle>
@@ -485,7 +484,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
 
           {tutor.classes.length === 0 ? (
             <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "48px 24px", textAlign: "center" }}>
-              <div style={{ fontSize: "3rem", marginBottom: 12 }}>📚</div>
+              <BookOpen size={44} strokeWidth={1.6} style={{ marginBottom: 12, color: "var(--text-muted)" }} aria-hidden="true" />
               <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: 20 }}>No classes yet.</p>
               {isOwner && (
                 <Link href="/create-class" style={{ display: "inline-block", background: "linear-gradient(135deg,var(--accent),var(--accent-hover))", color: "var(--accent-fg)", padding: "10px 24px", borderRadius: 10, textDecoration: "none", fontWeight: 700, fontSize: 14 }}>
@@ -495,7 +494,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
             </div>
           ) : filteredClasses.length === 0 ? (
             <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "32px", textAlign: "center", color: "var(--text-muted)" }}>
-              No classes for "{activeFilter}"
+              No classes for &quot;{activeFilter}&quot;
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
@@ -507,3 +506,4 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
     </div>
   );
 }
+

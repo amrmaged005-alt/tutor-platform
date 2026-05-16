@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { ChevronRight, Search, X, SlidersHorizontal } from "lucide-react";
 import TutorCard, { TutorCardData } from "./TutorCard";
 
 // ─── CONSTANTS ─────────────────────────────────────────────────────────────────
@@ -163,12 +164,145 @@ function FilterSidebar({
                 transition: "all 0.15s",
               }}
             >
-              {r === 0 ? "Any" : `${r}★`}
+              {r === 0 ? "Any" : `${r}+`}
             </button>
           ))}
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── MOBILE FILTER DRAWER ─────────────────────────────────────────────────────
+function MobileTutorFilterDrawer({
+  open, onClose,
+  selectedSubjects, setSelectedSubjects,
+  selectedCity, setSelectedCity,
+  minRating, setMinRating,
+  onClear,
+}: {
+  open: boolean; onClose: () => void;
+  selectedSubjects: string[]; setSelectedSubjects: (s: string[]) => void;
+  selectedCity: string; setSelectedCity: (c: string) => void;
+  minRating: number; setMinRating: (r: number) => void;
+  onClear: () => void;
+}) {
+  useEffect(() => {
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  function toggleSubject(s: string) {
+    setSelectedSubjects(selectedSubjects.includes(s) ? selectedSubjects.filter(x => x !== s) : [...selectedSubjects, s]);
+  }
+
+  const hasFilters = selectedSubjects.length > 0 || selectedCity !== "All Cities" || minRating > 0;
+
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed", inset: 0,
+          backgroundColor: "rgba(24,23,21,0.42)", backdropFilter: "blur(3px)",
+          zIndex: 997,
+          opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.25s ease",
+        }}
+      />
+      <div
+        role="dialog" aria-modal="true" aria-label="Filters"
+        style={{
+          position: "fixed", bottom: 0, left: 0, right: 0,
+          maxHeight: "80vh",
+          backgroundColor: "var(--bg-elevated)",
+          borderRadius: "20px 20px 0 0",
+          border: "1px solid var(--border-light)", borderBottom: "none",
+          zIndex: 998,
+          transform: open ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          display: "flex", flexDirection: "column",
+          boxShadow: "var(--shadow-xl)",
+          overflowY: "auto",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: "var(--border)" }} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 20px 16px" }}>
+          <span style={{ fontWeight: 700, fontSize: 16, color: "var(--text)" }}>Filters</span>
+          <button onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, lineHeight: 1, display: "inline-flex" }}>
+            <X size={20} strokeWidth={1.8} />
+          </button>
+        </div>
+
+        <div style={{ padding: "0 20px 24px", display: "flex", flexDirection: "column", gap: 24 }}>
+          {/* City */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>City</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {CITIES.map(city => (
+                <button key={city} onClick={() => setSelectedCity(city)} style={{
+                  padding: "7px 14px", borderRadius: 99, fontSize: 13, cursor: "pointer",
+                  background: selectedCity === city ? "var(--accent-bg)" : "var(--bg-card)",
+                  border: `1px solid ${selectedCity === city ? "var(--accent-border)" : "var(--border-light)"}`,
+                  color: selectedCity === city ? "var(--accent)" : "var(--text-secondary)",
+                  fontWeight: selectedCity === city ? 600 : 400,
+                }}>{city}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Subjects */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Subjects</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {ALL_SUBJECTS.map(s => {
+                const active = selectedSubjects.includes(s);
+                return (
+                  <button key={s} onClick={() => toggleSubject(s)} style={{
+                    padding: "5px 12px", borderRadius: 99, fontSize: 13, fontWeight: 500, cursor: "pointer",
+                    border: `1px solid ${active ? "var(--accent-border)" : "var(--border-light)"}`,
+                    backgroundColor: active ? "var(--accent-bg)" : "var(--bg-card)",
+                    color: active ? "var(--accent)" : "var(--text-secondary)",
+                    transition: "all 0.15s",
+                  }}>{s}</button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Min Rating */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Minimum Rating</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[0, 3, 4, 4.5].map(r => (
+                <button key={r} onClick={() => setMinRating(r)} style={{
+                  flex: 1, padding: "9px 6px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  border: `1px solid ${minRating === r ? "var(--accent-border)" : "var(--border-light)"}`,
+                  backgroundColor: minRating === r ? "var(--accent-bg)" : "var(--bg-card)",
+                  color: minRating === r ? "var(--accent)" : "var(--text-secondary)",
+                }}>{r === 0 ? "Any" : `${r}+`}</button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, paddingTop: 8 }}>
+            {hasFilters && (
+              <button onClick={() => { onClear(); onClose(); }} style={{
+                flex: 1, padding: "12px", borderRadius: 10, border: "1px solid var(--border)",
+                background: "var(--bg-card)", color: "var(--text)", fontSize: 14, fontWeight: 600, cursor: "pointer",
+              }}>Clear all</button>
+            )}
+            <button onClick={onClose} style={{
+              flex: 2, padding: "12px", borderRadius: 10, border: "none",
+              background: "var(--accent)", color: "var(--accent-fg)", fontSize: 14, fontWeight: 600, cursor: "pointer",
+            }}>Apply Filters</button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -194,6 +328,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
   const [selectedCity, setSelectedCity] = useState("All Cities");
   const [minRating, setMinRating] = useState(0);
   const [search, setSearch] = useState("");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   function toggleSubject(s: string) {
     setSelectedSubjects((prev) =>
@@ -233,6 +368,13 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-alt)", color: "var(--text)" }}>
+      <MobileTutorFilterDrawer
+        open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)}
+        selectedSubjects={selectedSubjects} setSelectedSubjects={setSelectedSubjects}
+        selectedCity={selectedCity} setSelectedCity={setSelectedCity}
+        minRating={minRating} setMinRating={setMinRating}
+        onClear={clearFilters}
+      />
 
       {/* Page header */}
       <div
@@ -246,9 +388,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
           {/* Breadcrumb */}
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
             <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Home</Link>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            <ChevronRight size={12} strokeWidth={2} aria-hidden />
             <span style={{ color: "var(--text)" }}>Tutors</span>
           </div>
 
@@ -256,7 +396,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
             Find Your Perfect Tutor
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
-            {tutors.length} verified tutors across Egypt — filter by subject, city, and rating.
+            {tutors.length} verified tutors across Egypt - filter by subject, city, and rating.
           </p>
 
           {/* Search bar */}
@@ -267,10 +407,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)",
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
+              <Search size={16} strokeWidth={2} aria-hidden />
             </div>
             <input
               type="text"
@@ -340,27 +477,55 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
           alignItems: "flex-start",
         }}
       >
-        {/* Sidebar */}
-        <FilterSidebar
-          selectedSubjects={selectedSubjects}
-          setSelectedSubjects={setSelectedSubjects}
-          selectedCity={selectedCity}
-          setSelectedCity={setSelectedCity}
-          minRating={minRating}
-          setMinRating={setMinRating}
-          onClear={clearFilters}
-        />
+        {/* Desktop sidebar */}
+        <div className="desktop-only" style={{ flexDirection: "column", flexShrink: 0 }}>
+          <FilterSidebar
+            selectedSubjects={selectedSubjects}
+            setSelectedSubjects={setSelectedSubjects}
+            selectedCity={selectedCity}
+            setSelectedCity={setSelectedCity}
+            minRating={minRating}
+            setMinRating={setMinRating}
+            onClear={clearFilters}
+          />
+        </div>
 
         {/* Cards area */}
         <div style={{ flex: 1, minWidth: 0 }}>
 
-          {/* Result count + clear */}
+          {/* Result count + controls */}
           <div style={{ marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <span style={{ color: "var(--text-secondary)", fontSize: 14 }}>
-              <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span>
-              {" "}tutor{filtered.length !== 1 ? "s" : ""}
-              {isFiltering ? " match your filters" : " available"}
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {/* Mobile filter button */}
+              <button
+                className="mobile-only"
+                onClick={() => setMobileFiltersOpen(true)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  backgroundColor: isFiltering ? "var(--accent-bg)" : "var(--bg-card)",
+                  border: `1px solid ${isFiltering ? "var(--accent-border)" : "var(--border-light)"}`,
+                  color: isFiltering ? "var(--accent)" : "var(--text-secondary)",
+                  borderRadius: 8, padding: "8px 14px",
+                  fontSize: 13, fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                <SlidersHorizontal size={14} strokeWidth={2} />
+                Filters
+                {isFiltering && <span style={{
+                  backgroundColor: "var(--accent)", color: "var(--accent-fg)",
+                  borderRadius: 99, width: 16, height: 16,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, fontWeight: 700,
+                }}>
+                  {[selectedSubjects.length > 0, selectedCity !== "All Cities", minRating > 0].filter(Boolean).length}
+                </span>}
+              </button>
+              <span style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+                <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span>
+                {" "}tutor{filtered.length !== 1 ? "s" : ""}
+                {isFiltering ? " match your filters" : " available"}
+              </span>
+            </div>
             {isFiltering && (
               <button
                 onClick={clearFilters}
@@ -373,12 +538,12 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: "pointer",
-                  display: "flex",
+                  display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
                 }}
               >
-                ✕ Clear filters
+                <X size={13} strokeWidth={2} /> Clear filters
               </button>
             )}
           </div>
@@ -399,10 +564,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 }}
               >
                 <div style={{ marginBottom: 16, color: "var(--border)" }}>
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto", display: "block" }}>
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
+                  <Search size={48} strokeWidth={1.5} style={{ margin: "0 auto", display: "block" }} aria-hidden />
                 </div>
                 <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 17, marginBottom: 8 }}>
                   No tutors found
@@ -451,7 +613,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                   <section>
                     <SectionTitle
                       title="Top Rated Tutors"
-                      subtitle="Consistently rated 4.5★ or higher by their students"
+                      subtitle="Consistently rated 4.5+ by their students"
                     />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
                       {featured.map((t, i) => <TutorCard key={t.id} tutor={t} index={i} />)}
@@ -475,7 +637,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                   <section>
                     <SectionTitle
                       title="New on Coursaty"
-                      subtitle="Fresh tutors — be among their first students"
+                      subtitle="Fresh tutors - be among their first students"
                     />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
                       {newTutors.map((t, i) => <TutorCard key={t.id} tutor={t} index={i} />)}

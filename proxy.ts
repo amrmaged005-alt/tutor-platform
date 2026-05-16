@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const PROTECTED_ROUTES: Record<string, string[]> = {
-  "/admin":               ["ADMIN"],
-  "/create-class":        ["TUTOR", "CENTER_ADMIN", "ADMIN"],
-  "/dashboard":           ["STUDENT", "TUTOR", "CENTER_ADMIN", "ADMIN"],
-  "/api/bookings":        ["STUDENT", "ADMIN"],
-  "/api/classes/create":  ["TUTOR", "CENTER_ADMIN", "ADMIN"],
-  "/api/reviews":         ["STUDENT", "ADMIN"],
+  "/admin": ["ADMIN"],
+  "/create-class": ["TUTOR", "CENTER_ADMIN", "ADMIN"],
+  "/dashboard": ["STUDENT", "TUTOR", "CENTER_ADMIN", "ADMIN"],
+  "/api/bookings": ["STUDENT", "ADMIN"],
+  "/api/classes/create": ["TUTOR", "CENTER_ADMIN", "ADMIN"],
+  "/api/reviews": ["STUDENT", "ADMIN"],
 };
 
-export default async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   for (const [route, allowedRoles] of Object.entries(PROTECTED_ROUTES)) {

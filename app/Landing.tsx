@@ -1,671 +1,1244 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useInView, useMotionValue, useMotionValueEvent, useReducedMotion, useSpring, useTransform } from "framer-motion";
+import type { MotionValue } from "framer-motion";
 import Link from "next/link";
-import { useI18n } from "@/app/components/i18n";
+import {
+  ArrowRight,
+  Award,
+  BookOpen,
+  CheckCircle,
+  Clock,
+  GraduationCap,
+  LayoutDashboard,
+  MapPin,
+  MessageSquare,
+  Monitor,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
 
-// ── Animated number counter ───────────────────────────────────────────────────
+interface LandingStats {
+  tutors: number;
+  classes: number;
+  bookings: number;
+}
+
+interface FeaturedTutor {
+  id: string;
+  fullName: string | null;
+  name: string | null;
+  bio: string | null;
+  subjects: string[];
+  photoUrl: string | null;
+  city: string | null;
+  center: { id: string; name: string } | null;
+  classCount: number;
+  studentCount: number;
+  avgRating: number | null;
+  reviewCount: number;
+  isVerified: boolean;
+}
+
+interface FeaturedClass {
+  id: string;
+  title: string;
+  subject: string;
+  description: string | null;
+  city: string;
+  location: string | null;
+  priceEgp: number;
+  capacity: number | null;
+  schedule: string | null;
+  format: string;
+  curriculum: string;
+  gradeLevel: string | null;
+  language: string;
+  bookingsCount: number;
+  spotsLeft: number | null;
+  avgRating: number | null;
+  reviewCount: number;
+  center: { id: string; name: string; city: string } | null;
+  owner: {
+    id: string;
+    fullName: string | null;
+    name: string | null;
+    photoUrl: string | null;
+    isVerified: boolean;
+  } | null;
+}
+
+const BOOK_CSS = `
+.book-landing {
+  --paper: #fbfaf6;
+  --paper-alt: #f4efe2;
+  --paper-edge: #ddd3bd;
+  --paper-shadow: rgba(24,23,21,0.16);
+  --paper-gutter: rgba(24,23,21,0.10);
+  --paper-line: rgba(24,23,21,0.08);
+  --sheet: rgba(255,255,255,0.58);
+  --sheet-strong: rgba(255,255,255,0.72);
+  --sheet-border: rgba(216,212,199,0.86);
+  --wash-a: rgba(13,89,70,0.055);
+  --wash-b: rgba(138,90,20,0.05);
+  --bookmark-bg: color-mix(in srgb, var(--bg-card) 90%, transparent);
+  --book-backdrop:
+    radial-gradient(ellipse at 50% 0%, rgba(13,89,70,0.10), transparent 42%),
+    linear-gradient(180deg, var(--bg), var(--bg-alt));
+  --ink: var(--text);
+  --muted: var(--text-secondary);
+  --chapter: var(--accent);
+  --chapter-soft: var(--accent-bg);
+  background: var(--book-backdrop);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+}
+:root[data-theme="dark"] .book-landing {
+  --paper: #242218;
+  --paper-alt: #1d1b14;
+  --paper-edge: #494431;
+  --paper-shadow: rgba(0,0,0,0.58);
+  --paper-gutter: rgba(0,0,0,0.42);
+  --paper-line: rgba(240,238,229,0.10);
+  --sheet: rgba(42,40,32,0.78);
+  --sheet-strong: rgba(49,46,36,0.92);
+  --sheet-border: rgba(87,82,62,0.92);
+  --wash-a: rgba(63,174,140,0.08);
+  --wash-b: rgba(198,146,86,0.07);
+  --bookmark-bg: rgba(35,33,24,0.90);
+  --book-backdrop:
+    radial-gradient(ellipse at 50% 0%, rgba(63,174,140,0.13), transparent 44%),
+    linear-gradient(180deg, #15140f, #1c1b15);
+  --ink: var(--text);
+  --muted: #c9c5b8;
+}
+.book-landing * { box-sizing: border-box; }
+.book-shell {
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+}
+.book-scroll {
+  position: relative;
+  height: calc(var(--page-count) * 100svh);
+}
+.book-stage {
+  position: sticky;
+  top: 64px;
+  height: calc(100svh - 64px);
+  width: 100%;
+  overflow: hidden;
+  perspective: 1800px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+}
+.book-anchor {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  scroll-margin-top: 64px;
+}
+.book-layer {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+.book-spread {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  background: linear-gradient(90deg, var(--paper), var(--paper-alt));
+  border: 1px solid var(--border-light);
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+  box-shadow: 0 18px 46px var(--paper-shadow), 0 4px 12px rgba(24,23,21,0.05);
+  overflow: hidden;
+  isolation: isolate;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+.book-spread::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent calc(50% - 18px), var(--paper-gutter) 50%, transparent calc(50% + 18px)),
+    radial-gradient(circle at 18% 8%, var(--wash-a), transparent 30%),
+    radial-gradient(circle at 82% 90%, var(--wash-b), transparent 32%);
+  z-index: 1;
+}
+.book-spread::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 10px;
+  background: repeating-linear-gradient(to bottom, var(--paper-edge) 0 2px, color-mix(in srgb, var(--paper-edge) 72%, var(--ink)) 2px 4px);
+  opacity: 0.72;
+  z-index: 2;
+}
+.page-turn-leaf {
+  position: absolute;
+  inset: 0 0 0 50%;
+  z-index: 4;
+  pointer-events: none;
+  transform-origin: left center;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--paper) 92%, transparent), color-mix(in srgb, var(--paper-alt) 76%, transparent)),
+    radial-gradient(circle at 100% 50%, var(--paper-gutter), transparent 36%);
+  border-left: 1px solid var(--paper-line);
+  box-shadow: -18px 0 28px rgba(0,0,0,0.14);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+.book-page {
+  min-width: 0;
+  position: relative;
+  z-index: 3;
+  padding: clamp(28px, 4vw, 54px);
+  display: flex;
+  flex-direction: column;
+}
+.book-page.left { border-right: 1px solid var(--paper-line); }
+.chapter-tab {
+  position: absolute;
+  top: 24px;
+  right: -1px;
+  z-index: 5;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  background: var(--chapter);
+  color: var(--accent-fg);
+  border-radius: 8px 0 0 8px;
+  padding: 12px 7px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-sm);
+}
+.chapter-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--chapter);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.chapter-kicker::before {
+  content: "";
+  width: 28px;
+  height: 1px;
+  background: var(--chapter);
+}
+.book-heading {
+  font-size: clamp(2rem, 4.8vw, 4.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  margin: 0 0 22px;
+  color: var(--ink);
+  font-weight: 850;
+}
+.book-heading.medium {
+  font-size: clamp(1.8rem, 3.4vw, 3rem);
+  line-height: 1.06;
+}
+.book-copy {
+  color: var(--muted);
+  font-size: clamp(1rem, 1.4vw, 1.12rem);
+  line-height: 1.72;
+  margin: 0;
+}
+.book-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+.book-btn,
+.book-btn-secondary {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 0 18px;
+  text-decoration: none;
+  font-weight: 750;
+  font-size: 14px;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.book-btn { background: var(--accent); color: var(--accent-fg); border: 1px solid var(--accent); }
+.book-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.book-btn-secondary { background: rgba(251,250,246,0.48); color: var(--ink); border: 1px solid var(--border); }
+.book-btn-secondary { background: var(--sheet); }
+.book-btn-secondary:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.cover-visual {
+  position: relative;
+  min-height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cover-stack {
+  width: min(360px, 100%);
+  aspect-ratio: 0.72;
+  position: relative;
+  transform-style: preserve-3d;
+}
+.cover-board,
+.cover-page-front,
+.cover-page-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px 12px 12px 18px;
+  transform-origin: left center;
+}
+.cover-board {
+  background: linear-gradient(145deg, #0d5946, #073327);
+  box-shadow: 0 30px 60px rgba(13,89,70,0.25), inset 8px 0 18px rgba(255,255,255,0.08);
+  color: #fbfaf6;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.cover-page-front {
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  transform: translateX(42px) rotateY(-18deg) rotateZ(1deg);
+  box-shadow: 0 18px 42px rgba(24,23,21,0.14);
+}
+.cover-page-back {
+  background: var(--paper-alt);
+  border: 1px solid var(--paper-edge);
+  transform: translateX(22px) rotateY(-10deg) rotateZ(-1deg);
+}
+.cover-lines {
+  padding: 28px;
+  display: grid;
+  gap: 12px;
+}
+.cover-lines span {
+  display: block;
+  height: 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--chapter) 20%, transparent);
+}
+.cover-lines span:nth-child(1) { width: 70%; height: 13px; }
+.cover-lines span:nth-child(2) { width: 52%; }
+.cover-lines span:nth-child(3) { width: 82%; }
+.cover-lines span:nth-child(4) { width: 46%; }
+.toc-grid {
+  display: grid;
+  gap: 12px;
+}
+.toc-card,
+.catalog-card,
+.trust-card,
+.outcome-note,
+.stat-card {
+  background: var(--sheet);
+  border: 1px solid var(--sheet-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-xs);
+}
+.toc-card {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  color: inherit;
+  text-decoration: none;
+}
+.toc-num {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--chapter-soft);
+  color: var(--chapter);
+  display: grid;
+  place-items: center;
+  font-weight: 850;
+  font-size: 13px;
+}
+.toc-card strong { display: block; margin-bottom: 3px; }
+.toc-card span { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.step-list {
+  display: grid;
+  gap: 14px;
+}
+.step-row {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--sheet);
+  border: 1px solid var(--sheet-border);
+}
+.step-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--chapter-soft);
+  color: var(--chapter);
+}
+.step-row h3,
+.catalog-card h3,
+.trust-card h3,
+.outcome-note h3 {
+  margin: 0 0 5px;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.3;
+}
+.step-row p,
+.catalog-card p,
+.trust-card p,
+.outcome-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.62;
+}
+.catalog-grid,
+.trust-grid,
+.outcome-grid {
+  display: grid;
+  gap: 14px;
+}
+.catalog-card {
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.catalog-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-md);
+}
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.avatar-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--chapter-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--chapter);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-weight: 850;
+}
+.badge-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+.book-badge {
+  border: 1px solid var(--sheet-border);
+  background: var(--sheet-strong);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.meta-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.trust-card,
+.outcome-note,
+.stat-card {
+  padding: 18px;
+}
+.trust-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--chapter-soft);
+  color: var(--chapter);
+  margin-bottom: 14px;
+}
+.annotation {
+  border-left: 3px solid var(--chapter);
+  background: color-mix(in srgb, var(--chapter-soft) 78%, transparent);
+  padding: 16px 18px;
+  border-radius: 0 12px 12px 0;
+  color: var(--muted);
+  line-height: 1.65;
+  font-size: 14px;
+}
+.bookmark-rail {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: min(1040px, calc(100vw - 24px));
+  margin: 0 auto;
+  display: flex;
+  gap: 8px;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.bookmark-rail::-webkit-scrollbar { display: none; }
+.bookmark-rail a {
+  flex: 0 0 auto;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  padding: 0 12px;
+  background: var(--bookmark-bg);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 750;
+}
+.bookmark-rail a.active {
+  color: var(--ink);
+  border-color: var(--accent-border);
+  background: var(--sheet-strong);
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+}
+.stat-card strong {
+  display: block;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-landing *, .book-landing *::before, .book-landing *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+@media (max-height: 760px) and (min-width: 901px) {
+  .book-page { padding: 28px clamp(32px, 4vw, 48px); }
+  .book-heading {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    margin-bottom: 16px;
+  }
+  .book-heading.medium { font-size: clamp(1.7rem, 3vw, 2.6rem); }
+  .book-copy {
+    font-size: 1rem;
+    line-height: 1.58;
+  }
+  .book-actions { margin-top: 22px; }
+  .stat-card { padding: 12px; }
+  .cover-visual { min-height: 360px; }
+}
+@media (max-width: 900px) {
+  .book-stage { perspective: none; }
+  .book-spread {
+    grid-template-columns: 1fr;
+    min-height: 100%;
+    border-radius: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .book-spread::before {
+    background:
+      linear-gradient(180deg, transparent 0, var(--paper-line) 50%, transparent 100%),
+      radial-gradient(circle at 18% 8%, var(--wash-a), transparent 28%);
+  }
+  .page-turn-leaf { display: none; }
+  .book-page {
+    padding: 24px 22px 84px;
+  }
+  .book-heading {
+    font-size: clamp(1.95rem, 9vw, 2.55rem);
+    line-height: 1.02;
+    margin-bottom: 18px;
+  }
+  .book-heading.medium { font-size: clamp(1.75rem, 8vw, 2.25rem); }
+  .book-copy {
+    font-size: 1rem;
+    line-height: 1.62;
+  }
+  .book-actions { margin-top: 22px; }
+  .stat-card { padding: 13px; }
+  .book-page.left {
+    border-right: 0;
+    border-bottom: 1px solid var(--paper-line);
+  }
+  .cover-visual { min-height: 320px; }
+  .chapter-tab { display: none; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .book-shell { width: 100%; }
+  .bookmark-rail { width: min(100vw - 20px, 1180px); }
+  .book-actions { flex-direction: column; }
+  .book-btn, .book-btn-secondary { width: 100%; }
+  .toc-card { grid-template-columns: 38px 1fr; }
+  .toc-card svg { display: none; }
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+`;
+
+const TOC = [
+  { id: "find", title: "Find a tutor", desc: "Search by subject, curriculum, location, and format." },
+  { id: "compare", title: "Compare classes", desc: "Review prices, schedules, seats, ratings, and profiles." },
+  { id: "book", title: "Book a session", desc: "Reserve a seat and keep every booking organized." },
+  { id: "learn", title: "Start learning", desc: "Move from scattered search to academic support faster." },
+];
+
+const STEPS = [
+  { title: "Search", desc: "Filter by subject, grade, curriculum, location, format, and price.", icon: Search },
+  { title: "Compare", desc: "Read profiles, ratings, class details, and availability before committing.", icon: TrendingUp },
+  { title: "Book", desc: "Reserve a seat and keep the booking visible in your dashboard.", icon: CheckCircle },
+  { title: "Learn", desc: "Attend the class, contact the tutor, and stay organized from one place.", icon: GraduationCap },
+];
+
+const TRUST = [
+  { title: "Verified tutors", desc: "Profiles are reviewed so students and parents have a stronger starting point.", icon: ShieldCheck },
+  { title: "Organized booking", desc: "Classes, seats, payment status, and schedules live in one structured flow.", icon: LayoutDashboard },
+  { title: "Payment-ready", desc: "Online and in-person options support different class formats and local needs.", icon: Award },
+  { title: "Less chat chaos", desc: "Coursaty turns scattered WhatsApp discovery into searchable, comparable choices.", icon: MessageSquare },
+];
+
+const CHAPTER_LABELS = ["Cover", "Contents", "How it works", "Discovery", "Trust", "Outcomes"];
+
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
+  const prefersReduced = useReducedMotion();
 
   useEffect(() => {
     if (!inView) return;
-    const step = target / (900 / 16);
-    let current = 0;
-    const timer = setInterval(() => {
-      current += step;
-      if (current >= target) { setCount(target); clearInterval(timer); }
-      else setCount(Math.floor(current));
-    }, 16);
-    return () => clearInterval(timer);
-  }, [inView, target]);
+    if (prefersReduced) return;
 
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+    const step = Math.max(target / (900 / 16), 1);
+    let current = 0;
+    const timer = window.setInterval(() => {
+      current += step;
+      if (current >= target) {
+        setCount(target);
+        window.clearInterval(timer);
+      } else {
+        setCount(Math.floor(current));
+      }
+    }, 16);
+
+    return () => window.clearInterval(timer);
+  }, [inView, prefersReduced, target]);
+
+  const display = prefersReduced ? target : count;
+  return <span ref={ref}>{display.toLocaleString()}{suffix}</span>;
 }
 
-// ── FAQ accordion item ────────────────────────────────────────────────────────
-function FAQItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
+interface BookPageData {
+  id: string;
+  tab: string;
+  left: React.ReactNode;
+  right: React.ReactNode;
+}
+
+function BookLayer({
+  page,
+  index,
+  total,
+  progress,
+  activeIndex,
+  simpleMotion,
+}: {
+  page: BookPageData;
+  index: number;
+  total: number;
+  progress: MotionValue<number>;
+  activeIndex: number;
+  simpleMotion: boolean;
+}) {
+  const step = 1 / Math.max(total - 1, 1);
+  const center = index * step;
+  const before = index === 0 ? 0 : center - step;
+  const at = index === 0 ? step * 0.001 : index === total - 1 ? 1 - step * 0.001 : center;
+  const after = index === total - 1 ? 1 : center + step;
+  const inputRange = [before, at, after];
+  const opacityInput = index === 0
+    ? [0, step * 0.18, step * 0.58, step]
+    : index === total - 1
+      ? [center - step * 0.58, center - step * 0.18, 1 - step * 0.001, 1]
+      : [center - step * 0.58, center - step * 0.18, center + step * 0.18, center + step * 0.58];
+  const opacityOutput = index === 0
+    ? [1, 1, 0, 0]
+    : index === total - 1
+      ? [0, 1, 1, 1]
+      : [0, 1, 1, 0];
+  const incomingX = simpleMotion ? 34 : 82;
+  const outgoingX = simpleMotion ? -28 : -96;
+  const incomingRotate = simpleMotion ? 0 : 34;
+  const outgoingRotate = simpleMotion ? 0 : -62;
+
+  const opacity = useTransform(progress, opacityInput, opacityOutput);
+  const x = useTransform(progress, inputRange, index === 0
+    ? [0, 0, outgoingX]
+    : index === total - 1
+      ? [incomingX, 0, 0]
+      : [incomingX, 0, outgoingX]
+  );
+  const y = useTransform(progress, inputRange, simpleMotion
+    ? index === 0
+      ? [0, 0, -18]
+      : index === total - 1
+        ? [24, 0, 0]
+        : [24, 0, -18]
+    : [0, 0, 0]
+  );
+  const rotateY = useTransform(progress, inputRange, index === 0
+    ? [0, 0, outgoingRotate]
+    : index === total - 1
+      ? [incomingRotate, 0, 0]
+      : [incomingRotate, 0, outgoingRotate]
+  );
+  const scale = useTransform(progress, inputRange, index === 0
+    ? [1, 1, 0.982]
+    : index === total - 1
+      ? [0.982, 1, 1]
+      : [0.982, 1, 0.982]
+  );
+  const leafInput = index === total - 1
+    ? [0, 0.33, 0.66, 1]
+    : [center, center + step * 0.22, center + step * 0.55, after];
+  const leafOpacity = useTransform(progress, leafInput, simpleMotion || index === total - 1
+    ? [0, 0, 0, 0]
+    : [0, 0.34, 0.2, 0]
+  );
+  const leafRotate = useTransform(progress, index === total - 1 ? [0, 1] : [center, after], [0, -112]);
+
+  const isInteractive = activeIndex === index;
+
   return (
-    <div
-      onClick={() => setOpen(o => !o)}
+    <motion.article
+      className="book-layer"
+      aria-hidden={!isInteractive}
       style={{
-        borderBottom: "1px solid var(--border-light)",
-        padding: "1.25rem 0",
-        cursor: "pointer",
+        opacity,
+        x,
+        y,
+        rotateY,
+        scale,
+        zIndex: total - index,
+        pointerEvents: isInteractive ? "auto" : "none",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-        <span style={{ color: "var(--text)", fontWeight: 600, fontSize: 16, lineHeight: 1.4 }}>{q}</span>
-        <span style={{
-          color: "var(--text-muted)", fontSize: 20, fontWeight: 300, flexShrink: 0,
-          transform: open ? "rotate(45deg)" : "rotate(0deg)",
-          transition: "transform 0.2s",
-          display: "inline-block",
-        }}>+</span>
+      <div className="book-spread">
+        <motion.div
+          className="page-turn-leaf"
+          style={{
+            rotateY: leafRotate,
+            opacity: leafOpacity,
+          }}
+        />
+        <div className="chapter-tab">{page.tab}</div>
+        <div className="book-page left">{page.left}</div>
+        <div className="book-page right">{page.right}</div>
       </div>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            style={{ overflow: "hidden" }}
-          >
-            <p style={{ color: "var(--text-secondary)", fontSize: 15, marginTop: 12, lineHeight: 1.75 }}>{a}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    </motion.article>
+  );
+}
+
+function BookScroller({ pages }: { pages: BookPageData[] }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const prefersReduced = useReducedMotion();
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const rawProgress = useMotionValue(0);
+  const smoothProgress = useSpring(rawProgress, {
+    stiffness: 220,
+    damping: 34,
+    mass: 0.18,
+  });
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 900px)");
+    const sync = () => setIsMobile(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const el = ref.current;
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const scrollable = Math.max(rect.height - window.innerHeight, 1);
+      const next = Math.min(1, Math.max(0, -rect.top / scrollable));
+      rawProgress.set(next);
+    };
+
+    const schedule = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [rawProgress]);
+
+  useMotionValueEvent(rawProgress, "change", (latest) => {
+    const nextIndex = Math.min(pages.length - 1, Math.max(0, Math.round(latest * (pages.length - 1))));
+    setActiveIndex((current) => current === nextIndex ? current : nextIndex);
+  });
+
+  const simpleMotion = Boolean(prefersReduced || isMobile);
+
+  return (
+    <>
+      <nav className="bookmark-rail" aria-label="Landing page chapters">
+        {pages.map((page, index) => (
+          <a key={page.id} href={`#${page.id}`} className={activeIndex === index ? "active" : undefined}>
+            {CHAPTER_LABELS[index] ?? page.tab}
+          </a>
+        ))}
+      </nav>
+
+      <div
+        ref={ref}
+        className="book-scroll"
+        style={{ "--page-count": pages.length, position: "relative" } as React.CSSProperties}
+      >
+        {pages.map((page, index) => (
+          <span
+            key={`${page.id}-anchor`}
+            id={page.id}
+            className="book-anchor"
+            style={{ top: `${(index / pages.length) * 100}%` }}
+          />
+        ))}
+
+        <div className="book-stage">
+          {pages.map((page, index) => (
+            <BookLayer
+              key={page.id}
+              page={page}
+              index={index}
+              total={pages.length}
+              progress={simpleMotion ? rawProgress : smoothProgress}
+              activeIndex={activeIndex}
+              simpleMotion={simpleMotion}
+            />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ChapterKicker({ children }: { children: React.ReactNode }) {
+  return <div className="chapter-kicker">{children}</div>;
+}
+
+function StatCard({ value, suffix, label }: { value: number; suffix?: string; label: string }) {
+  return (
+    <div className="stat-card">
+      <strong><Counter target={value} suffix={suffix} /></strong>
+      <span>{label}</span>
     </div>
   );
 }
 
-// ── Icon glyph ────────────────────────────────────────────────────────────────
-function Check({ size = 14 }: { size?: number }) {
+function CoverVisual() {
+  const prefersReduced = useReducedMotion();
   return (
-    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" aria-hidden>
-      <path d="M3 7.5l2.5 2.5L11 4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function Arrow({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// ── Data ──────────────────────────────────────────────────────────────────────
-const STATS = [
-  { value: 50,  suffix: "+", label: "Active Classes" },
-  { value: 20,  suffix: "+", label: "Verified Tutors" },
-  { value: 200, suffix: "+", label: "Seats Booked" },
-  { value: 7,   suffix: "",  label: "Curricula" },
-];
-
-const FEATURES = [
-  { title: "Verified Tutors",     desc: "Every tutor is reviewed before going live. No strangers — only qualified educators with a track record." },
-  { title: "All Curricula",       desc: "National, IGCSE, American, IB, French System, STEM — every Egyptian school system in one place." },
-  { title: "Instant Booking",     desc: "Browse classes, check schedules, and confirm your seat in under 60 seconds. No phone calls needed." },
-  { title: "Direct Contact",      desc: "Message tutors and centers directly. No middleman, no friction, no app downloads required." },
-  { title: "Learning Centers",    desc: "Established centers and independent tutors, side by side, with the same trust signals." },
-  { title: "Student Dashboard",   desc: "Track bookings, manage upcoming classes, and access materials from a single organized place." },
-];
-
-const STEPS = [
-  { num: "1", title: "Search",  desc: "Filter by subject, grade, curriculum, area, and price to find the right class." },
-  { num: "2", title: "Compare", desc: "Review tutors and centers side by side — credentials, schedules, ratings, fees." },
-  { num: "3", title: "Book",    desc: "Confirm your seat instantly. Your booking is tracked in your dashboard." },
-  { num: "4", title: "Learn",   desc: "Attend, message your tutor, and manage everything from one place." },
-];
-
-const TESTIMONIALS = [
-  { name: "Layla Hassan",  role: "Student · Grade 11", text: "Found an IGCSE Physics tutor in Nasr City within five minutes. My grades went from C to A in one term." },
-  { name: "Ahmed Karim",   role: "Parent",             text: "The verification process gave me confidence. My daughter loves her Chemistry tutor — I'd recommend Coursaty to any family." },
-  { name: "Sara Mahmoud",  role: "Private Tutor",      text: "I used to rely on word of mouth. Now I get three to four new students a month, just from my Coursaty profile." },
-];
-
-const FAQS = [
-  { q: "Is Coursaty free to use?",            a: "Browsing and booking is completely free for students and parents. Tutors and centers pay nothing to list." },
-  { q: "How do I know tutors are qualified?", a: "Every tutor profile is reviewed before going live. We collect ongoing student feedback to maintain quality." },
-  { q: "What subjects are available?",        a: "Math, Physics, Chemistry, Biology, English, Arabic, History, Geography, Computer Science, and more." },
-  { q: "Can I book a learning center?",       a: "Yes. Learning centers have their own profile pages with all classes listed — you can book directly from their page." },
-  { q: "What if I need to cancel?",           a: "You can cancel any booking from your dashboard. Cancellation rules depend on the tutor or center's policy." },
-  { q: "Which curricula do you support?",     a: "Thanaweya Amma, IGCSE, American Diploma, IB, French System, and STEM schools." },
-];
-
-const CURRICULA = ["Thanaweya Amma", "IGCSE", "American Diploma", "IB", "French System", "STEM"];
-
-const TRUST_POINTS = [
-  "Verified tutors",
-  "Instant booking",
-  "All curricula",
-  "Trusted centers",
-  "Transparent fees",
-];
-
-// ── Section wrapper ───────────────────────────────────────────────────────────
-function Section({
-  children,
-  bg = "var(--bg)",
-  style,
-}: {
-  children: React.ReactNode;
-  bg?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <section style={{ backgroundColor: bg, padding: "5rem 1.5rem", borderBottom: "1px solid var(--border-light)", ...style }}>
-      <div style={{ maxWidth: 1140, margin: "0 auto" }}>{children}</div>
-    </section>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{
-      display: "inline-block",
-      color: "var(--accent)",
-      fontSize: 11,
-      fontWeight: 700,
-      letterSpacing: "0.14em",
-      textTransform: "uppercase",
-      marginBottom: "0.875rem",
-    }}>
-      {children}
-    </div>
-  );
-}
-
-// ── Main Component ────────────────────────────────────────────────────────────
-export default function Landing() {
-  const { t } = useI18n();
-  return (
-    <div style={{ fontFamily: "var(--font-sans)", backgroundColor: "var(--bg)", overflowX: "hidden" }}>
-
-      {/* ══ HERO ═══════════════════════════════════════════════════════════════ */}
-      <section style={{
-        backgroundColor: "var(--bg)",
-        borderBottom: "1px solid var(--border-light)",
-        padding: "5rem 1.5rem 4.5rem",
-        textAlign: "center",
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Subtle texture */}
-        <div style={{
-          position: "absolute", inset: 0,
-          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(24,23,21,0.06) 1px, transparent 0)",
-          backgroundSize: "32px 32px",
-          pointerEvents: "none",
-          opacity: 0.6,
-          maskImage: "radial-gradient(ellipse at center, black 40%, transparent 75%)",
-        }} />
-
-        <div style={{ maxWidth: 820, margin: "0 auto", position: "relative" }}>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              backgroundColor: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              borderRadius: 99, padding: "6px 14px",
-              marginBottom: "1.75rem",
-              boxShadow: "var(--shadow-xs)",
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "var(--accent)", display: "inline-block" }} />
-              <span style={{ color: "var(--text-secondary)", fontSize: 12.5, fontWeight: 600, letterSpacing: "0.01em" }}>
-                {t("hero.tag")}
-              </span>
+    <motion.div
+      className="cover-visual"
+      initial={prefersReduced ? { opacity: 0 } : { opacity: 0, rotateY: -10, y: 18 }}
+      animate={{ opacity: 1, rotateY: 0, y: 0 }}
+      transition={{ duration: prefersReduced ? 0.12 : 0.72, ease: "easeOut" }}
+      aria-hidden="true"
+    >
+      <div className="cover-stack">
+        <div className="cover-page-back" />
+        <div className="cover-page-front">
+          <div className="cover-lines">
+            <span /><span /><span /><span />
+          </div>
+        </div>
+        <div className="cover-board">
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", opacity: 0.72 }}>
+              Coursaty Field Guide
             </div>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.08 }}
-            style={{
-              fontSize: "clamp(2.4rem, 5.4vw, 3.75rem)",
-              fontWeight: 800,
-              color: "var(--text)",
-              lineHeight: 1.1,
-              letterSpacing: "-0.035em",
-              margin: "0 auto 1.25rem",
-              maxWidth: 740,
-            }}
-          >
-            {t("hero.title")}
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            style={{
-              fontSize: "clamp(1.05rem, 2.4vw, 1.18rem)",
-              color: "var(--text-secondary)",
-              maxWidth: 560,
-              margin: "0 auto 2.25rem",
-              lineHeight: 1.65,
-            }}
-          >
-            {t("hero.subtitle")}
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.22 }}
-            style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", justifyContent: "center", marginBottom: "2.75rem" }}
-          >
-            <Link href="/classes" className="btn-primary" style={{ padding: "12px 22px", fontSize: 15 }}>
-              {t("hero.browseClasses")} <Arrow />
-            </Link>
-            <Link href="/tutors" className="btn-secondary" style={{ padding: "12px 22px", fontSize: 15 }}>
-              {t("hero.findTutor")}
-            </Link>
-          </motion.div>
-
-          {/* Trust strip */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.35 }}
-            style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", justifyContent: "center", alignItems: "center" }}
-          >
-            {TRUST_POINTS.map((item) => (
-              <div key={item} style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--text-secondary)", fontSize: 13 }}>
-                <span style={{ color: "var(--accent)" }}><Check /></span>
-                {item}
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ══ CURRICULA BAR ══════════════════════════════════════════════════════ */}
-      <div style={{
-        borderBottom: "1px solid var(--border-light)",
-        padding: "1.1rem 1.5rem",
-        backgroundColor: "var(--bg-alt)",
-      }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-          <span style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginRight: 10 }}>Curricula</span>
-          {CURRICULA.map((c) => (
-            <span key={c} className="badge" style={{ background: "var(--bg-card)" }}>
-              {c}
-            </span>
-          ))}
+            <h2 style={{ margin: "18px 0 0", fontSize: "clamp(2rem, 5vw, 3rem)", lineHeight: 0.96, letterSpacing: "-0.04em" }}>
+              Find the right tutor
+            </h2>
+          </div>
+          <div style={{ display: "grid", gap: 10 }}>
+            <div style={{ height: 1, background: "rgba(251,250,246,0.22)" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 750, opacity: 0.82 }}>
+              <span>Verified</span>
+              <span>Comparable</span>
+              <span>Bookable</span>
+            </div>
+          </div>
         </div>
       </div>
+    </motion.div>
+  );
+}
 
-      {/* ══ STATS ══════════════════════════════════════════════════════════════ */}
-      <Section bg="var(--bg)" style={{ padding: "3.5rem 1.5rem" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "2rem", textAlign: "center" }}>
-          {STATS.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
-            >
-              <div style={{ fontSize: "2.6rem", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.04em", lineHeight: 1 }}>
-                <Counter target={stat.value} suffix={stat.suffix} />
-              </div>
-              <div style={{ color: "var(--text-muted)", fontSize: 13.5, marginTop: 8, fontWeight: 500, letterSpacing: "0.01em" }}>{stat.label}</div>
-            </motion.div>
-          ))}
-        </div>
-      </Section>
+function TocCard({ item, index }: { item: (typeof TOC)[number]; index: number }) {
+  return (
+    <a className="toc-card" href={`#${item.id}`}>
+      <div className="toc-num">{String(index + 1).padStart(2, "0")}</div>
+      <div>
+        <strong>{item.title}</strong>
+        <span>{item.desc}</span>
+      </div>
+      <ArrowRight size={16} strokeWidth={2} color="var(--text-muted)" />
+    </a>
+  );
+}
 
-      {/* ══ HOW IT WORKS ═══════════════════════════════════════════════════════ */}
-      <Section bg="var(--bg-alt)">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{ marginBottom: "3rem", maxWidth: 600 }}
-        >
-          <SectionLabel>How it works</SectionLabel>
-          <h2 style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.25rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: 0 }}>
-            From search to first class in four steps
-          </h2>
-        </motion.div>
+function StepRow({ step, index }: { step: (typeof STEPS)[number]; index: number }) {
+  const Icon = step.icon;
+  return (
+    <div className="step-row">
+      <div className="step-icon"><Icon size={19} strokeWidth={2} /></div>
+      <div>
+        <h3>{String(index + 1).padStart(2, "0")} - {step.title}</h3>
+        <p>{step.desc}</p>
+      </div>
+    </div>
+  );
+}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem" }}>
-          {STEPS.map((step, i) => (
-            <motion.div
-              key={step.num}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                borderRadius: 14,
-                padding: "1.75rem",
-                boxShadow: "var(--shadow-xs)",
-              }}
-            >
-              <div style={{
-                width: 32, height: 32, borderRadius: 8,
-                backgroundColor: "var(--accent-bg)",
-                border: "1px solid var(--accent-border)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontWeight: 700, fontSize: 14, color: "var(--accent)",
-                marginBottom: "1rem",
-              }}>
-                {step.num}
-              </div>
-              <h3 style={{ color: "var(--text)", fontWeight: 700, fontSize: 17, marginBottom: 8 }}>{step.title}</h3>
-              <p style={{ color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.7 }}>{step.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </Section>
+function TutorCard({ tutor }: { tutor: FeaturedTutor }) {
+  const name = tutor.fullName || tutor.name || "Coursaty Tutor";
+  const initial = name.charAt(0).toUpperCase();
 
-      {/* ══ FEATURES ═══════════════════════════════════════════════════════════ */}
-      <Section bg="var(--bg)">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{ marginBottom: "3rem", maxWidth: 600 }}
-        >
-          <SectionLabel>Why Coursaty</SectionLabel>
-          <h2 style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.25rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: "0 0 0.75rem" }}>
-            Everything you need to find the right class
-          </h2>
-          <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.7 }}>
-            Built specifically for Egypt's students, parents, tutors, and learning centers.
-          </p>
-        </motion.div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: "1.25rem" }}>
-          {FEATURES.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.06 }}
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                borderRadius: 14,
-                padding: "1.5rem",
-                transition: "border-color 0.18s, box-shadow 0.18s, transform 0.18s",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-md)";
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = "var(--border-light)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-              }}
-            >
-              <div style={{
-                width: 30, height: 30, borderRadius: 8,
-                backgroundColor: "var(--accent-bg)",
-                border: "1px solid var(--accent-border)",
-                color: "var(--accent)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                marginBottom: "1rem",
-              }}>
-                <Check size={14} />
-              </div>
-              <h3 style={{ color: "var(--text)", fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{f.title}</h3>
-              <p style={{ color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.7 }}>{f.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </Section>
-
-      {/* ══ ROLE-BASED CTA ROW ═════════════════════════════════════════════════ */}
-      <Section bg="var(--bg-alt)">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{ marginBottom: "2.5rem", maxWidth: 600 }}
-        >
-          <SectionLabel>Who is Coursaty for</SectionLabel>
-          <h2 style={{ fontSize: "clamp(1.6rem, 3.3vw, 2.1rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: 0 }}>
-            A single platform, three sides of the marketplace
-          </h2>
-        </motion.div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem" }}>
-          {[
-            {
-              tag: "Students & parents",
-              title: "Find the right tutor, fast",
-              desc: "Filter by subject and curriculum, compare credentials and reviews, book instantly.",
-              items: ["Free to browse", "Verified profiles", "Transparent pricing"],
-              cta: "Browse classes",
-              href: "/classes",
-            },
-            {
-              tag: "Independent tutors",
-              title: "Grow your student base",
-              desc: "List classes for free and get discovered by students searching across Cairo.",
-              items: ["Free to list", "Built-in dashboard", "Direct messaging"],
-              cta: "Join as a tutor",
-              href: "/signup?role=tutor",
-            },
-            {
-              tag: "Learning centers",
-              title: "Manage your whole operation",
-              desc: "Centers, tutors, and bookings in one place — with a verified profile parents can trust.",
-              items: ["Verified center profile", "Tutor & class management", "Track bookings"],
-              cta: "Join as a center",
-              href: "/signup?role=center",
-            },
-          ].map((card, i) => (
-            <motion.div
-              key={card.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: i * 0.08 }}
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                borderRadius: 16,
-                padding: "1.75rem",
-                boxShadow: "var(--shadow-xs)",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div style={{
-                color: "var(--accent)",
-                fontSize: 11, fontWeight: 700, letterSpacing: "0.12em",
-                textTransform: "uppercase", marginBottom: 12,
-              }}>
-                {card.tag}
-              </div>
-              <h3 style={{ color: "var(--text)", fontWeight: 800, fontSize: 19, marginBottom: 8, letterSpacing: "-0.015em" }}>{card.title}</h3>
-              <p style={{ color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.7, marginBottom: "1.25rem" }}>{card.desc}</p>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.5rem", display: "flex", flexDirection: "column", gap: 8 }}>
-                {card.items.map((item) => (
-                  <li key={item} style={{ color: "var(--text-secondary)", fontSize: 13.5, display: "flex", alignItems: "center", gap: 9 }}>
-                    <span style={{ color: "var(--accent)" }}><Check /></span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={card.href}
-                className="btn-secondary"
-                style={{ alignSelf: "flex-start", marginTop: "auto" }}
-              >
-                {card.cta} <Arrow />
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </Section>
-
-      {/* ══ TESTIMONIALS ═══════════════════════════════════════════════════════ */}
-      <Section bg="var(--bg)">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          style={{ marginBottom: "3rem", maxWidth: 600 }}
-        >
-          <SectionLabel>From the community</SectionLabel>
-          <h2 style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.25rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: 0 }}>
-            Students, parents, and tutors trust Coursaty
-          </h2>
-        </motion.div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1.25rem" }}>
-          {TESTIMONIALS.map((t, i) => (
-            <motion.div
-              key={t.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                borderRadius: 14,
-                padding: "1.75rem",
-                boxShadow: "var(--shadow-xs)",
-              }}
-            >
-              <div style={{ color: "var(--rating)", fontSize: 13, marginBottom: 14, letterSpacing: 1, fontWeight: 600 }}>★★★★★</div>
-              <p style={{ color: "var(--text)", fontSize: 15, lineHeight: 1.75, marginBottom: "1.5rem", fontWeight: 400 }}>
-                "{t.text}"
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: 11, paddingTop: "1rem", borderTop: "1px solid var(--border-light)" }}>
-                <div style={{
-                  width: 38, height: 38, borderRadius: "50%",
-                  backgroundColor: "var(--accent-bg)",
-                  border: "1px solid var(--accent-border)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontWeight: 700, color: "var(--accent)", fontSize: 14, flexShrink: 0,
-                }}>
-                  {t.name[0]}
-                </div>
-                <div>
-                  <div style={{ color: "var(--text)", fontWeight: 600, fontSize: 14 }}>{t.name}</div>
-                  <div style={{ color: "var(--text-muted)", fontSize: 12.5 }}>{t.role}</div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </Section>
-
-      {/* ══ FAQ ════════════════════════════════════════════════════════════════ */}
-      <Section bg="var(--bg-alt)">
-        <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            style={{ marginBottom: "2.5rem" }}
-          >
-            <SectionLabel>FAQ</SectionLabel>
-            <h2 style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.25rem)", fontWeight: 800, color: "var(--text)", letterSpacing: "-0.025em", margin: 0 }}>
-              Frequently asked questions
-            </h2>
-          </motion.div>
-          <div style={{ borderTop: "1px solid var(--border-light)" }}>
-            {FAQS.map(faq => <FAQItem key={faq.q} q={faq.q} a={faq.a} />)}
+  return (
+    <Link className="catalog-card" href={`/tutors/${tutor.id}`}>
+      <div className="card-top">
+        <div style={{ display: "flex", gap: 12, minWidth: 0 }}>
+          {tutor.photoUrl ? (
+            <img className="avatar-mark" src={tutor.photoUrl} alt={name} />
+          ) : (
+            <div className="avatar-mark">{initial}</div>
+          )}
+          <div style={{ minWidth: 0 }}>
+            <h3>{name}</h3>
+            <div className="meta-line">
+              <MapPin size={13} strokeWidth={2} />
+              <span>{tutor.city ?? "Cairo"}</span>
+              {tutor.center && <span>{tutor.center.name}</span>}
+            </div>
           </div>
         </div>
-      </Section>
+        {tutor.isVerified && <span className="book-badge" style={{ color: "var(--accent)" }}>Verified</span>}
+      </div>
+      <p>{tutor.bio || `${name} teaches ${tutor.subjects.slice(0, 2).join(" and ") || "core subjects"} with clear class options.`}</p>
+      <div className="badge-line">
+        {tutor.subjects.slice(0, 3).map((subject) => <span key={subject} className="book-badge">{subject}</span>)}
+        <span className="book-badge">{tutor.classCount} classes</span>
+        {tutor.avgRating && <span className="book-badge"><Star size={11} fill="var(--rating)" color="var(--rating)" /> {tutor.avgRating.toFixed(1)}</span>}
+      </div>
+    </Link>
+  );
+}
 
-      {/* ══ FINAL CTA — premium, no royal blue ═════════════════════════════════ */}
-      <section style={{
-        backgroundColor: "var(--text)",
-        padding: "5.5rem 1.5rem",
-        textAlign: "center",
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        <div style={{
-          position: "absolute", inset: 0,
-          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(251,250,246,0.05) 1px, transparent 0)",
-          backgroundSize: "30px 30px",
-          pointerEvents: "none",
-          opacity: 0.4,
-        }} />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          style={{ position: "relative" }}
-        >
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 7,
-            backgroundColor: "rgba(251,250,246,0.06)",
-            border: "1px solid rgba(251,250,246,0.14)",
-            borderRadius: 99, padding: "5px 14px",
-            marginBottom: "1.5rem",
-            color: "rgba(251,250,246,0.85)",
-            fontSize: 12.5, fontWeight: 600, letterSpacing: "0.02em",
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#3fae8c" }} />
-            Ready when you are
+function ClassCard({ cls }: { cls: FeaturedClass }) {
+  const provider = cls.center?.name || cls.owner?.fullName || cls.owner?.name || "Coursaty";
+  const format = cls.format === "ONLINE" ? "Online" : cls.format === "HYBRID" ? "Hybrid" : "In person";
+
+  return (
+    <Link className="catalog-card" href={`/classes/${cls.id}`}>
+      <div className="card-top">
+        <div>
+          <div className="badge-line" style={{ marginTop: 0, marginBottom: 10 }}>
+            <span className="book-badge" style={{ color: "var(--accent)" }}>{cls.subject}</span>
+            <span className="book-badge">{cls.curriculum}</span>
           </div>
-          <h2 style={{
-            fontSize: "clamp(2rem, 4.5vw, 3rem)",
-            fontWeight: 800,
-            color: "var(--accent-fg)",
-            letterSpacing: "-0.03em",
-            margin: "0 auto 1rem",
-            maxWidth: 640,
-            lineHeight: 1.15,
-          }}>
-            Start finding the right class today
-          </h2>
-          <p style={{ color: "rgba(251,250,246,0.7)", fontSize: 16, lineHeight: 1.65, maxWidth: 480, margin: "0 auto 2.25rem" }}>
-            Hundreds of classes. Verified tutors. Cairo's best educators in one organized place.
+          <h3>{cls.title}</h3>
+          <div className="meta-line">
+            {format === "Online" ? <Monitor size={13} strokeWidth={2} /> : <MapPin size={13} strokeWidth={2} />}
+            <span>{format}</span>
+            {cls.schedule && <><Clock size={13} strokeWidth={2} /><span>{cls.schedule}</span></>}
+          </div>
+        </div>
+        <div style={{ textAlign: "right", flex: "0 0 auto" }}>
+          <strong style={{ color: cls.priceEgp === 0 ? "var(--success)" : "var(--text)", fontSize: 16 }}>
+            {cls.priceEgp === 0 ? "Free" : `${cls.priceEgp.toLocaleString()} EGP`}
+          </strong>
+          <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{provider}</div>
+        </div>
+      </div>
+      <p>{cls.description || `${cls.gradeLevel || "Students"} can compare the class, schedule, and seat availability before booking.`}</p>
+      <div className="badge-line">
+        {cls.gradeLevel && <span className="book-badge">{cls.gradeLevel}</span>}
+        {cls.spotsLeft !== null && <span className="book-badge">{Math.max(cls.spotsLeft, 0)} spots left</span>}
+        {cls.avgRating && <span className="book-badge"><Star size={11} fill="var(--rating)" color="var(--rating)" /> {cls.avgRating.toFixed(1)}</span>}
+      </div>
+    </Link>
+  );
+}
+
+function TrustCard({ item }: { item: (typeof TRUST)[number] }) {
+  const Icon = item.icon;
+  return (
+    <div className="trust-card">
+      <div className="trust-icon"><Icon size={18} strokeWidth={2} /></div>
+      <h3>{item.title}</h3>
+      <p>{item.desc}</p>
+    </div>
+  );
+}
+
+function OutcomeNote({ title, body, icon: Icon }: { title: string; body: string; icon: typeof Sparkles }) {
+  return (
+    <div className="outcome-note">
+      <div className="trust-icon"><Icon size={18} strokeWidth={2} /></div>
+      <h3>{title}</h3>
+      <p>{body}</p>
+    </div>
+  );
+}
+
+export default function Landing({
+  stats = { tutors: 20, classes: 50, bookings: 200 },
+  featuredTutors = [],
+  featuredClasses = [],
+}: {
+  stats?: LandingStats;
+  featuredTutors?: FeaturedTutor[];
+  featuredClasses?: FeaturedClass[];
+}) {
+  const tutorCards = useMemo(() => featuredTutors.slice(0, 3), [featuredTutors]);
+  const classCards = useMemo(() => featuredClasses.slice(0, 3), [featuredClasses]);
+  const pages = useMemo<BookPageData[]>(() => [
+    {
+      id: "cover",
+      tab: "Cover",
+      left: (
+        <>
+          <ChapterKicker>Premium tutoring marketplace</ChapterKicker>
+          <h1 className="book-heading">Open the right path to better tutoring.</h1>
+          <p className="book-copy">
+            Coursaty helps students and parents browse verified tutors, compare classes, and book academic support without scattered recommendations or message chaos.
           </p>
-          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
-            <Link
-              href="/classes"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                background: "var(--bg-card)", color: "var(--text)",
-                padding: "0.85rem 1.85rem", borderRadius: 10,
-                fontWeight: 700, fontSize: 15, textDecoration: "none",
-                transition: "background 0.15s, transform 0.15s",
-                border: "1px solid var(--bg-card)",
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)"; }}
-            >
-              Browse All Classes <Arrow />
+          <div className="book-actions">
+            <Link href="/classes" className="book-btn">
+              Browse classes <ArrowRight size={16} strokeWidth={2} />
             </Link>
-            <Link
-              href="/signup"
-              style={{
-                display: "inline-flex", alignItems: "center",
-                background: "transparent", color: "rgba(251,250,246,0.9)",
-                border: "1px solid rgba(251,250,246,0.25)",
-                padding: "0.85rem 1.85rem", borderRadius: 10,
-                fontWeight: 600, fontSize: 15, textDecoration: "none",
-                transition: "border-color 0.15s, color 0.15s, background 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(251,250,246,0.5)";
-                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(251,250,246,0.04)";
-                (e.currentTarget as HTMLAnchorElement).style.color = "var(--accent-fg)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(251,250,246,0.25)";
-                (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                (e.currentTarget as HTMLAnchorElement).style.color = "rgba(251,250,246,0.9)";
-              }}
-            >
-              Create an Account
+            <Link href="/tutors" className="book-btn-secondary">
+              Find a tutor
             </Link>
           </div>
-        </motion.div>
-      </section>
+          <div className="stat-grid">
+            <StatCard value={Math.max(stats.tutors, 1)} suffix="+" label="verified tutors" />
+            <StatCard value={Math.max(stats.classes, 1)} suffix="+" label="active classes" />
+            <StatCard value={Math.max(stats.bookings, 1)} suffix="+" label="seats booked" />
+            <StatCard value={7} label="curricula covered" />
+          </div>
+        </>
+      ),
+      right: <CoverVisual />,
+    },
+    {
+      id: "contents",
+      tab: "Contents",
+      left: (
+        <>
+          <ChapterKicker>Table of contents</ChapterKicker>
+          <h2 className="book-heading medium">A guided journey from search to first session.</h2>
+          <p className="book-copy">
+            Start with the question every family has: who can help, when are they available, and how quickly can learning begin?
+          </p>
+          <div className="annotation" style={{ marginTop: 28 }}>
+            Follow the path from discovery to booking with the important details visible at each step.
+          </div>
+        </>
+      ),
+      right: (
+        <div className="toc-grid">
+          {TOC.map((item, index) => <TocCard key={item.id} item={item} index={index} />)}
+        </div>
+      ),
+    },
+    {
+      id: "find",
+      tab: "Chapter I",
+      left: (
+        <>
+          <ChapterKicker>How it works</ChapterKicker>
+          <h2 className="book-heading medium">Four pages from uncertainty to a confirmed class.</h2>
+          <p className="book-copy">
+            Coursaty is structured around the real workflow families already use: find credible options, compare fit, reserve the right session, and stay organized.
+          </p>
+        </>
+      ),
+      right: (
+        <div className="step-list">
+          {STEPS.map((step, index) => <StepRow key={step.title} step={step} index={index} />)}
+        </div>
+      ),
+    },
+    {
+      id: "compare",
+      tab: "Chapter II",
+      left: (
+        <>
+          <ChapterKicker>Tutor and class discovery</ChapterKicker>
+          <h2 className="book-heading medium">A catalog that students can actually compare.</h2>
+          <p className="book-copy">
+            Tutor profiles and class cards are treated like clean catalog entries: subject, curriculum, schedule, location, seats, price, and trust signals are all visible.
+          </p>
+          <div className="catalog-grid" style={{ marginTop: 24 }}>
+            {tutorCards.length > 0 ? tutorCards.map((tutor) => <TutorCard key={tutor.id} tutor={tutor} />) : (
+              <div className="annotation">Verified tutor profiles will appear here as your marketplace grows.</div>
+            )}
+          </div>
+        </>
+      ),
+      right: (
+        <div className="catalog-grid">
+          {classCards.length > 0 ? classCards.map((cls) => <ClassCard key={cls.id} cls={cls} />) : (
+            <div className="annotation">Open class listings will appear here once classes are published.</div>
+          )}
+          <Link href="/classes" className="book-btn" style={{ marginTop: 4 }}>
+            Explore all classes <ArrowRight size={16} strokeWidth={2} />
+          </Link>
+        </div>
+      ),
+    },
+    {
+      id: "book",
+      tab: "Chapter III",
+      left: (
+        <>
+          <ChapterKicker>Trust and quality</ChapterKicker>
+          <h2 className="book-heading medium">More trustworthy than a forwarded phone number.</h2>
+          <p className="book-copy">
+            Coursaty turns discovery into a clearer decision. Students see the essentials before booking, while tutors and centers manage demand in one place.
+          </p>
+          <div className="annotation" style={{ marginTop: 28 }}>
+            The goal is not more decoration. It is a calmer system for choosing academic support with fewer unknowns.
+          </div>
+        </>
+      ),
+      right: (
+        <div className="trust-grid">
+          {TRUST.map((item) => <TrustCard key={item.title} item={item} />)}
+        </div>
+      ),
+    },
+    {
+      id: "learn",
+      tab: "Chapter IV",
+      left: (
+        <>
+          <ChapterKicker>Student outcome</ChapterKicker>
+          <h2 className="book-heading medium">Find support faster, then focus on the learning.</h2>
+          <p className="book-copy">
+            The platform helps families move from uncertainty to action: fewer dead ends, better comparison, and a single record of what was booked.
+          </p>
+          <div className="outcome-grid" style={{ marginTop: 26 }}>
+            <OutcomeNote icon={Zap} title="Less time searching" body="Filtering narrows the options quickly so students can spend less time asking around." />
+            <OutcomeNote icon={BookOpen} title="Better class fit" body="Curriculum, level, price, format, and schedule are visible before the first message." />
+          </div>
+        </>
+      ),
+      right: (
+        <>
+          <ChapterKicker>Final page</ChapterKicker>
+          <h2 className="book-heading medium">Start with the class that fits.</h2>
+          <p className="book-copy">
+            Browse current classes, compare available tutors, or create an educator profile if you are ready to teach through Coursaty.
+          </p>
+          <div className="book-actions">
+            <Link href="/classes" className="book-btn">
+              Browse all classes <ArrowRight size={16} strokeWidth={2} />
+            </Link>
+            <Link href="/signup?role=tutor" className="book-btn-secondary">
+              Join as a tutor
+            </Link>
+          </div>
+          <div className="annotation" style={{ marginTop: "auto" }}>
+            Coursaty is built for Egypt&apos;s tutoring market: verified educators, organized classes, and booking flows that respect how students actually choose support.
+          </div>
+        </>
+      ),
+    },
+  ], [classCards, stats.bookings, stats.classes, stats.tutors, tutorCards]);
 
+  return (
+    <div className="book-landing">
+      <style>{BOOK_CSS}</style>
+      <div className="book-shell">
+        <BookScroller pages={pages} />
+      </div>
     </div>
   );
 }

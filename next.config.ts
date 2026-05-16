@@ -21,10 +21,11 @@ const nextConfig: NextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
-          // Force HTTPS for 2 years, include subdomains
+          // Force HTTPS in production. Avoid preload until every subdomain is
+          // confirmed HTTPS-only because browser preload lists are hard to undo.
           {
             key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
+            value: "max-age=31536000; includeSubDomains",
           },
           // Disable browser features you don't need
           {
@@ -32,19 +33,21 @@ const nextConfig: NextConfig = {
             value: "camera=(), microphone=(), geolocation=(), payment=(self)",
           },
           // Content Security Policy
-          // Adjust src lists as you add third-party scripts/fonts
+          // Paymob iframe + Google Fonts; no Stripe references (app uses Paymob).
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              // Next.js needs inline scripts for hydration
-              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://js.stripe.com`,
-              "style-src 'self' 'unsafe-inline'",
+              // Next.js requires unsafe-inline for hydration; unsafe-eval only in dev
+              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://iframe.paymob.com https://accept.paymobsolutions.com`,
+              // Google Fonts injects <style> at runtime; unsafe-inline is required
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: blob: https:",
-              "font-src 'self' data:",
-              "connect-src 'self' https://api.stripe.com",
-              // Stripe hosted fields load in an iframe from stripe.com
-              "frame-src https://js.stripe.com https://hooks.stripe.com",
+              // fonts.gstatic.com serves the actual font files
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "connect-src 'self' https://accept.paymobsolutions.com",
+              // Paymob payment pages load inside an iframe
+              "frame-src https://iframe.paymob.com https://accept.paymobsolutions.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",

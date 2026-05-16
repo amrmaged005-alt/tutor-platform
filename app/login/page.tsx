@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AlertCircle, CheckCircle, ShieldCheck } from "lucide-react";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -96,7 +97,7 @@ export default function LoginPage() {
             Coursaty
           </Link>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem", fontSize: 14 }}>
-            Welcome back — sign in to continue
+            Welcome back - sign in to continue
           </p>
         </div>
 
@@ -126,9 +127,7 @@ export default function LoginPage() {
                   gap: 8,
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+                <CheckCircle size={14} strokeWidth={2.2} aria-hidden />
                 Account created. Sign in to continue.
               </div>
             )}
@@ -186,11 +185,7 @@ export default function LoginPage() {
                   gap: 8,
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
+                <AlertCircle size={14} strokeWidth={2} aria-hidden />
                 {error}
               </div>
             )}
@@ -211,7 +206,7 @@ export default function LoginPage() {
                 transition: "background 0.15s",
               }}
             >
-              {loading ? "Signing in…" : "Sign In"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
@@ -229,9 +224,7 @@ export default function LoginPage() {
         <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
           {["Verified Tutors", "Free to Browse", "Secure Login"].map((badge) => (
             <span key={badge} style={{ color: "var(--text-muted)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              <ShieldCheck size={12} strokeWidth={2.4} color="var(--accent)" aria-hidden />
               {badge}
             </span>
           ))}

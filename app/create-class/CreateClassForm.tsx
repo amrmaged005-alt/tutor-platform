@@ -1,7 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
 
 const SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English", "Arabic", "History", "Geography", "CS"];
 
@@ -110,20 +112,17 @@ export default function CreateClassForm() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "system-ui, sans-serif", padding: "2rem", position: "relative", overflow: "hidden" }}>
-      {/* Background orbs */}
-      <div style={{ position: "absolute", top: "-5%", right: "-5%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: "10%", left: "-5%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
+    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 100%)", fontFamily: "system-ui, sans-serif", padding: "2rem", position: "relative" }}>
 
       <div style={{ maxWidth: 660, margin: "0 auto 1.5rem", position: "relative", zIndex: 1 }}>
-        <a href="/dashboard" style={{ color: "var(--text-muted)", fontSize: 14, textDecoration: "none" }}>
-          ← Back to dashboard
-        </a>
+        <Link href="/dashboard" style={{ color: "var(--text-muted)", fontSize: 14, textDecoration: "none" }}>
+          Back to dashboard
+        </Link>
       </div>
 
       <div style={{ maxWidth: 660, margin: "0 auto", backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 20, padding: "2rem", position: "relative", zIndex: 1, boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}>
         <div style={{ marginBottom: "2rem" }}>
-          <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--bg-alt)", marginBottom: "0.4rem", letterSpacing: -0.5 }}>
+          <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.4rem", letterSpacing: -0.5 }}>
             Create a New Class
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
@@ -210,8 +209,8 @@ export default function CreateClassForm() {
         </div>
 
         {error && (
-          <div style={{ backgroundColor: "var(--bg-card)", color: "var(--error-border)", border: "1px solid rgba(163,48,40,0.25)", borderRadius: 10, padding: "0.75rem 1rem", fontSize: 14, marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: 8 }}>
-            <span>⚠</span> {error}
+          <div style={{ backgroundColor: "var(--bg-card)", color: "var(--error)", border: "1px solid rgba(163,48,40,0.25)", borderRadius: 10, padding: "0.75rem 1rem", fontSize: 14, marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: 8 }}>
+            <AlertTriangle size={16} strokeWidth={1.8} aria-hidden="true" /> {error}
           </div>
         )}
 
@@ -233,9 +232,10 @@ export default function CreateClassForm() {
             opacity: loading ? 0.8 : 1,
           }}
         >
-          {loading ? "Creating class..." : "Create Class →"}
+          {loading ? "Creating class..." : "Create Class"}
         </button>
       </div>
     </div>
   );
 }
+

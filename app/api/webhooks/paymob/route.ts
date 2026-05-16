@@ -88,6 +88,23 @@ export async function POST(req: NextRequest) {
     const success = body.obj?.success === true;
     const paymobOrderId = String(body.obj?.order?.id);
     const transactionType = body.type ?? "TRANSACTION";
+    const receivedAmountCents = Number(body.obj?.amount_cents ?? 0);
+    const receivedCurrency = String(body.obj?.currency ?? "");
+    const receivedIntegrationId = String(body.obj?.integration_id ?? "");
+
+    // Verify the integration ID belongs to us (prevents replaying events from
+    // other Paymob accounts).
+    const expectedIntegrationId = process.env.PAYMOB_INTEGRATION_ID ?? "";
+    if (expectedIntegrationId && receivedIntegrationId !== expectedIntegrationId) {
+      console.error(`Webhook rejected: integration_id mismatch (got ${receivedIntegrationId})`);
+      return NextResponse.json({ error: "Integration mismatch" }, { status: 400 });
+    }
+
+    // Currency must be EGP for this platform.
+    if (receivedCurrency && receivedCurrency !== "EGP") {
+      console.error(`Webhook rejected: unexpected currency ${receivedCurrency}`);
+      return NextResponse.json({ error: "Currency mismatch" }, { status: 400 });
+    }
 
     const alreadyProcessed = await prisma.webhookEvent.findUnique({
       where: { paymobTransactionId: transactionId },
@@ -114,6 +131,31 @@ export async function POST(req: NextRequest) {
 
     if (!booking) {
       console.error(`Webhook: no booking found for paymobOrderId ${paymobOrderId}`);
+      return NextResponse.json({ received: true });
+    }
+
+    // Verify the amount matches the booking to prevent a valid-but-wrong
+    // Paymob event from confirming a differently-priced booking.
+    const expectedAmountCents = (booking.amountEgp ?? 0) * 100;
+    if (success && receivedAmountCents !== expectedAmountCents) {
+      console.error(
+        `Webhook rejected: amount mismatch for booking ${booking.id} ` +
+        `(expected ${expectedAmountCents}, got ${receivedAmountCents})`
+      );
+      await prisma.webhookEvent.update({
+        where: { paymobTransactionId: transactionId },
+        data: { processed: true },
+      });
+      return NextResponse.json({ received: true });
+    }
+
+    // Guard against re-confirming an already-confirmed booking (idempotency).
+    if (booking.paymentStatus === "PAID" && success) {
+      console.log(`Webhook: booking ${booking.id} already confirmed, skipping.`);
+      await prisma.webhookEvent.update({
+        where: { paymobTransactionId: transactionId },
+        data: { processed: true },
+      });
       return NextResponse.json({ received: true });
     }
 

@@ -6,7 +6,7 @@ interface PageShellProps {
     children: React.ReactNode;
     /** Number of ambient floater orbs (default: 4) */
     floaterCount?: number;
-    /** Show subtle grid texture overlay (default: true) */
+    /** Show subtle grid texture overlay (default: false) */
     showGrid?: boolean;
     /** Max container width (default: 1100) */
     maxWidth?: number;
@@ -25,7 +25,7 @@ interface PageShellProps {
 export default function PageShell({
     children,
     floaterCount = 4,
-    showGrid = true,
+    showGrid = false,
     maxWidth = 1100,
     padding = "2rem 1.5rem 5rem",
 }: PageShellProps) {
