@@ -215,7 +215,7 @@ function SectionHeader({
         {count !== undefined && (
           <span
             style={{
-              backgroundColor: "var(--text-secondary)",
+              backgroundColor: "var(--bg-alt)",
               color: "var(--text-muted)",
               fontSize: 12,
               fontWeight: 700,
@@ -392,7 +392,7 @@ function MiniSpotsBar({ capacity, booked }: { capacity: number; booked: number }
       <div
         style={{
           height: 4,
-          backgroundColor: "var(--text-secondary)",
+          backgroundColor: "var(--border-light)",
           borderRadius: 99,
           overflow: "hidden",
         }}
@@ -486,7 +486,7 @@ function TabBar({
           {tab.count !== undefined && (
             <span
               style={{
-                backgroundColor: active === tab.id ? "rgba(251,250,246,0.18)" : "var(--text-secondary)",
+                backgroundColor: active === tab.id ? "rgba(251,250,246,0.18)" : "var(--bg-alt)",
                 color: active === tab.id ? "var(--bg-card)" : "var(--text-muted)",
                 fontSize: 11,
                 fontWeight: 700,
@@ -777,14 +777,14 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
               <Link
                 href={"/tutors/" + user.id}
                 style={{
-                  backgroundColor: "var(--text-secondary)",
+                  backgroundColor: "var(--bg-alt)",
                   color: "var(--text)",
                   padding: "8px 18px",
                   borderRadius: 10,
+                  border: "1px solid var(--border-light)",
                   fontSize: 13,
                   fontWeight: 600,
                   textDecoration: "none",
-                  border: "1px solid var(--border-light)",
                   transition: "background 0.2s",
                 }}
               >
