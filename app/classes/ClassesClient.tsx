@@ -402,9 +402,9 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
           </div>
           <span
             style={{
-              backgroundColor: isFull ? "var(--text)" : `${meta.color}20`,
+              backgroundColor: isFull ? "var(--bg-alt)" : `${meta.color}20`,
               color: isFull ? "var(--text-muted)" : meta.color,
-              border: `1px solid ${isFull ? "var(--text-secondary)" : `${meta.color}40`}`,
+              border: `1px solid ${isFull ? "var(--border)" : `${meta.color}40`}`,
               borderRadius: 10, padding: "7px 16px",
               fontSize: 13, fontWeight: 700,
               textDecoration: "none", whiteSpace: "nowrap",

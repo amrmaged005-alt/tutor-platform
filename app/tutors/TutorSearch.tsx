@@ -48,8 +48,8 @@ export default function TutorSearch({ tutors, centers }: Props) {
   });
 
   const inputStyle = {
-    background: "var(--text)",
-    border: "1px solid var(--border-light)",
+    background: "var(--bg-card)",
+    border: "1px solid var(--border)",
     borderRadius: "8px",
     color: "var(--text)",
     padding: "10px 14px",
@@ -59,7 +59,7 @@ export default function TutorSearch({ tutors, centers }: Props) {
   };
 
   const cardStyle = {
-    background: "var(--text)",
+    background: "var(--bg-card)",
     border: "1px solid var(--border-light)",
     borderRadius: "16px",
     padding: "24px",
@@ -80,10 +80,10 @@ export default function TutorSearch({ tutors, centers }: Props) {
       </div>
 
       <div style={{ display: "flex", gap: "12px", marginBottom: "28px" }}>
-        <button onClick={() => setTab("tutors")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "tutors" ? "var(--accent)" : "var(--text)", color: tab === "tutors" ? "#fff" : "var(--text-muted)" }}>
+        <button onClick={() => setTab("tutors")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "tutors" ? "var(--accent)" : "var(--bg-alt)", color: tab === "tutors" ? "#fff" : "var(--text-muted)" }}>
           {"Tutors (" + filteredTutors.length + ")"}
         </button>
-        <button onClick={() => setTab("centers")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "centers" ? "var(--accent)" : "var(--text)", color: tab === "centers" ? "#fff" : "var(--text-muted)" }}>
+        <button onClick={() => setTab("centers")} style={{ padding: "10px 24px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", background: tab === "centers" ? "var(--accent)" : "var(--bg-alt)", color: tab === "centers" ? "var(--accent-fg)" : "var(--text-muted)" }}>
           {"Centers (" + filteredCenters.length + ")"}
         </button>
       </div>
@@ -108,7 +108,7 @@ export default function TutorSearch({ tutors, centers }: Props) {
                 {tutor.subjects.length > 0 && (
                   <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "6px" }}>
                     {tutor.subjects.map((s) => (
-                      <span key={s} style={{ background: "var(--text)", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "2px 10px", fontSize: "12px", color: "var(--text-muted)" }}>{s}</span>
+                      <span key={s} style={{ background: "var(--accent-bg)", border: "1px solid var(--accent-border)", borderRadius: "6px", padding: "2px 10px", fontSize: "12px", color: "var(--accent)" }}>{s}</span>
                     ))}
                   </div>
                 )}

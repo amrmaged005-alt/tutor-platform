@@ -261,7 +261,7 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
             </div>
             <motion.div
               animate={{ x: hovered ? 4 : 0 }}
-              style={{ backgroundColor: isFull ? "var(--text)" : "rgba(13,89,70,0.13)", color: isFull ? "var(--text-muted)" : "var(--accent)", border: `1px solid ${isFull ? "var(--text-secondary)" : "rgba(13,89,70,0.25)"}`, borderRadius: 10, padding: "6px 14px", fontSize: 13, fontWeight: 600 }}
+              style={{ backgroundColor: isFull ? "var(--bg-alt)" : "rgba(13,89,70,0.13)", color: isFull ? "var(--text-muted)" : "var(--accent)", border: `1px solid ${isFull ? "var(--border)" : "rgba(13,89,70,0.25)"}`, borderRadius: 10, padding: "6px 14px", fontSize: 13, fontWeight: 600 }}
             >
               {isFull ? "Full" : "View →"}
             </motion.div>
@@ -280,9 +280,9 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
       style={{
-        backgroundColor: active ? "var(--accent)" : "var(--text)",
-        color: active ? "var(--bg-card)" : "var(--text-muted)",
-        border: `1px solid ${active ? "var(--accent)" : "var(--text-secondary)"}`,
+        backgroundColor: active ? "var(--accent)" : "var(--bg-alt)",
+        color: active ? "var(--accent-fg)" : "var(--text-secondary)",
+        border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
         borderRadius: 20,
         padding: "6px 14px",
         fontSize: 13,
@@ -422,9 +422,9 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             whileTap={{ scale: 0.97 }}
             onClick={() => setFiltersOpen(o => !o)}
             style={{
-              backgroundColor: filtersOpen ? "var(--accent)" : "var(--text)",
-              color: filtersOpen ? "var(--bg-card)" : "var(--text-muted)",
-              border: `1px solid ${filtersOpen ? "var(--accent)" : "var(--text-secondary)"}`,
+              backgroundColor: filtersOpen ? "var(--accent)" : "var(--bg-alt)",
+              color: filtersOpen ? "var(--accent-fg)" : "var(--text-secondary)",
+              border: `1px solid ${filtersOpen ? "var(--accent)" : "var(--border)"}`,
               borderRadius: 10,
               padding: "0.6rem 1.2rem",
               fontSize: 14,

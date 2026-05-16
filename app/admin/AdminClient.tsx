@@ -118,11 +118,11 @@ function Pagination({ page, setPage, totalPages }: { page: number, setPage: (p: 
     if (totalPages <= 1) return null;
     return (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem", borderTop: "1px solid var(--border-light)" }}>
-            <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} style={{ background: "var(--text)", border: "1px solid var(--border-light)", color: page === 1 ? "var(--text-secondary)" : "var(--bg-subtle)", padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: page === 1 ? "not-allowed" : "pointer" }}>
+            <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} style={{ background: "var(--bg-alt)", border: "1px solid var(--border)", color: "var(--text)", padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: page === 1 ? "not-allowed" : "pointer", opacity: page === 1 ? 0.45 : 1 }}>
                 Prev
             </button>
             <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Page {page} of {totalPages}</span>
-            <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} style={{ background: "var(--text)", border: "1px solid var(--border-light)", color: page === totalPages ? "var(--text-secondary)" : "var(--bg-subtle)", padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: page === totalPages ? "not-allowed" : "pointer" }}>
+            <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} style={{ background: "var(--bg-alt)", border: "1px solid var(--border)", color: "var(--text)", padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: page === totalPages ? "not-allowed" : "pointer", opacity: page === totalPages ? 0.45 : 1 }}>
                 Next
             </button>
         </div>
