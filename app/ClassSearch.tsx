@@ -43,22 +43,22 @@ const SORT_OPTIONS = [
 ];
 
 const SUBJECT_META: Record<string, { bg: string; text: string; glow: string; emoji: string }> = {
-  Math:      { bg: "var(--text)", text: "var(--accent)", glow: "var(--accent)", emoji: "📐" },
-  Physics:   { bg: "var(--text)", text: "#5d3a5f", glow: "#5d3a5f", emoji: "⚡" },
-  Chemistry: { bg: "var(--text)", text: "var(--success)", glow: "var(--success)", emoji: "🧪" },
-  Biology:   { bg: "var(--text)", text: "var(--success)", glow: "var(--success)", emoji: "🧬" },
-  English:   { bg: "var(--text)", text: "#8a5e1a", glow: "#8a5e1a", emoji: "📝" },
-  Arabic:    { bg: "var(--text)", text: "var(--error)", glow: "var(--error)", emoji: "✍️" },
-  History:   { bg: "var(--text)", text: "#a8a29e", glow: "#78716c", emoji: "📜" },
-  Geography: { bg: "var(--text)", text: "var(--accent)", glow: "var(--accent)", emoji: "🌍" },
-  CS:        { bg: "var(--text)", text: "#1c6e7a", glow: "var(--accent)", emoji: "💻" },
-  default:   { bg: "var(--text)", text: "var(--text-muted)", glow: "var(--text-muted)", emoji: "📚" },
+  Math:      { bg: "var(--accent-bg)",          text: "var(--accent)",   glow: "var(--accent)",   emoji: "📐" },
+  Physics:   { bg: "rgba(93,58,95,0.10)",        text: "#5d3a5f",         glow: "#5d3a5f",         emoji: "⚡" },
+  Chemistry: { bg: "var(--success-bg)",          text: "var(--success)",  glow: "var(--success)",  emoji: "🧪" },
+  Biology:   { bg: "var(--success-bg)",          text: "var(--success)",  glow: "var(--success)",  emoji: "🧬" },
+  English:   { bg: "var(--warning-bg)",          text: "#8a5e1a",         glow: "#8a5e1a",         emoji: "📝" },
+  Arabic:    { bg: "var(--error-bg)",            text: "var(--error)",    glow: "var(--error)",    emoji: "✍️" },
+  History:   { bg: "var(--warning-bg)",          text: "#8a5e1a",         glow: "#78716c",         emoji: "📜" },
+  Geography: { bg: "rgba(28,110,122,0.10)",      text: "#1c6e7a",         glow: "var(--accent)",   emoji: "🌍" },
+  CS:        { bg: "rgba(28,110,122,0.10)",      text: "#1c6e7a",         glow: "var(--accent)",   emoji: "💻" },
+  default:   { bg: "var(--bg-alt)",              text: "var(--text-secondary)", glow: "var(--text-muted)", emoji: "📚" },
 };
 
 const FORMAT_META: Record<string, { label: string; color: string; bg: string }> = {
-  IN_PERSON: { label: "In-Person", color: "var(--success)", bg: "var(--text)" },
-  ONLINE:    { label: "Online",    color: "#1c6e7a", bg: "var(--text)" },
-  HYBRID:    { label: "Hybrid",    color: "#5d3a5f", bg: "var(--text)" },
+  IN_PERSON: { label: "In-Person", color: "var(--success)", bg: "var(--success-bg)" },
+  ONLINE:    { label: "Online",    color: "#1c6e7a",         bg: "rgba(28,110,122,0.10)" },
+  HYBRID:    { label: "Hybrid",    color: "#5d3a5f",         bg: "rgba(93,58,95,0.10)" },
 };
 
 const CURRICULUM_LABEL: Record<string, string> = {
@@ -128,7 +128,7 @@ function HeartButton({ id }: { id: string }) {
 function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
   const [hovered, setHovered] = useState(false);
   const meta = SUBJECT_META[cls.subject] ?? SUBJECT_META.default;
-  const fmt = FORMAT_META[cls.format] ?? { label: cls.format, color: "var(--text-muted)", bg: "var(--text)" };
+  const fmt = FORMAT_META[cls.format] ?? { label: cls.format, color: "var(--text-muted)", bg: "var(--bg-alt)" };
   const spotsLeft = cls.capacity ? cls.capacity - cls._count.bookings : null;
   const isFull = spotsLeft !== null && spotsLeft <= 0;
   const isUrgent = spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 5;
@@ -151,7 +151,7 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
           whileHover={{ y: -6, boxShadow: `0 20px 60px ${meta.glow}20` }}
           style={{
             backgroundColor: "var(--bg-card)",
-            border: `1px solid ${hovered ? meta.glow + "50" : "var(--text-secondary)"}`,
+            border: `1px solid ${hovered ? meta.glow + "50" : "var(--border-light)"}`,
             borderRadius: 20,
             padding: "1.5rem",
             height: "100%",

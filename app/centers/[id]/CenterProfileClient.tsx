@@ -360,7 +360,7 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
                     { icon: "👥", label: "Group Sessions" },
                     { icon: "📝", label: "Practice Tests" },
                   ].map(f => (
-                    <div key={f.label} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--text)", borderRadius: 12, padding: "16px", display: "flex", alignItems: "center", gap: 10 }}>
+                    <div key={f.label} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px", display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: "var(--bg-card)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{f.icon}</div>
                       <span style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>{f.label}</span>
                     </div>

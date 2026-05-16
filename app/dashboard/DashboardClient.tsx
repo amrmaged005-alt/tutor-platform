@@ -156,14 +156,14 @@ function StatCard({
 // ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; color: string }> = {
-    CONFIRMED: { bg: "var(--text)", color: "var(--success)" },
-    CANCELLED: { bg: "var(--text)", color: "var(--error)" },
-    PENDING: { bg: "var(--text)", color: "var(--rating)" },
-    PAID: { bg: "var(--text)", color: "var(--success)" },
-    UNPAID: { bg: "var(--text)", color: "var(--error)" },
-    REFUNDED: { bg: "var(--text)", color: "var(--accent-border)" },
+    CONFIRMED: { bg: "var(--success-bg)",  color: "var(--success)" },
+    CANCELLED: { bg: "var(--error-bg)",    color: "var(--error)" },
+    PENDING:   { bg: "var(--warning-bg)",  color: "var(--warning)" },
+    PAID:      { bg: "var(--success-bg)",  color: "var(--success)" },
+    UNPAID:    { bg: "var(--error-bg)",    color: "var(--error)" },
+    REFUNDED:  { bg: "var(--accent-bg)",   color: "var(--accent)" },
   };
-  const s = map[status] ?? { bg: "var(--text)", color: "var(--text-muted)" };
+  const s = map[status] ?? { bg: "var(--bg-alt)", color: "var(--text-muted)" };
   return (
     <span
       style={{
