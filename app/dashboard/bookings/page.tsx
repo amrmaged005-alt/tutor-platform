@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { MessageCircle, Mail } from "lucide-react";
 import { updateBookingStatus, addBookingNote } from "@/app/actions/bookings";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
@@ -113,11 +114,11 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
             rel="noopener noreferrer"
             style={{ color: "var(--success)", fontSize: 12, textDecoration: "none" }}
           >
-            📱 WhatsApp {booking.student.phone}
+            <MessageCircle size={12} strokeWidth={2} style={{ verticalAlign: "middle", marginRight: 4 }} />WhatsApp {booking.student.phone}
           </a>
         )}
         {booking.student.email && (
-          <div style={{ color: "var(--text-muted)", fontSize: 12 }}>✉️ {booking.student.email}</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}><Mail size={12} strokeWidth={2} />{booking.student.email}</div>
         )}
       </div>
 
