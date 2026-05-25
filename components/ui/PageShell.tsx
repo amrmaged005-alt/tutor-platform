@@ -55,6 +55,7 @@ export default function PageShell({
             )}
 
             <div
+                className="page-shell-inner"
                 style={{
                     maxWidth,
                     margin: "0 auto",

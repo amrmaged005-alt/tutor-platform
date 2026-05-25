@@ -490,3 +490,18 @@ select.input:focus {
     transform: none;
   }
 }
+
+/* ═══ Mobile Compact Utilities ═══════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .page-shell-inner {
+    padding: 1rem 0.875rem 3rem !important;
+  }
+  .card-grid-mobile-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .btn-primary, .btn-secondary {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+  }
+}

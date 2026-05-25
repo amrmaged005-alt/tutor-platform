@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import ReviewSection from "../../components/ReviewSection";
 import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
+import { useIsMobile } from "../../hooks/useIsMobile";
 import {
   ArrowLeft,
   ArrowRight,
@@ -226,6 +227,7 @@ export default function ClassDetailClient({
   classId,
   bookingError,
 }: Props) {
+  const isMobile = useIsMobile();
   const subjectColor = getSubjectColor(cls.subject);
   const tutor = cls.owner;
   const whatsappNumber = tutor?.phone?.replace(/\D/g, "") ?? "";
@@ -380,7 +382,7 @@ export default function ClassDetailClient({
           overflow: "hidden",
           background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--bg-card) 58%, var(--bg-alt) 100%)",
           borderBottom: "1px solid var(--border-light)",
-          padding: "3rem 2rem 2.5rem",
+          padding: isMobile ? "1.25rem 0.875rem 1rem" : "3rem 2rem 2.5rem",
         }}
       >
         {/* Subtle subject wash */}
@@ -513,10 +515,11 @@ export default function ClassDetailClient({
         style={{
           maxWidth: 1200,
           margin: "0 auto",
-          padding: "2rem 1.5rem 4rem",
-          display: "grid",
+          padding: isMobile ? "1rem 0.875rem 3rem" : "2rem 1.5rem 4rem",
+          display: isMobile ? "flex" : "grid",
+          flexDirection: isMobile ? "column" : undefined,
           gridTemplateColumns: "1fr min(380px, 35%)",
-          gap: "2rem",
+          gap: isMobile ? "1rem" : "2rem",
           alignItems: "start",
         }}
         className="detail-grid"
@@ -1223,7 +1226,7 @@ export default function ClassDetailClient({
           style={{
             maxWidth: 1200,
             margin: "0 auto",
-            padding: "0 1.5rem 4rem",
+            padding: isMobile ? "0 0.875rem 3rem" : "0 1.5rem 4rem",
           }}
         >
           <motion.div

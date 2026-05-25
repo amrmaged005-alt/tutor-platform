@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 // Types
 interface TutorClass {
@@ -104,7 +105,7 @@ function MiniBar({ capacity, booked, color }: { capacity: number; booked: number
 }
 
 // Class card
-function ClassCard({ cls }: { cls: TutorClass }) {
+function ClassCard({ cls, isMobile }: { cls: TutorClass; isMobile: boolean }) {
   const color = subjectColor(cls.subject);
   const spotsLeft = cls.capacity !== null ? cls.capacity - cls.bookingsCount : null;
   const isFull = spotsLeft !== null && spotsLeft <= 0;
@@ -114,27 +115,27 @@ function ClassCard({ cls }: { cls: TutorClass }) {
       whileHover={{ y: -4, boxShadow: `0 12px 32px ${color}20` }}
       onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = `${color}50`}
       onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border-light)"}
-      style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16, overflow: "hidden", transition: "border-color 0.2s" }}
+      style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: isMobile ? 14 : 16, overflow: "hidden", transition: "border-color 0.2s" }}
     >
       <div style={{ height: 3, background: `linear-gradient(90deg, ${color}, ${color}44)` }} />
-      <Link href={`/classes/${cls.id}`} style={{ textDecoration: "none", display: "block", padding: "16px" }}>
+      <Link href={`/classes/${cls.id}`} style={{ textDecoration: "none", display: "block", padding: isMobile ? "10px" : "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
           <span style={{ backgroundColor: `${color}18`, border: `1px solid ${color}40`, color, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 999 }}>
             {cls.subject}
           </span>
-          <span style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-muted)", fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 999 }}>
+          {!isMobile && <span style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-muted)", fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 999 }}>
             {FORMAT_LABELS[cls.format] ?? cls.format}
-          </span>
+          </span>}
         </div>
-        <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 14, marginBottom: 6, lineHeight: 1.3 }}>{cls.title}</div>
-        {cls.gradeLevel && <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 8 }}>{cls.gradeLevel} - {cls.curriculum}</div>}
-        {cls.description && (
+        <div style={{ fontWeight: 700, color: "var(--text)", fontSize: isMobile ? 12 : 14, marginBottom: 6, lineHeight: 1.3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{cls.title}</div>
+        {cls.gradeLevel && <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 8 }}>{isMobile ? cls.gradeLevel : `${cls.gradeLevel} - ${cls.curriculum}`}</div>}
+        {!isMobile && cls.description && (
           <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5, margin: "0 0 10px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
             {cls.description}
           </p>
         )}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: "1px solid var(--border-light)" }}>
-          <span style={{ fontWeight: 800, color: cls.priceEgp === 0 ? "var(--success)" : "#1c6e7a", fontSize: 15 }}>
+          <span style={{ fontWeight: 800, color: cls.priceEgp === 0 ? "var(--success)" : "#1c6e7a", fontSize: isMobile ? 13 : 15 }}>
             {cls.priceEgp === 0 ? "Free" : `${cls.priceEgp} EGP`}
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -142,10 +143,10 @@ function ClassCard({ cls }: { cls: TutorClass }) {
             {!isFull && spotsLeft !== null && spotsLeft <= 5 && (
               <span style={{ backgroundColor: "var(--bg-card)", color: "var(--warning)", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>{spotsLeft} left</span>
             )}
-            <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{cls.bookingsCount} enrolled</span>
+            {!isMobile && <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{cls.bookingsCount} enrolled</span>}
           </div>
         </div>
-        {cls.capacity && <MiniBar capacity={cls.capacity} booked={cls.bookingsCount} color={color} />}
+        {!isMobile && cls.capacity && <MiniBar capacity={cls.capacity} booked={cls.bookingsCount} color={color} />}
       </Link>
     </motion.div>
   );
@@ -192,6 +193,7 @@ function SectionTitle({ children, count }: { children: React.ReactNode; count?: 
 
 // Main component
 export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorData; isOwner: boolean }) {
+  const isMobile = useIsMobile();
   const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
   const whatsappNumber = tutor.phone?.replace(/\D/g, "") ?? "";
   const primaryColor = subjectColor(tutor.subjects[0] ?? "Math");
@@ -223,7 +225,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
         position: "relative", overflow: "hidden",
         background: `linear-gradient(135deg, var(--bg-alt) 0%, ${primaryColor}12 50%, var(--bg-card) 100%)`,
         borderBottom: "1px solid var(--border-light)",
-        padding: "40px 24px 36px", zIndex: 1,
+        padding: isMobile ? "18px 14px 16px" : "40px 24px 36px", zIndex: 1,
       }}>
         {/* Subtle subject wash */}
         <div style={{ position: "absolute", top: -100, right: -100, width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}20 0%, transparent 70%)`, pointerEvents: "none" }} />
@@ -242,9 +244,9 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
           </motion.div>
 
           {/* Profile header */}
-          <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 14 : 24, alignItems: isMobile ? "stretch" : "flex-start", flexWrap: "wrap" }}>
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
-              <Avatar name={displayName} photoUrl={tutor.photoUrl} size={100} />
+              <Avatar name={displayName} photoUrl={tutor.photoUrl} size={isMobile ? 72 : 100} />
             </motion.div>
 
             <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }} style={{ flex: 1, minWidth: 220 }}>
@@ -341,7 +343,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
       </div>
 
       {/* Body */}
-      <div style={{ maxWidth: 920, margin: "0 auto", padding: "36px 24px 80px", position: "relative", zIndex: 1 }}>
+      <div style={{ maxWidth: 920, margin: "0 auto", padding: isMobile ? "16px 14px 64px" : "36px 24px 80px", position: "relative", zIndex: 1 }}>
 
         {/* Profile completion nudge */}
         {isOwner && profilePct < 100 && (
@@ -497,8 +499,8 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
               No classes for &quot;{activeFilter}&quot;
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-              {filteredClasses.map(cls => <ClassCard key={cls.id} cls={cls} />)}
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(280px, 1fr))", gap: isMobile ? 10 : 16 }}>
+              {filteredClasses.map(cls => <ClassCard key={cls.id} cls={cls} isMobile={isMobile} />)}
             </div>
           )}
         </motion.div>

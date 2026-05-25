@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "../components/i18n";
+import { useIsMobile } from "../hooks/useIsMobile";
 import CancelBookingButton from "../CancelBookingButton";
 import DeleteClassButton from "../DeleteClassButton";
 import PageShell from "../../components/ui/PageShell";
@@ -620,6 +621,7 @@ interface Props {
 // ─── Main dashboard ───────────────────────────────────────────────────────────
 export default function DashboardClient({ data, cancelBooking, deleteClass }: Props) {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
   const { user, bookings, ownedClasses, centerData } = data;
   const role = user.role;
   const firstName = (user.fullName || user.name || "there").split(" ")[0];
@@ -690,8 +692,8 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
   const cardBase: React.CSSProperties = {
     backgroundColor: "var(--bg-card)",
     border: "1px solid var(--border-light)",
-    borderRadius: 18,
-    padding: "1.5rem",
+    borderRadius: isMobile ? 12 : 18,
+    padding: isMobile ? "0.875rem" : "1.5rem",
   };
 
   return (
@@ -705,9 +707,9 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
         style={{
           background: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-alt) 100%)",
           border: "1px solid rgba(13,89,70,0.25)",
-          borderRadius: 20,
-          padding: "1.75rem 2rem",
-          marginBottom: "1.75rem",
+          borderRadius: isMobile ? 14 : 20,
+          padding: isMobile ? "1rem" : "1.75rem 2rem",
+          marginBottom: isMobile ? "1rem" : "1.75rem",
           position: "relative",
           overflow: "hidden",
         }}
@@ -835,7 +837,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
             backgroundColor: "var(--bg-card)",
             border: "1px solid var(--warning)",
             borderRadius: 14,
-            padding: "1rem 1.5rem",
+            padding: isMobile ? "0.75rem 1rem" : "1rem 1.5rem",
             marginBottom: "1.5rem",
             display: "flex",
             justifyContent: "space-between",
@@ -894,9 +896,9 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-              gap: 12,
-              marginBottom: "1.75rem",
+              gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(160px, 1fr))",
+              gap: isMobile ? 8 : 12,
+              marginBottom: isMobile ? "1rem" : "1.75rem",
             }}
           >
             <StatCard label={t("dash.tab.bookings")} numericValue={bookings.length} icon="bookings" color="var(--accent)" delay={0.1} />
@@ -936,7 +938,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap" as const, gap: 12 }}>
                           <div style={{ flex: 1, minWidth: 200 }}>
-                            <h3 style={{ color: "var(--text)", fontWeight: 700, margin: "0 0 6px", fontSize: 15 }}>
+                            <h3 style={{ color: "var(--text)", fontWeight: 700, margin: "0 0 6px", fontSize: isMobile ? 13 : 15 }}>
                               {booking.class.title}
                             </h3>
                             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const, alignItems: "center" }}>
@@ -1074,9 +1076,9 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-              gap: 12,
-              marginBottom: "1.75rem",
+              gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(160px, 1fr))",
+              gap: isMobile ? 8 : 12,
+              marginBottom: isMobile ? "1rem" : "1.75rem",
             }}
           >
             <StatCard label={t("dash.stat.classes")} numericValue={ownedClasses.length} icon="classes" color="var(--accent)" delay={0.1} />
@@ -1149,7 +1151,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap" as const, gap: 12 }}>
                           <div style={{ flex: 1, minWidth: 200 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" as const }}>
-                              <h3 style={{ color: "var(--text)", fontWeight: 700, margin: 0, fontSize: 15 }}>
+                              <h3 style={{ color: "var(--text)", fontWeight: 700, margin: 0, fontSize: isMobile ? 13 : 15 }}>
                                 {cls.title}
                               </h3>
                               <span
@@ -1247,7 +1249,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                             <div>
-                              <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 15 }}>{cls.title}</div>
+                              <div style={{ color: "var(--text)", fontWeight: 700, fontSize: isMobile ? 13 : 15 }}>{cls.title}</div>
                               <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{cls.bookings.length} {cls.bookings.length !== 1 ? t("dash.nStudents") : t("dash.nStudent")}</div>
                             </div>
                             <Link href={"/classes/" + cls.id} style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
@@ -1387,9 +1389,9 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-              gap: 12,
-              marginBottom: "1.75rem",
+              gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(160px, 1fr))",
+              gap: isMobile ? 8 : 12,
+              marginBottom: isMobile ? "1rem" : "1.75rem",
             }}
           >
             <StatCard label={t("dash.stat.classes")} numericValue={centerData?.classes.length ?? 0} icon="classes" color="var(--accent)" delay={0.1} />
@@ -1557,7 +1559,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap" as const, gap: 12 }}>
                           <div style={{ flex: 1, minWidth: 200 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" as const }}>
-                              <h3 style={{ color: "var(--text)", fontWeight: 700, margin: 0, fontSize: 15 }}>
+                              <h3 style={{ color: "var(--text)", fontWeight: 700, margin: 0, fontSize: isMobile ? 13 : 15 }}>
                                 {cls.title}
                               </h3>
                               <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-muted)" }}>

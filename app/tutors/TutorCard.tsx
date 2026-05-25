@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { MapPin, Check, Star } from "lucide-react";
 import { useI18n } from "../components/i18n";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 // Types
 export interface TutorCardData {
@@ -110,9 +111,10 @@ export default function TutorCard({
   index?: number;
 }) {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
   const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
-  const visibleSubjects = tutor.subjects.slice(0, 3);
-  const extraSubjects = tutor.subjects.length - 3;
+  const visibleSubjects = tutor.subjects.slice(0, isMobile ? 2 : 3);
+  const extraSubjects = tutor.subjects.length - (isMobile ? 2 : 3);
   const primaryColor = subjectColor(tutor.subjects[0] ?? "Math");
 
   return (
@@ -124,7 +126,7 @@ export default function TutorCard({
       style={{
         backgroundColor: "var(--bg-card)",
         border: "1px solid var(--border-light)",
-        borderRadius: 14,
+        borderRadius: isMobile ? 12 : 14,
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -147,17 +149,17 @@ export default function TutorCard({
       <div style={{ height: 3, backgroundColor: primaryColor, flexShrink: 0 }} />
 
       {/* Card body */}
-      <div style={{ padding: "20px 20px 0" }}>
+      <div style={{ padding: isMobile ? "12px 12px 0" : "20px 20px 0" }}>
 
         {/* Top row: avatar + name + info */}
         <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 14 }}>
-          <Avatar name={displayName} photoUrl={tutor.photoUrl} size={56} />
+          <Avatar name={displayName} photoUrl={tutor.photoUrl} size={isMobile ? 40 : 56} />
 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
                 fontWeight: 700,
-                fontSize: 15,
+                fontSize: isMobile ? 13 : 15,
                 color: "var(--text)",
                 marginBottom: 3,
                 whiteSpace: "nowrap",
@@ -254,7 +256,7 @@ export default function TutorCard({
         )}
 
         {/* Bio snippet */}
-        {tutor.bio && (
+        {!isMobile && tutor.bio && (
           <p
             style={{
               color: "var(--text-secondary)",
@@ -272,7 +274,7 @@ export default function TutorCard({
         )}
 
         {/* Stats row */}
-        <div
+        {!isMobile && <div
           style={{
             display: "flex",
             gap: 16,
@@ -289,11 +291,11 @@ export default function TutorCard({
               <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{stat.label}</span>
             </div>
           ))}
-        </div>
+        </div>}
       </div>
 
       {/* CTA */}
-      <div style={{ padding: "12px 20px 18px", display: "flex", gap: 8 }}>
+      <div style={{ padding: isMobile ? "8px 10px 12px" : "12px 20px 18px", display: "flex", gap: 8 }}>
         <Link
           href={`/tutors/${tutor.id}`}
           style={{
@@ -304,8 +306,8 @@ export default function TutorCard({
             border: "1px solid var(--border-light)",
             color: "var(--text)",
             borderRadius: 8,
-            padding: "9px 12px",
-            fontSize: 13,
+            padding: isMobile ? "6px 8px" : "9px 12px",
+            fontSize: isMobile ? 11 : 13,
             fontWeight: 600,
             textDecoration: "none",
             transition: "all 0.15s",
@@ -334,8 +336,8 @@ export default function TutorCard({
               color: "var(--accent-fg)",
               border: "none",
               borderRadius: 8,
-              padding: "9px 12px",
-              fontSize: 13,
+              padding: isMobile ? "6px 8px" : "9px 12px",
+              fontSize: isMobile ? 11 : 13,
               fontWeight: 600,
               textDecoration: "none",
               transition: "background 0.15s",
@@ -353,8 +355,8 @@ export default function TutorCard({
             color: "var(--text-muted)",
             border: "1px solid var(--border-light)",
             borderRadius: 8,
-            padding: "9px 12px",
-            fontSize: 12,
+            padding: isMobile ? "6px 8px" : "9px 12px",
+            fontSize: isMobile ? 11 : 12,
             fontWeight: 500,
           }}>
             {t("tutor.noClasses")}
@@ -364,5 +366,4 @@ export default function TutorCard({
     </motion.div>
   );
 }
-
 

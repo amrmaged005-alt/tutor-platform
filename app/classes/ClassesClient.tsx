@@ -28,6 +28,7 @@ import PageShell from "../../components/ui/PageShell";
 import SectionHeader from "../../components/ui/SectionHeader";
 import EmptyState from "../../components/ui/EmptyState";
 import { useI18n } from "../components/i18n";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
 export interface ClassCardData {
@@ -230,7 +231,7 @@ function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
 }
 
 // ─── CLASS CARD ────────────────────────────────────────────────────────────────
-function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: number; copy: ClassesCopy }) {
+function ClassCard({ cls, index = 0, copy, isMobile }: { cls: ClassCardData; index?: number; copy: ClassesCopy; isMobile: boolean }) {
   const meta = getSubjectMeta(cls.subject);
   const fmt = FORMAT_META[cls.format] ?? { label: cls.format, color: "var(--text-secondary)", bg: "var(--bg-alt)", Icon: MapPin };
   const SubjectIcon = meta.Icon;
@@ -252,7 +253,7 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
       style={{
         backgroundColor: "var(--bg-card)",
         border: "1px solid var(--border-light)",
-        borderRadius: 20,
+        borderRadius: isMobile ? 14 : 20,
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -282,13 +283,13 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
         <div style={{ height: 3, background: `linear-gradient(90deg, ${meta.color}, ${meta.color}44)`, flexShrink: 0 }} />
       )}
 
-      <div style={{ padding: "18px 18px 0" }}>
+      <div style={{ padding: isMobile ? "10px 10px 0" : "18px 18px 0" }}>
         {/* Top row */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
           {/* Subject badge */}
           <span style={{
             backgroundColor: meta.bg, color: meta.color,
-            fontSize: 12, fontWeight: 700, padding: "4px 12px",
+            fontSize: isMobile ? 11 : 12, fontWeight: 700, padding: isMobile ? "3px 8px" : "4px 12px",
             borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 5,
             border: `1px solid ${meta.color}2f`,
           }}>
@@ -296,20 +297,22 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
           </span>
 
           {/* Format badge */}
-          <span style={{
+          {!isMobile && <span style={{
             backgroundColor: fmt.bg, color: fmt.color,
             fontSize: 11, fontWeight: 600, padding: "3px 10px",
             borderRadius: 999, border: `1px solid ${fmt.color}30`,
             display: "inline-flex", alignItems: "center", gap: 5,
           }}>
             <FormatIcon size={12} strokeWidth={2} /> {cls.format === "IN_PERSON" ? copy.inPerson : cls.format === "ONLINE" ? copy.online : cls.format === "HYBRID" ? copy.hybrid : fmt.label}
-          </span>
+          </span>}
         </div>
 
         {/* Title */}
         <h3 style={{
-          fontSize: 15, fontWeight: 700, color: "var(--text)",
+          fontSize: isMobile ? 12 : 15, fontWeight: 700, color: "var(--text)",
           margin: "0 0 8px", lineHeight: 1.3,
+          display: "-webkit-box", WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical", overflow: "hidden",
         }}>
           {cls.title}
         </h3>
@@ -317,9 +320,9 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
         {/* Tags row */}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
           <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--border-light)" }}>
-            {CURRICULUM_LABELS[cls.curriculum] ?? cls.curriculum}
+            {isMobile && cls.gradeLevel ? cls.gradeLevel : (CURRICULUM_LABELS[cls.curriculum] ?? cls.curriculum)}
           </span>
-          {cls.gradeLevel && (
+          {!isMobile && cls.gradeLevel && (
             <span style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", fontSize: 11, padding: "2px 8px", borderRadius: 999, border: "1px solid var(--border-light)" }}>
               {cls.gradeLevel}
             </span>
@@ -337,7 +340,7 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
         </div>
 
         {/* Description */}
-        {cls.description && (
+        {!isMobile && cls.description && (
           <p style={{
             color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6,
             margin: "0 0 10px",
@@ -349,7 +352,7 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
         )}
 
         {/* Info rows */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
+        {!isMobile && <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
           {(cls.location || cls.city) && (
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)" }}>
               <MapPin size={14} strokeWidth={1.8} /><span>{cls.location ?? cls.city}</span>
@@ -374,10 +377,10 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
               </span>
             )}
           </div>
-        </div>
+        </div>}
 
         {/* Rating */}
-        {cls.avgRating !== null && (
+        {!isMobile && cls.avgRating !== null && (
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
             <span style={{ color: "var(--rating)", fontSize: 13 }}>{"★".repeat(Math.round(cls.avgRating))}{"☆".repeat(5 - Math.round(cls.avgRating))}</span>
             <span style={{ fontWeight: 700, color: "var(--text)", fontSize: 13 }}>{cls.avgRating.toFixed(1)}</span>
@@ -386,16 +389,16 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
         )}
 
         {/* Spots bar */}
-        {cls.capacity && cls.capacity > 0 && (
+        {!isMobile && cls.capacity && cls.capacity > 0 && (
           <SpotsBar capacity={cls.capacity} booked={cls.bookingsCount} />
         )}
       </div>
 
       {/* Footer */}
-      <div style={{ padding: "14px 18px 18px", marginTop: "auto" }}>
+      <div style={{ padding: isMobile ? "8px 10px 12px" : "14px 18px 18px", marginTop: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: "1px solid var(--border-light)" }}>
           <div>
-            <div style={{ fontSize: "1.2rem", fontWeight: 900, color: cls.priceEgp === 0 ? "var(--success)" : "#1c6e7a" }}>
+            <div style={{ fontSize: isMobile ? "0.95rem" : "1.2rem", fontWeight: 900, color: cls.priceEgp === 0 ? "var(--success)" : "#1c6e7a" }}>
               {cls.priceEgp === 0 ? copy.free : cls.priceEgp.toLocaleString() + " EGP"}
             </div>
             {cls.priceEgp > 0 && <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{copy.perMonth}</div>}
@@ -405,8 +408,8 @@ function ClassCard({ cls, index = 0, copy }: { cls: ClassCardData; index?: numbe
               backgroundColor: isFull ? "var(--bg-alt)" : `${meta.color}20`,
               color: isFull ? "var(--text-muted)" : meta.color,
               border: `1px solid ${isFull ? "var(--border)" : `${meta.color}40`}`,
-              borderRadius: 10, padding: "7px 16px",
-              fontSize: 13, fontWeight: 700,
+              borderRadius: 10, padding: isMobile ? "5px 8px" : "7px 16px",
+              fontSize: isMobile ? 11 : 13, fontWeight: 700,
               textDecoration: "none", whiteSpace: "nowrap",
               transition: "all 0.2s",
             }}
@@ -782,6 +785,7 @@ function MobileFilterDrawer({
 export default function ClassesClient({ classes }: { classes: ClassCardData[] }) {
   const { lang } = useI18n();
   const copy = COPY[lang];
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
@@ -860,7 +864,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
         position: "relative", overflow: "hidden",
         background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--bg-card) 58%, var(--bg-alt) 100%)",
         borderBottom: "1px solid var(--border-light)",
-        padding: "52px 24px 44px", zIndex: 1,
+        padding: isMobile ? "16px 14px 14px" : "52px 24px 44px", zIndex: 1,
       }}>
         {/* Subtle wash */}
         <div style={{
@@ -976,7 +980,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
       {/* ── MAIN CONTENT ── */}
       <div style={{
         maxWidth: 1100, margin: "0 auto",
-        padding: "36px 24px 80px",
+        padding: isMobile ? "16px 14px 64px" : "36px 24px 80px",
         position: "relative", zIndex: 1,
         display: "flex", gap: 28, alignItems: "flex-start",
       }}>
@@ -1061,8 +1065,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             ) : isFiltering ? (
               // Flat list when filtering
               <motion.div key="filtered" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                  {filtered.map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(290px, 1fr))", gap: isMobile ? 10 : 18 }}>
+                  {filtered.map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} isMobile={isMobile} />)}
                 </div>
               </motion.div>
             ) : (
@@ -1073,8 +1077,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 {urgentClasses.length > 0 && (
                   <section>
                     <SectionHeader title={copy.filling} subtitle={copy.fillingSub} badge={copy.actNow} badgeColor="var(--error)" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {urgentClasses.slice(0, 4).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(290px, 1fr))", gap: isMobile ? 10 : 18 }}>
+                      {urgentClasses.slice(0, 4).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} isMobile={isMobile} />)}
                     </div>
                   </section>
                 )}
@@ -1082,8 +1086,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 {topRated.length > 0 && (
                   <section>
                     <SectionHeader title={copy.topRated} subtitle={copy.topRatedSub} badge={copy.highestRated} badgeColor="var(--rating)" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {topRated.slice(0, 8).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(290px, 1fr))", gap: isMobile ? 10 : 18 }}>
+                      {topRated.slice(0, 8).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} isMobile={isMobile} />)}
                     </div>
                   </section>
                 )}
@@ -1091,8 +1095,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 {onlineClasses.length > 0 && (
                   <section>
                     <SectionHeader title={copy.onlineTitle} subtitle={copy.onlineSub} badge={copy.online} badgeColor="#1c6e7a" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {onlineClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(290px, 1fr))", gap: isMobile ? 10 : 18 }}>
+                      {onlineClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} isMobile={isMobile} />)}
                     </div>
                   </section>
                 )}
@@ -1100,8 +1104,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 {freeClasses.length > 0 && (
                   <section>
                     <SectionHeader title={copy.freeTitle} subtitle={copy.freeSub} badge={copy.free} badgeColor="var(--success)" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {freeClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(290px, 1fr))", gap: isMobile ? 10 : 18 }}>
+                      {freeClasses.slice(0, 6).map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} isMobile={isMobile} />)}
                     </div>
                   </section>
                 )}
@@ -1109,8 +1113,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 {allOthers.length > 0 && (
                   <section>
                     <SectionHeader title={copy.allTitle} subtitle={copy.allSub} badge={copy.all} badgeColor="var(--text-muted)" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-                      {allOthers.map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} />)}
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(290px, 1fr))", gap: isMobile ? 10 : 18 }}>
+                      {allOthers.map((c, i) => <ClassCard key={c.id} cls={c} index={i} copy={copy} isMobile={isMobile} />)}
                     </div>
                   </section>
                 )}

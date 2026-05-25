@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronRight, Search, X, SlidersHorizontal } from "lucide-react";
 import TutorCard, { TutorCardData } from "./TutorCard";
 import { useI18n } from "../components/i18n";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 // ─── CONSTANTS ─────────────────────────────────────────────────────────────────
 
@@ -336,6 +337,7 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle?: string })
 
 export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState("All Cities");
   const [minRating, setMinRating] = useState(0);
@@ -395,7 +397,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
         style={{
           backgroundColor: "var(--bg-card)",
           borderBottom: "1px solid var(--border-light)",
-          padding: "32px 24px 28px",
+          padding: isMobile ? "14px 14px 14px" : "32px 24px 28px",
         }}
       >
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -406,10 +408,10 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
             <span style={{ color: "var(--text)" }}>{t("common.tutors")}</span>
           </div>
 
-          <h1 style={{ fontSize: "clamp(22px, 3.5vw, 32px)", fontWeight: 800, color: "var(--text)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontSize: "clamp(22px, 3.5vw, 32px)", fontWeight: 800, color: "var(--text)", margin: isMobile ? "0 0 4px" : "0 0 6px", letterSpacing: "-0.02em" }}>
             {t("tutors.pageTitle")}
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: isMobile ? 13 : 15, margin: isMobile ? "0 0 12px" : "0 0 24px" }}>
             {t("tutors.pageSubtitle", { count: tutors.length })}
           </p>
 
@@ -609,7 +611,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(270px, 1fr))", gap: isMobile ? 10 : 18 }}>
                   {filtered.map((tutor, i) => (
                     <TutorCard key={tutor.id} tutor={tutor} index={i} />
                   ))}
@@ -629,7 +631,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                       title={t("tutors.topRated")}
                       subtitle={t("tutors.topRatedSub")}
                     />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(270px, 1fr))", gap: isMobile ? 10 : 18 }}>
                       {featured.map((tutor, i) => <TutorCard key={tutor.id} tutor={tutor} index={i} />)}
                     </div>
                   </section>
@@ -641,7 +643,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                       title={t("tutors.highlyRated")}
                       subtitle={t("tutors.highlyRatedSub")}
                     />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(270px, 1fr))", gap: isMobile ? 10 : 18 }}>
                       {topRated.map((tutor, i) => <TutorCard key={tutor.id} tutor={tutor} index={i} />)}
                     </div>
                   </section>
@@ -653,7 +655,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                       title={t("tutors.newTutors")}
                       subtitle={t("tutors.newTutorsSub")}
                     />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(270px, 1fr))", gap: isMobile ? 10 : 18 }}>
                       {newTutors.map((tutor, i) => <TutorCard key={tutor.id} tutor={tutor} index={i} />)}
                     </div>
                   </section>

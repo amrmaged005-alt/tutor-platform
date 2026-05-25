@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
 export interface ClassCardData {
@@ -78,7 +79,7 @@ function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
 }
 
 // ─── CLASS CARD ────────────────────────────────────────────────────────────────
-function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
+function ClassCard({ cls, index = 0, isMobile }: { cls: ClassCardData; index?: number; isMobile: boolean }) {
   const color = subjectColor(cls.subject);
   const isFull = cls.spotsLeft !== null && cls.spotsLeft <= 0;
   const isUrgent = cls.spotsLeft !== null && cls.spotsLeft > 0 && cls.spotsLeft <= 5;
@@ -101,7 +102,7 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
           flexDirection: "column",
           backgroundColor: "var(--bg-card)",
           border: "1px solid var(--border-light)",
-          borderRadius: 14,
+          borderRadius: isMobile ? 14 : 14,
           overflow: "hidden",
           transition: "box-shadow 0.2s, border-color 0.2s, transform 0.2s",
           height: "100%",
@@ -120,35 +121,35 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
       {/* Subject color top bar */}
       <div style={{ height: 3, backgroundColor: color, flexShrink: 0 }} />
 
-      <div style={{ padding: "16px 16px 0" }}>
+      <div style={{ padding: isMobile ? "10px 10px 0" : "16px 16px 0" }}>
         {/* Subject + format row */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <span style={{
             color: "var(--accent-fg)",
-            fontSize: 12, fontWeight: 700,
+            fontSize: isMobile ? 11 : 12, fontWeight: 700,
             backgroundColor: color,
             border: `1px solid ${color}`,
-            padding: "3px 10px", borderRadius: 99,
+            padding: isMobile ? "3px 8px" : "3px 10px", borderRadius: 99,
             letterSpacing: 0.2,
           }}>
             {cls.subject}
           </span>
-          <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
+          {!isMobile && <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
             {FORMAT_LABELS[cls.format] ?? cls.format}
-          </span>
+          </span>}
         </div>
 
         {/* Title */}
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", margin: "0 0 6px", lineHeight: 1.35 }}>
+        <h3 style={{ fontSize: isMobile ? 12 : 14, fontWeight: 700, color: "var(--text)", margin: "0 0 6px", lineHeight: 1.35, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
           {cls.title}
         </h3>
 
         {/* Curriculum + grade */}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
           <span style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)", fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 500 }}>
-            {CURRICULUM_LABELS[cls.curriculum] ?? cls.curriculum}
+            {isMobile && cls.gradeLevel ? cls.gradeLevel : (CURRICULUM_LABELS[cls.curriculum] ?? cls.curriculum)}
           </span>
-          {cls.gradeLevel && (
+          {!isMobile && cls.gradeLevel && (
             <span style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)", fontSize: 11, padding: "2px 8px", borderRadius: 4, fontWeight: 500 }}>
               {cls.gradeLevel}
             </span>
@@ -166,7 +167,7 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
         </div>
 
         {/* Description */}
-        {cls.description && (
+        {!isMobile && cls.description && (
           <p style={{
             color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.55, margin: "0 0 8px",
             display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
@@ -176,7 +177,7 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
         )}
 
         {/* Meta info */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
+        {!isMobile && <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
           {(cls.location || cls.city) && (
             <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.34 1 3 2.34 3 4c0 2.25 3 7 3 7s3-4.75 3-7c0-1.66-1.34-3-3-3zm0 4.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="currentColor"/></svg>
@@ -193,10 +194,10 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="3.5" r="2.5" stroke="currentColor" strokeWidth="1.2"/><path d="M1.5 10.5c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
             <span>{displayName}{isCenter && " · Center"}</span>
           </div>
-        </div>
+        </div>}
 
         {/* Rating */}
-        {cls.avgRating !== null && (
+        {!isMobile && cls.avgRating !== null && (
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 8 }}>
             <span style={{ color: "var(--rating)", fontSize: 12 }}>{"★".repeat(Math.round(cls.avgRating))}{"☆".repeat(5 - Math.round(cls.avgRating))}</span>
             <span style={{ fontWeight: 600, color: "var(--text)", fontSize: 12 }}>{cls.avgRating.toFixed(1)}</span>
@@ -205,16 +206,16 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
         )}
 
         {/* Spots bar */}
-        {cls.capacity && cls.capacity > 0 && (
+        {!isMobile && cls.capacity && cls.capacity > 0 && (
           <SpotsBar capacity={cls.capacity} booked={cls.bookingsCount} />
         )}
       </div>
 
       {/* Footer */}
-      <div style={{ padding: "12px 16px 16px", marginTop: "auto", borderTop: "1px solid var(--bg-subtle)" }}>
+      <div style={{ padding: isMobile ? "8px 10px 12px" : "12px 16px 16px", marginTop: "auto", borderTop: "1px solid var(--bg-subtle)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <div>
-            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: cls.priceEgp === 0 ? "var(--success)" : "var(--text)", letterSpacing: "-0.02em" }}>
+            <div style={{ fontSize: isMobile ? "0.95rem" : "1.1rem", fontWeight: 800, color: cls.priceEgp === 0 ? "var(--success)" : "var(--text)", letterSpacing: "-0.02em" }}>
               {cls.priceEgp === 0 ? "Free" : cls.priceEgp.toLocaleString() + " EGP"}
             </div>
             {cls.priceEgp > 0 && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>per month</div>}
@@ -226,8 +227,8 @@ function ClassCard({ cls, index = 0 }: { cls: ClassCardData; index?: number }) {
             textAlign: "center",
             backgroundColor: isFull ? "var(--bg-subtle)" : "var(--accent)",
             color: isFull ? "var(--text-muted)" : "var(--accent-fg)",
-            borderRadius: 8, padding: "9px",
-            fontSize: 13, fontWeight: 600,
+            borderRadius: 8, padding: isMobile ? "5px 8px" : "9px",
+            fontSize: isMobile ? 11 : 13, fontWeight: 600,
           }}
         >
           {isFull ? "View Details" : "View Class"}
@@ -395,6 +396,7 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle?: string })
 
 // ─── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 export default function ClassesClient({ classes }: { classes: ClassCardData[] }) {
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
@@ -458,7 +460,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
       <div style={{
         backgroundColor: "var(--bg-card)",
         borderBottom: "1px solid var(--border-light)",
-        padding: "2.5rem 1.5rem 2rem",
+        padding: isMobile ? "16px 14px 14px" : "2.5rem 1.5rem 2rem",
       }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <Link href="/" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: "1rem" }}>
@@ -536,17 +538,19 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
       </div>
 
       {/* Main content */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "2rem 1.5rem 5rem", display: "flex", gap: 24, alignItems: "flex-start" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "16px 14px 64px" : "2rem 1.5rem 5rem", display: "flex", gap: 24, alignItems: "flex-start" }}>
 
         {/* Sidebar */}
-        <FilterSidebar
-          selectedSubjects={selectedSubjects} setSelectedSubjects={setSelectedSubjects}
-          selectedFormats={selectedFormats} setSelectedFormats={setSelectedFormats}
-          selectedCurriculum={selectedCurriculum} setSelectedCurriculum={setSelectedCurriculum}
-          selectedGrade={selectedGrade} setSelectedGrade={setSelectedGrade}
-          maxPrice={maxPrice} setMaxPrice={setMaxPrice}
-          onClear={clearFilters} hasFilters={hasFilters}
-        />
+        <div className="desktop-only" style={{ flexDirection: "column", flexShrink: 0 }}>
+          <FilterSidebar
+            selectedSubjects={selectedSubjects} setSelectedSubjects={setSelectedSubjects}
+            selectedFormats={selectedFormats} setSelectedFormats={setSelectedFormats}
+            selectedCurriculum={selectedCurriculum} setSelectedCurriculum={setSelectedCurriculum}
+            selectedGrade={selectedGrade} setSelectedGrade={setSelectedGrade}
+            maxPrice={maxPrice} setMaxPrice={setMaxPrice}
+            onClear={clearFilters} hasFilters={hasFilters}
+          />
+        </div>
 
         {/* Cards area */}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -594,8 +598,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
               </motion.div>
             ) : isFiltering ? (
               <motion.div key="filtered" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-                  {filtered.map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(280px, 1fr))", gap: isMobile ? 10 : 16 }}>
+                  {filtered.map((c, i) => <ClassCard key={c.id} cls={c} index={i} isMobile={isMobile} />)}
                 </div>
               </motion.div>
             ) : (
@@ -605,8 +609,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 {urgentClasses.length > 0 && (
                   <section>
                     <SectionTitle title="Filling Up Fast" subtitle="Few spots remaining — book soon" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-                      {urgentClasses.slice(0, 4).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(280px, 1fr))", gap: isMobile ? 10 : 16 }}>
+                      {urgentClasses.slice(0, 4).map((c, i) => <ClassCard key={c.id} cls={c} index={i} isMobile={isMobile} />)}
                     </div>
                   </section>
                 )}
@@ -614,8 +618,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 {topRated.length > 0 && (
                   <section>
                     <SectionTitle title="Top Rated" subtitle="Highly reviewed by enrolled students" />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-                      {topRated.slice(0, 8).map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(280px, 1fr))", gap: isMobile ? 10 : 16 }}>
+                      {topRated.slice(0, 8).map((c, i) => <ClassCard key={c.id} cls={c} index={i} isMobile={isMobile} />)}
                     </div>
                   </section>
                 )}
@@ -623,8 +627,8 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 {allOthers.length > 0 && (
                   <section>
                     <SectionTitle title="All Classes" subtitle={`${allOthers.length} classes available`} />
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-                      {allOthers.map((c, i) => <ClassCard key={c.id} cls={c} index={i} />)}
+                    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(280px, 1fr))", gap: isMobile ? 10 : 16 }}>
+                      {allOthers.map((c, i) => <ClassCard key={c.id} cls={c} index={i} isMobile={isMobile} />)}
                     </div>
                   </section>
                 )}
