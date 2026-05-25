@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, CheckCircle, ShieldCheck } from "lucide-react";
 import { useI18n } from "../components/i18n";
@@ -22,7 +21,6 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function LoginPage() {
-  const router = useRouter();
   const { t } = useI18n();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,8 +52,7 @@ export default function LoginPage() {
     }
 
     const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-    router.push(callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/dashboard");
-    router.refresh();
+    window.location.href = callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/dashboard";
   }
 
   function focusInput(e: React.FocusEvent<HTMLInputElement>) {
