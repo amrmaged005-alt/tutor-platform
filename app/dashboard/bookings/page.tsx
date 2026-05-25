@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { MessageCircle, Mail, FileText } from "lucide-react";
 import { updateBookingStatus, addBookingNote } from "@/app/actions/bookings";
+import { useIsMobile } from "@/app/hooks/useIsMobile";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
 type PaymentStatus = "UNPAID" | "PAID" | "FAILED" | "REFUNDED" | "PARTIALLY_REFUNDED";
@@ -60,6 +61,7 @@ function PaymentBadge({ status }: { status: PaymentStatus }) {
 }
 
 function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => void }) {
+  const isMobile = useIsMobile();
   const [isPending, startTransition] = useTransition();
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [note, setNote] = useState(booking.notes ?? "");
@@ -88,11 +90,11 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
   }
 
   return (
-    <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16, padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: isMobile ? 12 : 16, padding: isMobile ? "0.875rem" : "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: isMobile ? 8 : 12 }}>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
         <div>
-          <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 15 }}>{booking.class.title}</div>
+          <div style={{ color: "var(--text)", fontWeight: 700, fontSize: isMobile ? 13 : 15, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{booking.class.title}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 2 }}>
             {booking.class.subject} · {isInPerson ? "Cash / In person" : "Online · Paymob"}
           </div>
@@ -103,7 +105,7 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 4, backgroundColor: "var(--bg-card)", borderRadius: 10, padding: "0.75rem 1rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, backgroundColor: "var(--bg-card)", borderRadius: 10, padding: isMobile ? "0.5rem 0.75rem" : "0.75rem 1rem" }}>
         <div style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>
           {booking.student.fullName ?? booking.student.email ?? "Unknown student"}
         </div>
@@ -198,6 +200,7 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
 }
 
 export default function BookingsManagementPage() {
+  const isMobile = useIsMobile();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"ALL" | BookingStatus>("ALL");
@@ -210,7 +213,7 @@ export default function BookingsManagementPage() {
       if (!res.ok) throw new Error("Failed to load bookings");
       const data = await res.json();
       setBookings(data);
-    } catch (e) {
+    } catch {
       setError("Could not load bookings. Please refresh.");
     } finally {
       setLoading(false);
@@ -229,20 +232,20 @@ export default function BookingsManagementPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "system-ui, sans-serif", padding: "2rem" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "system-ui, sans-serif", padding: isMobile ? "1rem 0.875rem 3rem" : "2rem" }}>
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
 
-        <div style={{ marginBottom: "2rem" }}>
+        <div style={{ marginBottom: isMobile ? "1rem" : "2rem" }}>
           <h1 style={{ color: "var(--text)", fontSize: "1.5rem", fontWeight: 800, marginBottom: 4 }}>Bookings</h1>
           <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Manage student bookings for your classes</p>
         </div>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: "1.5rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: isMobile ? "1rem" : "1.5rem", flexWrap: "wrap" }}>
           {(["ALL", "PENDING", "CONFIRMED", "CANCELLED"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              style={{ backgroundColor: filter === tab ? "var(--accent)" : "var(--bg-alt)", color: filter === tab ? "white" : "var(--text-muted)", border: "1px solid", borderColor: filter === tab ? "var(--accent)" : "var(--border-light)", borderRadius: 8, padding: "0.4rem 1rem", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              style={{ backgroundColor: filter === tab ? "var(--accent)" : "var(--bg-alt)", color: filter === tab ? "white" : "var(--text-muted)", border: "1px solid", borderColor: filter === tab ? "var(--accent)" : "var(--border-light)", borderRadius: 8, padding: isMobile ? "0.35rem 0.7rem" : "0.4rem 1rem", fontSize: isMobile ? 12 : 13, fontWeight: 600, cursor: "pointer" }}
             >
               {tab} ({counts[tab]})
             </button>
@@ -255,7 +258,7 @@ export default function BookingsManagementPage() {
           <div style={{ color: "var(--text-muted)", textAlign: "center", padding: "3rem" }}>No bookings found.</div>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 10 : 16 }}>
           {filtered.map((booking) => (
             <BookingCard key={booking.id} booking={booking} onUpdate={fetchBookings} />
           ))}

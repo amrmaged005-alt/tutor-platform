@@ -123,7 +123,8 @@ function MobileDrawer({
     canCreateClass: boolean;
     isAdmin: boolean;
 }) {
-    const { t } = useI18n();
+    const { t, dir } = useI18n();
+    const closedTransform = dir === "rtl" ? "translateX(-100%)" : "translateX(100%)";
 
     useEffect(() => {
         if (open) document.body.style.overflow = "hidden";
@@ -137,6 +138,7 @@ function MobileDrawer({
                 onClick={onClose}
                 style={{
                     position: "fixed", inset: 0,
+                    display: open ? "block" : "none",
                     backgroundColor: "rgba(24,23,21,0.42)",
                     backdropFilter: "blur(3px)",
                     zIndex: 998,
@@ -150,14 +152,14 @@ function MobileDrawer({
                 aria-modal="true"
                 aria-label="Mobile navigation"
                 style={{
-                    position: "fixed", top: 0, right: 0,
+                    position: "fixed", top: 0, insetInlineEnd: 0,
                     width: "min(300px, 82vw)", height: "100vh",
                     backgroundColor: "var(--bg-elevated)",
-                    borderLeft: "1px solid var(--border-light)",
+                    borderInlineStart: "1px solid var(--border-light)",
                     zIndex: 999,
-                    transform: open ? "translateX(0)" : "translateX(100%)",
+                    transform: open ? "translateX(0)" : closedTransform,
                     transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
-                    display: "flex", flexDirection: "column",
+                    display: open ? "flex" : "none", flexDirection: "column",
                     padding: "1.25rem",
                     overflowY: "auto",
                     boxShadow: "var(--shadow-lg)",

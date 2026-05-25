@@ -166,6 +166,12 @@ function ClassCard({ cls, index = 0, isMobile }: { cls: ClassCardData; index?: n
           )}
         </div>
 
+        {isMobile && (
+          <div style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600, margin: "0 0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {displayName}
+          </div>
+        )}
+
         {/* Description */}
         {!isMobile && cls.description && (
           <p style={{
@@ -463,7 +469,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
         padding: isMobile ? "16px 14px 14px" : "2.5rem 1.5rem 2rem",
       }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <Link href="/" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, marginBottom: "1rem" }}>
+          <Link href="/" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none", display: isMobile ? "none" : "inline-flex", alignItems: "center", gap: 4, marginBottom: "1rem" }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Home
           </Link>
@@ -480,14 +486,14 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.08 }}
-            style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 1.5rem" }}
+            style={{ color: "var(--text-secondary)", fontSize: isMobile ? 13 : 15, margin: isMobile ? "0 0 0.75rem" : "0 0 1.5rem" }}
           >
             {classes.length} classes across all subjects and curricula
           </motion.p>
 
           {/* Search */}
-          <div style={{ position: "relative", maxWidth: 520, marginBottom: "1rem" }}>
-            <svg style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }} width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <div style={{ position: "relative", maxWidth: isMobile ? 420 : 520, marginBottom: isMobile ? "0.5rem" : "1rem" }}>
+            <svg style={{ position: "absolute", insetInlineStart: isMobile ? 10 : 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }} width="16" height="16" viewBox="0 0 16 16" fill="none">
               <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
@@ -499,20 +505,20 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
               style={{
                 width: "100%", backgroundColor: "var(--bg-alt)",
                 border: "1px solid var(--border-light)", borderRadius: 10,
-                padding: "11px 14px 11px 40px", color: "var(--text)",
-                fontSize: 14, outline: "none", boxSizing: "border-box",
+                padding: isMobile ? "8px 12px" : "11px 14px", paddingInlineStart: isMobile ? 34 : 40, color: "var(--text)",
+                fontSize: isMobile ? 13 : 14, outline: "none", boxSizing: "border-box",
                 fontFamily: "inherit", transition: "border-color 0.15s, box-shadow 0.15s",
               }}
               onFocus={e => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
               onBlur={e => { e.target.style.borderColor = "var(--border-light)"; e.target.style.boxShadow = "none"; }}
             />
             {search && (
-              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>×</button>
+              <button onClick={() => setSearch("")} style={{ position: "absolute", insetInlineEnd: isMobile ? 8 : 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>×</button>
             )}
           </div>
 
           {/* Quick pills */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ display: isMobile ? "none" : "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
             <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, marginRight: 2 }}>Quick:</span>
             {QUICK_PILLS.map(tag => {
               const isActive = selectedSubjects.includes(tag) || (tag === "Online" && selectedFormats.includes("ONLINE")) || (tag === "IGCSE" && selectedCurriculum === "IGCSE") || selectedGrade === tag;

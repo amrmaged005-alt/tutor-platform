@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { AlertCircle, CheckCircle, ShieldCheck } from "lucide-react";
 import { useI18n } from "../components/i18n";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -22,6 +23,7 @@ const inputStyle: React.CSSProperties = {
 
 export default function LoginPage() {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registered] = useState(
@@ -75,13 +77,13 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "center",
         fontFamily: "var(--font-sans)",
-        padding: "2rem 1.5rem",
+        padding: isMobile ? "1rem 0.875rem" : "2rem 1.5rem",
       }}
     >
       <div style={{ width: "100%", maxWidth: 400 }}>
 
         {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <div style={{ textAlign: "center", marginBottom: isMobile ? "1rem" : "2rem" }}>
           <Link
             href="/"
             style={{
@@ -106,7 +108,7 @@ export default function LoginPage() {
             backgroundColor: "var(--bg-card)",
             border: "1px solid var(--border-light)",
             borderRadius: 16,
-            padding: "2rem",
+            padding: isMobile ? "1.125rem" : "2rem",
             boxShadow: "var(--shadow-md)",
           }}
         >
@@ -131,7 +133,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <div style={{ marginBottom: "1rem" }}>
+            <div style={{ marginBottom: isMobile ? "0.75rem" : "1rem" }}>
               <label
                 htmlFor="email"
                 style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
@@ -150,7 +152,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div style={{ marginBottom: "1.5rem" }}>
+            <div style={{ marginBottom: isMobile ? "1rem" : "1.5rem" }}>
               <label
                 htmlFor="password"
                 style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
@@ -209,7 +211,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div style={{ borderTop: "1px solid var(--bg-subtle)", margin: "1.5rem 0" }} />
+          <div style={{ borderTop: "1px solid var(--bg-subtle)", margin: isMobile ? "1rem 0" : "1.5rem 0" }} />
 
           <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
             {t("auth.noAccount")}{" "}
@@ -220,7 +222,7 @@ export default function LoginPage() {
         </div>
 
         {/* Trust badges */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: isMobile ? "0.75rem" : "1.5rem", marginTop: isMobile ? "1rem" : "1.5rem", flexWrap: "wrap" }}>
           {([
             t("auth.trust.verified"),
             t("auth.trust.free"),

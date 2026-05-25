@@ -14,6 +14,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useI18n } from "../components/i18n";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 export interface BookingConfirmedData {
   bookingId: string;
@@ -32,6 +33,7 @@ export interface BookingConfirmedData {
 
 export default function BookingConfirmedClient({ data }: { data: BookingConfirmedData }) {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
 
   const isOnline = data.paymentType === "ONLINE";
   const isPaid = data.paymentStatus === "PAID";
@@ -75,24 +77,24 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "2rem 1.25rem",
+        padding: isMobile ? "1rem 0.875rem" : "2rem 1.25rem",
       }}
     >
       <div style={{ maxWidth: 520, width: "100%" }}>
 
         {/* Status icon */}
-        <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
+        <div style={{ textAlign: "center", marginBottom: isMobile ? "1rem" : "1.75rem" }}>
           {isFailed ? (
-            <XCircle size={64} strokeWidth={1.5} color="var(--error)" style={{ margin: "0 auto" }} />
+            <XCircle size={isMobile ? 46 : 64} strokeWidth={1.5} color="var(--error)" style={{ margin: "0 auto" }} />
           ) : isPending ? (
-            <Clock size={64} strokeWidth={1.5} color="var(--rating)" style={{ margin: "0 auto" }} />
+            <Clock size={isMobile ? 46 : 64} strokeWidth={1.5} color="var(--rating)" style={{ margin: "0 auto" }} />
           ) : (
-            <CheckCircle size={64} strokeWidth={1.5} color="var(--success)" style={{ margin: "0 auto" }} />
+            <CheckCircle size={isMobile ? 46 : 64} strokeWidth={1.5} color="var(--success)" style={{ margin: "0 auto" }} />
           )}
         </div>
 
         {/* Heading */}
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <div style={{ textAlign: "center", marginBottom: isMobile ? "1rem" : "2rem" }}>
           <h1
             style={{
               color: "var(--text)",
@@ -107,8 +109,8 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
           <p
             style={{
               color: "var(--text-secondary)",
-              fontSize: 15,
-              lineHeight: 1.7,
+              fontSize: isMobile ? 13 : 15,
+              lineHeight: isMobile ? 1.45 : 1.7,
               maxWidth: 400,
               margin: "0 auto",
             }}
@@ -122,9 +124,9 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
           style={{
             backgroundColor: "var(--bg-card)",
             border: "1px solid var(--border-light)",
-            borderRadius: 16,
-            padding: "1.5rem",
-            marginBottom: "1.25rem",
+            borderRadius: isMobile ? 12 : 16,
+            padding: isMobile ? "1rem" : "1.5rem",
+            marginBottom: isMobile ? "0.875rem" : "1.25rem",
             boxShadow: "var(--shadow-sm)",
           }}
         >
@@ -261,7 +263,7 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
                   backgroundColor: "#22c55e",
                   color: "#fff",
                   borderRadius: 10,
-                  padding: "0.875rem 1.25rem",
+                  padding: isMobile ? "0.65rem 1rem" : "0.875rem 1.25rem",
                   fontWeight: 700,
                   fontSize: 14,
                   textDecoration: "none",
@@ -292,7 +294,7 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
                 color: "var(--text)",
                 border: "1px solid var(--border)",
                 borderRadius: 10,
-                padding: "0.875rem 1.25rem",
+                padding: isMobile ? "0.65rem 1rem" : "0.875rem 1.25rem",
                 fontWeight: 600,
                 fontSize: 14,
                 textDecoration: "none",
@@ -344,7 +346,7 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
                 backgroundColor: "var(--accent)",
                 color: "var(--accent-fg)",
                 borderRadius: 10,
-                padding: "0.875rem 1.25rem",
+                padding: isMobile ? "0.65rem 1rem" : "0.875rem 1.25rem",
                 fontWeight: 700,
                 fontSize: 14,
                 textDecoration: "none",

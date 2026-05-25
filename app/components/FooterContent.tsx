@@ -37,7 +37,7 @@ export default function FooterContent() {
   ];
 
   return (
-    <footer role="contentinfo" style={{ borderTop: "1px solid var(--border-light)", backgroundColor: "var(--bg-alt)" }}>
+    <footer role="contentinfo" style={{ borderTop: "1px solid var(--border-light)", backgroundColor: "var(--bg-alt)", overflowX: "hidden" }}>
 
       {/* Trust bar */}
       <div style={{

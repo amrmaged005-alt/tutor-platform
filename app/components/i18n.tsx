@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 
 // ─── Translation dictionary ───────────────────────────────────────────────────
 const DICT = {
@@ -381,6 +381,8 @@ const I18nContext = createContext<I18nContextValue>({
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
     if (typeof document === "undefined") return "en";
+    const stored = typeof window !== "undefined" ? localStorage.getItem("coursaty-lang") : null;
+    if (stored === "ar" || stored === "en") return stored;
     const current = document.documentElement.lang;
     return current === "ar" ? "ar" : "en";
   });
@@ -394,6 +396,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       html.dir = l === "ar" ? "rtl" : "ltr";
     }
   }, []);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    html.lang = lang;
+    html.dir = lang === "ar" ? "rtl" : "ltr";
+  }, [lang]);
 
   const t = useCallback(
     (key: DictKey, vars?: Record<string, string | number>): string => {

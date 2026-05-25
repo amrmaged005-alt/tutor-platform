@@ -339,6 +339,12 @@ function ClassCard({ cls, index = 0, copy, isMobile }: { cls: ClassCardData; ind
           )}
         </div>
 
+        {isMobile && (
+          <div style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600, margin: "0 0 8px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {displayName}
+          </div>
+        )}
+
         {/* Description */}
         {!isMobile && cls.description && (
           <p style={{
@@ -875,7 +881,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
         }} />
 
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
-          <Link href="/" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>{copy.home}</Link>
+          {!isMobile && <Link href="/" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>{copy.home}</Link>}
 
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
@@ -883,7 +889,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             transition={{ delay: 0.08 }}
             style={{
               fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 900,
-              margin: "20px 0 10px", letterSpacing: "-0.03em", lineHeight: 1.15,
+              margin: isMobile ? "0 0 6px" : "20px 0 10px", letterSpacing: "-0.03em", lineHeight: 1.15,
             }}
           >
             {copy.browse}{" "}
@@ -896,7 +902,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.13 }}
-            style={{ color: "var(--text-muted)", fontSize: 17, marginBottom: 24, maxWidth: 460 }}
+            style={{ color: "var(--text-muted)", fontSize: isMobile ? 13 : 17, marginBottom: isMobile ? 10 : 24, maxWidth: 460 }}
           >
             {copy.subtitle(classes.length)}
           </motion.p>
@@ -906,9 +912,9 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18 }}
-            style={{ position: "relative", maxWidth: 560, marginBottom: 20 }}
+            style={{ position: "relative", maxWidth: isMobile ? 420 : 560, marginBottom: isMobile ? 8 : 20 }}
           >
-            <Search size={18} strokeWidth={1.8} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }} />
+            <Search size={isMobile ? 15 : 18} strokeWidth={1.8} style={{ position: "absolute", insetInlineStart: isMobile ? 10 : 16, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }} />
             <input
               type="text"
               placeholder={copy.searchPlaceholder}
@@ -917,15 +923,15 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
               style={{
                 width: "100%", backgroundColor: "var(--bg-card)",
                 border: "1px solid var(--border-light)", borderRadius: 14,
-                padding: "13px 16px 13px 48px", color: "var(--text)",
-                fontSize: 15, outline: "none", boxSizing: "border-box",
+                padding: isMobile ? "8px 12px" : "13px 16px", paddingInlineStart: isMobile ? 34 : 48, color: "var(--text)",
+                fontSize: isMobile ? 13 : 15, outline: "none", boxSizing: "border-box",
                 fontFamily: "inherit", transition: "border-color 0.2s",
               }}
               onFocus={e => (e.target.style.borderColor = "#1c6e7a")}
               onBlur={e => (e.target.style.borderColor = "var(--border-light)")}
             />
             {search && (
-              <button onClick={() => setSearch("")} aria-label="Clear search" style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "inline-flex", padding: 4 }}><X size={16} strokeWidth={2} /></button>
+              <button onClick={() => setSearch("")} aria-label="Clear search" style={{ position: "absolute", insetInlineEnd: isMobile ? 8 : 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "inline-flex", padding: 4 }}><X size={16} strokeWidth={2} /></button>
             )}
           </motion.div>
 
@@ -934,7 +940,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.22 }}
-            style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}
+            style={{ display: isMobile ? "none" : "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}
           >
             <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 5 }}><Flame size={14} strokeWidth={2} /> {copy.trending}</span>
             {TRENDING.map(tag => {

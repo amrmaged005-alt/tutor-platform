@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useMotionValue, useMotionValueEvent, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import type { MotionValue } from "framer-motion";
 import Link from "next/link";
@@ -546,6 +546,201 @@ const BOOK_CSS = `
   border-color: var(--accent-border);
   background: var(--sheet-strong);
 }
+.book-mobile-scroll {
+  height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
+  touch-action: pan-y;
+}
+.book-mobile-page {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: calc(64px + 0.875rem) 0.875rem 4.75rem;
+  display: grid;
+  place-items: center;
+  touch-action: pan-y;
+}
+.book-mobile-card {
+  width: min(100%, 430px);
+  max-height: calc(100dvh - 8.9rem);
+  overflow: hidden;
+  background: linear-gradient(145deg, var(--paper), var(--paper-alt));
+  border: 1px solid var(--paper-edge);
+  border-radius: 16px 10px 10px 16px;
+  box-shadow: 0 14px 34px var(--paper-shadow);
+  padding: 1rem;
+  transform-origin: left center;
+  will-change: transform, opacity;
+  touch-action: pan-y;
+}
+.book-mobile-page.is-active .book-mobile-card {
+  animation: mobilePageFlipIn 260ms ease-out both;
+}
+.book-mobile-card .book-page {
+  padding: 0;
+}
+.book-mobile-card .book-page.left {
+  border: 0;
+  padding-bottom: 0.875rem;
+  margin-bottom: 0.875rem;
+  border-bottom: 1px solid var(--paper-line);
+}
+.book-mobile-card .book-page.right {
+  min-height: 0;
+}
+.book-mobile-card .book-heading {
+  font-size: clamp(1.45rem, 8vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+  margin-bottom: 0.75rem;
+}
+.book-mobile-card .book-heading.medium {
+  font-size: clamp(1.35rem, 7vw, 1.85rem);
+}
+.book-mobile-card .book-copy {
+  font-size: 0.92rem;
+  line-height: 1.48;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.book-mobile-card .book-actions {
+  margin-top: 0.875rem;
+  gap: 0.5rem;
+}
+.book-mobile-card .book-btn,
+.book-mobile-card .book-btn-secondary {
+  min-height: 40px;
+  padding: 0 0.875rem;
+  font-size: 13px;
+  flex: 1 1 130px;
+}
+.book-mobile-card .stat-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.book-mobile-card .stat-card,
+.book-mobile-card .trust-card,
+.book-mobile-card .outcome-note,
+.book-mobile-card .catalog-card,
+.book-mobile-card .toc-card,
+.book-mobile-card .step-row {
+  padding: 0.7rem;
+  border-radius: 10px;
+}
+.book-mobile-card .stat-card strong {
+  font-size: 1.1rem;
+}
+.book-mobile-card .stat-card span,
+.book-mobile-card .toc-card span,
+.book-mobile-card .step-row p,
+.book-mobile-card .catalog-card p,
+.book-mobile-card .trust-card p,
+.book-mobile-card .outcome-note p,
+.book-mobile-card .annotation {
+  font-size: 12px;
+  line-height: 1.42;
+}
+.book-mobile-card .toc-grid,
+.book-mobile-card .step-list,
+.book-mobile-card .catalog-grid,
+.book-mobile-card .trust-grid,
+.book-mobile-card .outcome-grid {
+  gap: 0.5rem;
+}
+.book-mobile-card .toc-card {
+  min-height: 0;
+  grid-template-columns: 34px 1fr;
+}
+.book-mobile-card .toc-card svg {
+  display: none;
+}
+.book-mobile-card .toc-num,
+.book-mobile-card .step-icon,
+.book-mobile-card .trust-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+.book-mobile-card .step-row {
+  grid-template-columns: 34px 1fr;
+  gap: 0.65rem;
+}
+.book-mobile-card .step-row h3,
+.book-mobile-card .catalog-card h3,
+.book-mobile-card .trust-card h3,
+.book-mobile-card .outcome-note h3 {
+  font-size: 13px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.book-mobile-card .catalog-card p,
+.book-mobile-card .trust-card p,
+.book-mobile-card .outcome-note p,
+.book-mobile-card .annotation {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.book-mobile-card .cover-visual {
+  min-height: 150px;
+}
+.book-mobile-card .cover-stack {
+  width: min(150px, 54vw);
+}
+.book-mobile-card .cover-board {
+  padding: 1rem;
+}
+.book-mobile-card .cover-page-front,
+.book-mobile-card .cover-page-back {
+  display: none;
+}
+.book-mobile-card .cover-board h2 {
+  font-size: 1.55rem !important;
+}
+.book-mobile-progress {
+  position: fixed;
+  inset-inline: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  z-index: 22;
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  pointer-events: none;
+}
+.book-mobile-progress span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: width 180ms ease, background 180ms ease;
+}
+.book-mobile-progress span.active {
+  width: 22px;
+  background: var(--accent);
+}
+@keyframes mobilePageFlipIn {
+  from {
+    opacity: 0.72;
+    transform: translateY(20px) rotateY(-12deg) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateY(0) scale(1);
+  }
+}
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -588,41 +783,18 @@ const BOOK_CSS = `
 }
 @media (max-width: 900px) {
   .book-stage { perspective: none; }
-  .book-spread {
-    grid-template-columns: 1fr;
-    min-height: 100%;
-    border-radius: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .book-spread::before {
-    background:
-      linear-gradient(180deg, transparent 0, var(--paper-line) 50%, transparent 100%),
-      radial-gradient(circle at 18% 8%, var(--wash-a), transparent 28%);
-  }
-  .page-turn-leaf { display: none; }
-  .book-page {
-    padding: 24px 22px 84px;
-  }
-  .book-heading {
-    font-size: clamp(1.95rem, 9vw, 2.55rem);
-    line-height: 1.02;
-    margin-bottom: 18px;
-  }
-  .book-heading.medium { font-size: clamp(1.75rem, 8vw, 2.25rem); }
-  .book-copy {
-    font-size: 1rem;
-    line-height: 1.62;
-  }
-  .book-actions { margin-top: 22px; }
-  .stat-card { padding: 13px; }
-  .book-page.left {
-    border-right: 0;
-    border-bottom: 1px solid var(--paper-line);
-  }
-  .cover-visual { min-height: 320px; }
   .chapter-tab { display: none; }
-  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .bookmark-rail {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.6rem);
+    width: min(100vw - 1rem, 430px);
+    justify-content: flex-start;
+    padding: 0 0.25rem;
+  }
+  .bookmark-rail a {
+    min-height: 30px;
+    padding: 0 0.7rem;
+    font-size: 11px;
+  }
 }
 @media (max-width: 560px) {
   .book-shell { width: 100%; }
@@ -632,6 +804,21 @@ const BOOK_CSS = `
   .toc-card { grid-template-columns: 38px 1fr; }
   .toc-card svg { display: none; }
   .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 340px) {
+  .book-mobile-page {
+    padding-inline: 0.625rem;
+  }
+  .book-mobile-card {
+    padding: 0.75rem;
+    max-height: calc(100dvh - 5.25rem);
+  }
+  .book-mobile-card .book-heading {
+    font-size: 1.32rem;
+  }
+  .book-mobile-card .book-copy {
+    -webkit-line-clamp: 3;
+  }
 }
 `;
 
@@ -1010,6 +1197,10 @@ function BookScroller({ pages }: { pages: BookPageData[] }) {
 
   const simpleMotion = Boolean(prefersReduced || isMobile);
 
+  if (isMobile) {
+    return <MobileBookScroller pages={pages} activeIndex={activeIndex} setActiveIndex={setActiveIndex} />;
+  }
+
   return (
     <>
       <nav className="bookmark-rail" aria-label="Landing page chapters">
@@ -1047,6 +1238,154 @@ function BookScroller({ pages }: { pages: BookPageData[] }) {
             />
           ))}
         </div>
+      </div>
+    </>
+  );
+}
+
+function MobileBookScroller({
+  pages,
+  activeIndex,
+  setActiveIndex,
+}: {
+  pages: BookPageData[];
+  activeIndex: number;
+  setActiveIndex: React.Dispatch<React.SetStateAction<number>>;
+}) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const activeIndexRef = useRef(activeIndex);
+  const touchStartYRef = useRef<number | null>(null);
+  const lastFlipAtRef = useRef(0);
+
+  useEffect(() => {
+    activeIndexRef.current = activeIndex;
+  }, [activeIndex]);
+
+  const scrollToIndex = useCallback((index: number) => {
+    const root = rootRef.current;
+    if (!root) return;
+    const next = Math.min(pages.length - 1, Math.max(0, index));
+    activeIndexRef.current = next;
+    setActiveIndex(next);
+    root.scrollTo({
+      top: root.clientHeight * next,
+      behavior: "smooth",
+    });
+  }, [pages.length, setActiveIndex]);
+
+  const flipByIntent = useCallback((direction: 1 | -1) => {
+    const now = Date.now();
+    if (now - lastFlipAtRef.current < 420) return;
+
+    const current = activeIndexRef.current;
+    const next = Math.min(pages.length - 1, Math.max(0, current + direction));
+    if (next === current) return;
+
+    lastFlipAtRef.current = now;
+    scrollToIndex(next);
+  }, [pages.length, scrollToIndex]);
+
+  useEffect(() => {
+    const bodyOverflow = document.body.style.overflow;
+    const htmlOverflow = document.documentElement.style.overflow;
+    const bodyOverscroll = document.body.style.overscrollBehaviorY;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overscrollBehaviorY = "none";
+    return () => {
+      document.body.style.overflow = bodyOverflow;
+      document.documentElement.style.overflow = htmlOverflow;
+      document.body.style.overscrollBehaviorY = bodyOverscroll;
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const sections = Array.from(root.querySelectorAll<HTMLElement>("[data-mobile-page-index]"));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        const next = Number((visible.target as HTMLElement).dataset.mobilePageIndex ?? 0);
+        setActiveIndex((current) => (current === next ? current : next));
+      },
+      { root, threshold: [0.52, 0.72] }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [setActiveIndex]);
+
+  return (
+    <>
+      <nav className="bookmark-rail" aria-label="Landing page chapters">
+        {pages.map((page, index) => (
+          <a key={page.id} href={`#${page.id}`} className={activeIndex === index ? "active" : undefined}>
+            {page.tab}
+          </a>
+        ))}
+      </nav>
+
+      <div
+        ref={rootRef}
+        className="book-mobile-scroll"
+        onPointerDown={(event) => {
+          if (event.pointerType === "mouse") return;
+          touchStartYRef.current = event.clientY;
+        }}
+        onPointerUp={(event) => {
+          if (event.pointerType === "mouse") return;
+          const startY = touchStartYRef.current;
+          touchStartYRef.current = null;
+          if (startY === null) return;
+
+          const deltaY = startY - event.clientY;
+          if (Math.abs(deltaY) < 34) return;
+          flipByIntent(deltaY > 0 ? 1 : -1);
+        }}
+        onTouchStart={(event) => {
+          touchStartYRef.current = event.touches[0]?.clientY ?? null;
+        }}
+        onTouchEnd={(event) => {
+          const startY = touchStartYRef.current;
+          const endY = event.changedTouches[0]?.clientY;
+          touchStartYRef.current = null;
+          if (startY === null || endY === undefined) return;
+
+          const deltaY = startY - endY;
+          if (Math.abs(deltaY) < 34) return;
+          flipByIntent(deltaY > 0 ? 1 : -1);
+        }}
+        onWheel={(event) => {
+          if (Math.abs(event.deltaY) < 18) return;
+          event.preventDefault();
+          flipByIntent(event.deltaY > 0 ? 1 : -1);
+        }}
+      >
+        {pages.map((page, index) => (
+          <section
+            key={page.id}
+            id={page.id}
+            data-mobile-page-index={index}
+            className={`book-mobile-page ${activeIndex === index ? "is-active" : ""}`}
+            aria-label={page.tab}
+          >
+            <article className="book-mobile-card">
+              <div className="book-page left">{page.left}</div>
+              <div className="book-page right">{page.right}</div>
+            </article>
+          </section>
+        ))}
+      </div>
+
+      <div className="book-mobile-progress" aria-hidden="true">
+        {pages.map((page, index) => (
+          <span key={page.id} className={activeIndex === index ? "active" : undefined} />
+        ))}
       </div>
     </>
   );

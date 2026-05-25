@@ -402,7 +402,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
       >
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           {/* Breadcrumb */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
+          <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
             <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>{t("common.home")}</Link>
             <ChevronRight size={12} strokeWidth={2} aria-hidden />
             <span style={{ color: "var(--text)" }}>{t("common.tutors")}</span>
@@ -416,10 +416,10 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
           </p>
 
           {/* Search bar */}
-          <div style={{ position: "relative", maxWidth: 520 }}>
+          <div style={{ position: "relative", maxWidth: isMobile ? 420 : 520 }}>
             <div
               style={{
-                position: "absolute", insetInlineStart: 14, top: "50%",
+                position: "absolute", insetInlineStart: isMobile ? 10 : 14, top: "50%",
                 transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)",
               }}
             >
@@ -435,9 +435,10 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 backgroundColor: "var(--bg-alt)",
                 border: "1px solid var(--border-light)",
                 borderRadius: 10,
-                padding: "11px 14px 11px 42px",
+                padding: isMobile ? "8px 12px" : "11px 14px",
+                paddingInlineStart: isMobile ? 34 : 42,
                 color: "var(--text)",
-                fontSize: 14,
+                fontSize: isMobile ? 13 : 14,
                 outline: "none",
                 boxSizing: "border-box",
                 fontFamily: "inherit",
@@ -455,7 +456,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
           </div>
 
           {/* Quick subject pills */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
+          <div style={{ display: isMobile ? "none" : "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
             {ALL_SUBJECTS.map((s) => {
               const active = selectedSubjects.includes(s);
               return (
@@ -487,7 +488,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
         style={{
           maxWidth: 1100,
           margin: "0 auto",
-          padding: "32px 24px 80px",
+          padding: isMobile ? "14px 14px 64px" : "32px 24px 80px",
           display: "flex",
           gap: 28,
           alignItems: "flex-start",
