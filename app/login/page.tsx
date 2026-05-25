@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, CheckCircle, ShieldCheck } from "lucide-react";
+import { useI18n } from "../components/i18n";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -22,6 +23,7 @@ const inputStyle: React.CSSProperties = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registered] = useState(
@@ -38,7 +40,7 @@ export default function LoginPage() {
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
     if (!email || !password) {
-      setError("Email and password are required");
+      setError(t("auth.required"));
       setLoading(false);
       return;
     }
@@ -46,7 +48,7 @@ export default function LoginPage() {
     const result = await signIn("credentials", { email, password, redirect: false });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      setError(t("auth.invalid"));
       setLoading(false);
       return;
     }
@@ -97,7 +99,7 @@ export default function LoginPage() {
             Coursaty
           </Link>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem", fontSize: 14 }}>
-            Welcome back - sign in to continue
+            {t("auth.welcome")}
           </p>
         </div>
 
@@ -128,7 +130,7 @@ export default function LoginPage() {
                 }}
               >
                 <CheckCircle size={14} strokeWidth={2.2} aria-hidden />
-                Account created. Sign in to continue.
+                {t("auth.created")}
               </div>
             )}
 
@@ -137,7 +139,7 @@ export default function LoginPage() {
                 htmlFor="email"
                 style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
               >
-                Email address
+                {t("auth.email")}
               </label>
               <input
                 id="email"
@@ -156,14 +158,14 @@ export default function LoginPage() {
                 htmlFor="password"
                 style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
               >
-                Password
+                {t("auth.password")}
               </label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 required
-                placeholder="Your password"
+                placeholder={t("auth.passwordPlaceholder")}
                 style={inputStyle}
                 onFocus={focusInput}
                 onBlur={blurInput}
@@ -206,23 +208,27 @@ export default function LoginPage() {
                 transition: "background 0.15s",
               }}
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? t("auth.signingIn") : t("auth.signIn")}
             </button>
           </form>
 
           <div style={{ borderTop: "1px solid var(--bg-subtle)", margin: "1.5rem 0" }} />
 
           <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
-            Don&apos;t have an account?{" "}
+            {t("auth.noAccount")}{" "}
             <Link href="/signup" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
-              Create one free
+              {t("auth.createOne")}
             </Link>
           </p>
         </div>
 
         {/* Trust badges */}
         <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
-          {["Verified Tutors", "Free to Browse", "Secure Login"].map((badge) => (
+          {([
+            t("auth.trust.verified"),
+            t("auth.trust.free"),
+            t("auth.trust.secure"),
+          ] as string[]).map((badge) => (
             <span key={badge} style={{ color: "var(--text-muted)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
               <ShieldCheck size={12} strokeWidth={2.4} color="var(--accent)" aria-hidden />
               {badge}

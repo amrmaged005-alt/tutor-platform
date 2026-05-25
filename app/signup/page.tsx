@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, ShieldCheck } from "lucide-react";
+import { useI18n } from "../components/i18n";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -32,6 +33,7 @@ function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) {
 
 export default function SignupPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [defaultRole, setDefaultRole] = useState(() => {
@@ -62,7 +64,7 @@ export default function SignupPage() {
     const data = await res.json();
 
     if (!res.ok) {
-      setError(data.error || "Something went wrong");
+      setError(data.error || t("signup.error.generic"));
       setLoading(false);
       return;
     }
@@ -103,7 +105,7 @@ export default function SignupPage() {
             Coursaty
           </Link>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem", fontSize: 14 }}>
-            Join Egypt&apos;s tutoring marketplace - free forever
+            {t("signup.tagline")}
           </p>
         </div>
 
@@ -124,7 +126,7 @@ export default function SignupPage() {
                 htmlFor="fullName"
                 style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
               >
-                Full name
+                {t("signup.fullName")}
               </label>
               <input
                 id="fullName"
@@ -143,7 +145,7 @@ export default function SignupPage() {
                 htmlFor="email"
                 style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
               >
-                Email address
+                {t("auth.email")}
               </label>
               <input
                 id="email"
@@ -162,14 +164,14 @@ export default function SignupPage() {
                 htmlFor="password"
                 style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
               >
-                Password
+                {t("auth.password")}
               </label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 required
-                placeholder="Min 8 characters"
+                placeholder={t("signup.minPassword")}
                 style={inputStyle}
                 onFocus={focusInput}
                 onBlur={blurInput}
@@ -181,7 +183,7 @@ export default function SignupPage() {
                 htmlFor="role"
                 style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
               >
-                I am a...
+                {t("signup.iAm")}
               </label>
               <select
                 id="role"
@@ -193,9 +195,9 @@ export default function SignupPage() {
                 onFocus={focusInput}
                 onBlur={blurInput}
               >
-                <option value="STUDENT">Student</option>
-                <option value="TUTOR">Tutor / Instructor</option>
-                <option value="CENTER_ADMIN">Learning Center</option>
+                <option value="STUDENT">{t("signup.student")}</option>
+                <option value="TUTOR">{t("signup.tutor")}</option>
+                <option value="CENTER_ADMIN">{t("signup.center")}</option>
               </select>
             </div>
 
@@ -235,23 +237,27 @@ export default function SignupPage() {
                 transition: "background 0.15s",
               }}
             >
-              {loading ? "Creating account..." : "Create Free Account"}
+              {loading ? t("signup.creating") : t("signup.submit")}
             </button>
           </form>
 
           <div style={{ borderTop: "1px solid var(--bg-subtle)", margin: "1.5rem 0" }} />
 
           <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
-            Already have an account?{" "}
+            {t("signup.hasAccount")}{" "}
             <Link href="/login" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>
-              Sign in
+              {t("signup.signIn")}
             </Link>
           </p>
         </div>
 
         {/* Trust badges */}
         <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
-          {["Free to join", "No credit card", "Instant access"].map((badge) => (
+          {([
+            t("signup.trust.free"),
+            t("signup.trust.noCard"),
+            t("signup.trust.instant"),
+          ] as string[]).map((badge) => (
             <span key={badge} style={{ color: "var(--text-muted)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
               <ShieldCheck size={12} strokeWidth={2.4} color="var(--accent)" aria-hidden />
               {badge}

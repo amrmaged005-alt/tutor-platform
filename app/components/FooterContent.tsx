@@ -11,15 +11,15 @@ function Check({ size = 12 }: { size?: number }) {
   );
 }
 
-const TRUST_ITEMS = [
-  "Verified tutors",
-  "Free for students",
-  "All curricula",
-  "Instant booking",
-];
-
 export default function FooterContent() {
   const { t } = useI18n();
+
+  const TRUST_ITEMS = [
+    t("footer.trust.verified"),
+    t("footer.trust.free"),
+    t("footer.trust.curricula"),
+    t("footer.trust.booking"),
+  ];
 
   const platformLinks = [
     { label: t("nav.browseClasses"), href: "/classes" },

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "../components/i18n";
 import CancelBookingButton from "../CancelBookingButton";
 import DeleteClassButton from "../DeleteClassButton";
 import PageShell from "../../components/ui/PageShell";
@@ -155,6 +156,7 @@ function StatCard({
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useI18n();
   const map: Record<string, { bg: string; color: string }> = {
     CONFIRMED: { bg: "var(--success-bg)",  color: "var(--success)" },
     CANCELLED: { bg: "var(--error-bg)",    color: "var(--error)" },
@@ -162,8 +164,12 @@ function StatusBadge({ status }: { status: string }) {
     PAID:      { bg: "var(--success-bg)",  color: "var(--success)" },
     UNPAID:    { bg: "var(--error-bg)",    color: "var(--error)" },
     REFUNDED:  { bg: "var(--accent-bg)",   color: "var(--accent)" },
+    ATTENDED:  { bg: "var(--success-bg)",  color: "var(--success)" },
+    "NO-SHOW": { bg: "var(--warning-bg)",  color: "var(--warning)" },
   };
   const s = map[status] ?? { bg: "var(--bg-alt)", color: "var(--text-muted)" };
+  const labelKey = `dash.status.${status}` as Parameters<typeof t>[0];
+  const label = (DICT_KEYS.includes(labelKey as string)) ? t(labelKey) : status;
   return (
     <span
       style={{
@@ -176,10 +182,16 @@ function StatusBadge({ status }: { status: string }) {
         letterSpacing: 0.3,
       }}
     >
-      {status}
+      {label}
     </span>
   );
 }
+
+const DICT_KEYS = [
+  "dash.status.CONFIRMED","dash.status.CANCELLED","dash.status.PENDING",
+  "dash.status.PAID","dash.status.UNPAID","dash.status.REFUNDED",
+  "dash.status.ATTENDED","dash.status.NO-SHOW",
+];
 
 // ─── Section header ───────────────────────────────────────────────────────────
 function SectionHeader({
@@ -293,6 +305,7 @@ type ManagedBooking = {
 
 function StudentBookingRow({ booking, paymentType }: { booking: ManagedBooking; paymentType: string }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [isPending, startTransition] = useTransition();
   const [note, setNote] = useState(booking.notes ?? "");
   const [editingNote, setEditingNote] = useState(false);
@@ -343,9 +356,9 @@ function StudentBookingRow({ booking, paymentType }: { booking: ManagedBooking; 
           <div>
             <div style={{ color: "var(--text)", fontSize: 14, fontWeight: 700 }}>{booking.studentName}</div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 2 }}>
-              {booking.studentEmail && <a href={`mailto:${booking.studentEmail}`} style={{ color: "var(--text-secondary)", fontSize: 12, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}><DashboardIcon name="mail" size={12} /> Email</a>}
-              {booking.studentPhone && <a href={`https://wa.me/${booking.studentPhone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--success)", fontSize: 12, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}><DashboardIcon name="phone" size={12} /> WhatsApp</a>}
-              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{booking.amountEgp ? `${booking.amountEgp} EGP` : "Free"}</span>
+              {booking.studentEmail && <a href={`mailto:${booking.studentEmail}`} style={{ color: "var(--text-secondary)", fontSize: 12, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}><DashboardIcon name="mail" size={12} /> {t("dash.email")}</a>}
+              {booking.studentPhone && <a href={`https://wa.me/${booking.studentPhone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--success)", fontSize: 12, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}><DashboardIcon name="phone" size={12} /> {t("dash.whatsapp")}</a>}
+              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{booking.amountEgp ? `${booking.amountEgp} EGP` : t("dash.free")}</span>
             </div>
           </div>
         </div>
@@ -357,14 +370,14 @@ function StudentBookingRow({ booking, paymentType }: { booking: ManagedBooking; 
         </div>
       </div>
 
-      {booking.paidAt && <div style={{ color: "var(--success)", fontSize: 12, marginTop: 8 }}>Paid {new Date(booking.paidAt).toLocaleString("en-EG")}</div>}
+      {booking.paidAt && <div style={{ color: "var(--success)", fontSize: 12, marginTop: 8 }}>{t("dash.paid", { date: new Date(booking.paidAt).toLocaleString("en-EG") })}</div>}
 
       {editingNote ? (
         <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Add class note, attendance detail, or payment context..." style={{ width: "100%", border: "1px solid var(--border-light)", borderRadius: 8, padding: "8px 10px", color: "var(--text)", backgroundColor: "var(--bg-card)", fontFamily: "inherit", fontSize: 13 }} />
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder={t("dash.noteHint")} style={{ width: "100%", border: "1px solid var(--border-light)", borderRadius: 8, padding: "8px 10px", color: "var(--text)", backgroundColor: "var(--bg-card)", fontFamily: "inherit", fontSize: 13 }} />
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button type="button" onClick={saveNote} disabled={isPending} className="btn-primary" style={{ padding: "6px 12px", fontSize: 12 }}>Save note</button>
-            <button type="button" onClick={() => setEditingNote(false)} disabled={isPending} style={ghostButton}>Cancel</button>
+            <button type="button" onClick={saveNote} disabled={isPending} className="btn-primary" style={{ padding: "6px 12px", fontSize: 12 }}>{t("dash.action.saveNote")}</button>
+            <button type="button" onClick={() => setEditingNote(false)} disabled={isPending} style={ghostButton}>{t("dash.action.cancelBooking")}</button>
           </div>
         </div>
       ) : booking.notes ? (
@@ -374,16 +387,17 @@ function StudentBookingRow({ booking, paymentType }: { booking: ManagedBooking; 
       {error && <div style={{ color: "var(--error)", fontSize: 12, marginTop: 8 }}>{error}</div>}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-        {canMarkPaid && <button type="button" onClick={() => run("MARK_PAID")} disabled={isPending} className="btn-primary" style={{ padding: "6px 12px", fontSize: 12 }}>Mark paid</button>}
-        {canMarkAttendance && <button type="button" onClick={() => run("MARK_ATTENDED")} disabled={isPending} style={{ ...ghostButton, color: "var(--success)", borderColor: "var(--accent-border)" }}>Mark attended</button>}
-        {booking.status !== "CANCELLED" && !noShow && <button type="button" onClick={() => run("NO_SHOW")} disabled={isPending} style={{ ...ghostButton, color: "var(--warning)", borderColor: "var(--warning)" }}>No-show</button>}
-        <button type="button" onClick={() => setEditingNote(true)} disabled={isPending} style={ghostButton}>{booking.notes ? "Edit note" : "Add note"}</button>
+        {canMarkPaid && <button type="button" onClick={() => run("MARK_PAID")} disabled={isPending} className="btn-primary" style={{ padding: "6px 12px", fontSize: 12 }}>{t("dash.action.markPaid")}</button>}
+        {canMarkAttendance && <button type="button" onClick={() => run("MARK_ATTENDED")} disabled={isPending} style={{ ...ghostButton, color: "var(--success)", borderColor: "var(--accent-border)" }}>{t("dash.action.markAttended")}</button>}
+        {booking.status !== "CANCELLED" && !noShow && <button type="button" onClick={() => run("NO_SHOW")} disabled={isPending} style={{ ...ghostButton, color: "var(--warning)", borderColor: "var(--warning)" }}>{t("dash.action.noShow")}</button>}
+        <button type="button" onClick={() => setEditingNote(true)} disabled={isPending} style={ghostButton}>{booking.notes ? t("dash.action.editNote") : t("dash.action.addNote")}</button>
       </div>
     </div>
   );
 }
 
 function MiniSpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
+  const { t } = useI18n();
   const pct = Math.min((booked / capacity) * 100, 100);
   const isFull = booked >= capacity;
   const isNear = !isFull && capacity - booked <= 3;
@@ -421,14 +435,14 @@ function MiniSpotsBar({ capacity, booked }: { capacity: number; booked: number }
           color: "var(--text-muted)",
         }}
       >
-        <span>{booked} enrolled</span>
+        <span>{booked} {t("dash.enrolled")}</span>
         <span
           style={{
             color: isFull ? "var(--error)" : isNear ? "var(--rating)" : "var(--text-muted)",
             fontWeight: isFull || isNear ? 700 : 400,
           }}
         >
-          {isFull ? "Full" : `${capacity - booked} left`}
+          {isFull ? t("dash.full") : t("dash.left", { n: capacity - booked })}
         </span>
       </div>
     </div>
@@ -605,6 +619,7 @@ interface Props {
 
 // ─── Main dashboard ───────────────────────────────────────────────────────────
 export default function DashboardClient({ data, cancelBooking, deleteClass }: Props) {
+  const { t } = useI18n();
   const { user, bookings, ownedClasses, centerData } = data;
   const role = user.role;
   const firstName = (user.fullName || user.name || "there").split(" ")[0];
@@ -646,18 +661,18 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
 
   // Tabs per role
   const studentTabs = [
-    { id: "bookings", label: "My Bookings", icon: "bookings", count: bookings.length },
-    { id: "explore", label: "Explore", icon: "search" },
+    { id: "bookings", label: t("dash.tab.bookings"), icon: "bookings", count: bookings.length },
+    { id: "explore", label: t("common.search"), icon: "search" },
   ];
   const tutorTabs = [
-    { id: "classes", label: "My Classes", icon: "classes", count: ownedClasses.length },
-    { id: "students", label: "Students", icon: "students", count: totalBookings },
-    { id: "analytics", label: "Analytics", icon: "analytics" },
+    { id: "classes", label: t("dash.tab.classes"), icon: "classes", count: ownedClasses.length },
+    { id: "students", label: t("dash.tab.students"), icon: "students", count: totalBookings },
+    { id: "analytics", label: t("dash.tab.analytics"), icon: "analytics" },
   ];
   const centerTabs = [
-    { id: "overview", label: "Overview", icon: "building" },
-    { id: "classes", label: "Classes", icon: "classes", count: centerData?.classes.length ?? 0 },
-    { id: "tutors", label: "Tutors", icon: "tutor", count: centerData?.tutors.length ?? 0 },
+    { id: "overview", label: t("dash.tab.overview"), icon: "building" },
+    { id: "classes", label: t("nav.classes"), icon: "classes", count: centerData?.classes.length ?? 0 },
+    { id: "tutors", label: t("nav.tutors"), icon: "tutor", count: centerData?.tutors.length ?? 0 },
   ];
 
   const tabs =
@@ -741,7 +756,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                   letterSpacing: -0.5,
                 }}
               >
-                Welcome back, {firstName}
+                {firstName}
               </h1>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" as const }}>
@@ -761,7 +776,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                   letterSpacing: 0.5,
                 }}
               >
-                {role}
+                {role === "STUDENT" ? t("dash.role.STUDENT") : role === "TUTOR" ? t("dash.role.TUTOR") : t("dash.role.CENTER_ADMIN")}
               </span>
               <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{user.email}</span>
               {user.centerName && (
@@ -788,7 +803,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                   transition: "background 0.2s",
                 }}
               >
-                My Profile
+                {t("tutor.viewProfile")}
               </Link>
             )}
             <Link
@@ -804,7 +819,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 boxShadow: "0 2px 12px rgba(13,89,70,0.25)",
               }}
             >
-              Browse Classes
+              {t("hero.browseClasses")}
             </Link>
           </div>
         </div>
@@ -832,10 +847,10 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
           <div style={{ flex: 1, minWidth: 220 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
               <span style={{ color: "var(--rating)", fontWeight: 700, fontSize: 14 }}>
-                Complete your profile ({profilePct}%)
+                {t("dash.profile.complete", { pct: profilePct })}
               </span>
               <span style={{ color: "var(--warning)", fontSize: 12 }}>
-                {profileComplete}/{profileFields.length} done
+                {t("dash.profile.done", { n: profileComplete, total: profileFields.length })}
               </span>
             </div>
             <div style={{ height: 6, backgroundColor: "var(--border-light)", borderRadius: 99, overflow: "hidden" }}>
@@ -851,7 +866,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
               />
             </div>
             <div style={{ color: "var(--warning)", fontSize: 12, marginTop: 5 }}>
-              Missing: {[!user.bio && "bio", !user.phone && "phone", user.subjects.length === 0 && "subjects", !user.fullName && "full name"].filter(Boolean).join(", ")}
+              {t("dash.profile.missing", { fields: [!user.bio && t("dash.profile.bio"), !user.phone && t("dash.profile.phone"), user.subjects.length === 0 && t("dash.profile.subjects"), !user.fullName && t("dash.profile.fullName")].filter(Boolean).join(", ") })}
             </div>
           </div>
           <Link
@@ -867,7 +882,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
               whiteSpace: "nowrap" as const,
             }}
           >
-            Edit Profile →
+            {t("dash.action.editProfile")}
           </Link>
         </motion.div>
       )}
@@ -884,9 +899,9 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
               marginBottom: "1.75rem",
             }}
           >
-            <StatCard label="Total Bookings" numericValue={bookings.length} icon="bookings" color="var(--accent)" delay={0.1} />
-            <StatCard label="Confirmed" numericValue={confirmedBookings} icon="check" color="var(--success)" delay={0.15} />
-            <StatCard label="Pending" numericValue={pendingBookings} icon="clock" color="var(--rating)" delay={0.2} />
+            <StatCard label={t("dash.tab.bookings")} numericValue={bookings.length} icon="bookings" color="var(--accent)" delay={0.1} />
+            <StatCard label={t("dash.stat.confirmed")} numericValue={confirmedBookings} icon="check" color="var(--success)" delay={0.15} />
+            <StatCard label={t("dash.stat.pending")} numericValue={pendingBookings} icon="clock" color="var(--rating)" delay={0.2} />
           </div>
 
           {/* Tabs */}
@@ -901,13 +916,13 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25 }}
               >
-                <SectionHeader title="My Bookings" count={bookings.length} />
+                <SectionHeader title={t("dash.tab.bookings")} count={bookings.length} />
                 {bookings.length === 0 ? (
                   <EmptyState
                     icon="inbox"
-                    message="You haven't booked any classes yet."
+                    message={t("dash.empty.bookings")}
                     actionHref="/classes"
-                    actionLabel="Browse Classes"
+                    actionLabel={t("dash.empty.bookings.action")}
                   />
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
@@ -929,7 +944,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                                 {booking.class.subject}
                               </span>
                               <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                                {booking.class.priceEgp === 0 ? "Free" : booking.class.priceEgp + " EGP"}
+                                {booking.class.priceEgp === 0 ? t("dash.free") : booking.class.priceEgp + " EGP"}
                               </span>
                               {booking.class.schedule && (
                                 <span style={{ color: "var(--text-muted)", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 4 }}><DashboardIcon name="clock" size={13} /> {booking.class.schedule}</span>
@@ -966,7 +981,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                               borderRadius: 8,
                             }}
                           >
-                            View Class
+                            {t("dash.action.viewClass")}
                           </Link>
                           {booking.status !== "CANCELLED" && (
                             <CancelBookingButton bookingId={booking.id} cancelAction={cancelBooking} />
@@ -994,7 +1009,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
               >
                 {/* ── Student Activity Chart ── */}
                 <div style={cardBase}>
-                  <SectionHeader title="Learning Engagement" />
+                  <SectionHeader title={t("dash.section.learningEngagement")} />
                   <div style={{ height: 300, width: "100%", marginTop: "1rem" }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={studentActivityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -1010,7 +1025,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                         <Tooltip
                           contentStyle={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 8, color: "var(--text)" }}
                           itemStyle={{ color: "var(--text)" }}
-                          formatter={(value) => [`${value} hours`, "Study Time"]}
+                          formatter={(value) => [t("dash.chart.hours", { n: String(value) }), t("dash.chart.studyTime")]}
                         />
                         <Area type="monotone" dataKey="hours" stroke="#1c6e7a" fillOpacity={1} fill="url(#colorHours)" strokeWidth={3} />
                       </AreaChart>
@@ -1027,7 +1042,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 >
                   <div style={{ color: "var(--accent)", marginBottom: "1rem", display: "inline-flex" }}><DashboardIcon name="search" size={44} /></div>
                   <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: "1.5rem" }}>
-                    Find new classes that match your learning goals.
+                    {t("dash.explore.desc")}
                   </p>
                   <Link
                     href="/classes"
@@ -1043,7 +1058,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                       boxShadow: "0 4px 16px rgba(13,89,70,0.25)",
                     }}
                   >
-                    Browse All Classes →
+                    {t("hero.browseClasses")}
                   </Link>
                 </div>
               </motion.div>
@@ -1064,11 +1079,11 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
               marginBottom: "1.75rem",
             }}
           >
-            <StatCard label="Classes" numericValue={ownedClasses.length} icon="classes" color="var(--accent)" delay={0.1} />
-            <StatCard label="Bookings" numericValue={totalBookings} icon="students" color="#5d3a5f" delay={0.15} />
-            <StatCard label="Est. Revenue" numericValue={totalRevenue} suffix=" EGP" icon="revenue" color="var(--success)" delay={0.2} />
+            <StatCard label={t("dash.stat.classes")} numericValue={ownedClasses.length} icon="classes" color="var(--accent)" delay={0.1} />
+            <StatCard label={t("dash.stat.bookings")} numericValue={totalBookings} icon="students" color="#5d3a5f" delay={0.15} />
+            <StatCard label={t("dash.stat.estRevenue")} numericValue={totalRevenue} suffix=" EGP" icon="revenue" color="var(--success)" delay={0.2} />
             <StatCard
-              label="Avg / Class"
+              label={t("dash.stat.avgClass")}
               value={
                 ownedClasses.length > 0
                   ? Math.round(totalRevenue / ownedClasses.length) + " EGP"
@@ -1094,7 +1109,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 transition={{ duration: 0.25 }}
               >
                 <SectionHeader
-                  title="My Classes"
+                  title={t("dash.tab.classes")}
                   count={ownedClasses.length}
                   action={
                     <Link
@@ -1110,16 +1125,16 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                         boxShadow: "0 2px 10px rgba(13,89,70,0.25)",
                       }}
                     >
-                      + New Class
+                      {t("dash.action.newClass")}
                     </Link>
                   }
                 />
                 {ownedClasses.length === 0 ? (
                   <EmptyState
                     icon="bookings"
-                    message="You haven't created any classes yet."
+                    message={t("dash.empty.noCreatedClasses")}
                     actionHref="/create-class"
-                    actionLabel="Create Your First Class"
+                    actionLabel={t("dash.empty.classes.action")}
                   />
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
@@ -1153,17 +1168,17 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                               </span>
                               {cls.capacity && cls.bookingsCount >= cls.capacity && (
                                 <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, backgroundColor: "var(--error-bg)", color: "var(--error)", border: "1px solid var(--error-border)" }}>
-                                  FULL
+                                  {t("dash.full")}
                                 </span>
                               )}
                             </div>
                             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const, alignItems: "center" }}>
                               <span style={{ color: "var(--accent)", fontSize: 13 }}>{cls.subject}</span>
                               <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                                {cls.priceEgp === 0 ? "Free" : cls.priceEgp + " EGP"}
+                                {cls.priceEgp === 0 ? t("dash.free") : cls.priceEgp + " EGP"}
                               </span>
                               <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                                {cls.bookingsCount}{cls.capacity ? "/" + cls.capacity : ""} enrolled
+                                {cls.bookingsCount}{cls.capacity ? "/" + cls.capacity : ""} {t("dash.enrolled")}
                               </span>
                               {cls.gradeLevel && <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{cls.gradeLevel}</span>}
                               {cls.schedule && <span style={{ color: "var(--text-muted)", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 4 }}><DashboardIcon name="clock" size={13} /> {cls.schedule}</span>}
@@ -1185,7 +1200,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                                 borderRadius: 8,
                               }}
                             >
-                              View
+                              {t("dash.action.view")}
                             </Link>
                             <DeleteClassButton classId={cls.id} deleteAction={deleteClass} />
                           </div>
@@ -1207,16 +1222,16 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 transition={{ duration: 0.25 }}
               >
                 <SectionHeader
-                  title="All Students"
+                  title={t("dash.section.allStudents")}
                   count={totalBookings}
-                  action={<Link href="/dashboard/bookings" className="btn-secondary" style={{ padding: "7px 12px", fontSize: 12 }}>Manage bookings</Link>}
+                  action={<Link href="/dashboard/bookings" className="btn-secondary" style={{ padding: "7px 12px", fontSize: 12 }}>{t("dash.action.manageBookings")}</Link>}
                 />
                 {ownedClasses.every((c) => c.bookings.length === 0) ? (
                   <EmptyState
                     icon="students"
-                    message="No students have booked your classes yet."
+                    message={t("dash.empty.students")}
                     actionHref="/create-class"
-                    actionLabel="Create a Class"
+                    actionLabel={t("dash.empty.classes.action")}
                   />
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
@@ -1233,10 +1248,10 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                             <div>
                               <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 15 }}>{cls.title}</div>
-                              <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{cls.bookings.length} student{cls.bookings.length !== 1 ? "s" : ""}</div>
+                              <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{cls.bookings.length} {cls.bookings.length !== 1 ? t("dash.nStudents") : t("dash.nStudent")}</div>
                             </div>
                             <Link href={"/classes/" + cls.id} style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
-                              View Class
+                              {t("dash.action.viewClass")}
                             </Link>
                           </div>
                           <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
@@ -1260,13 +1275,13 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25 }}
               >
-                <SectionHeader title="Analytics Overview" />
+                <SectionHeader title={t("dash.section.analytics")} />
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 20 }}>
                   {[
-                    { label: "Total Classes", value: ownedClasses.length, icon: "classes", color: "var(--accent)" },
-                    { label: "Total Students", value: totalBookings, icon: "students", color: "#5d3a5f" },
-                    { label: "Est. Revenue", value: totalRevenue + " EGP", icon: "revenue", color: "var(--success)" },
-                    { label: "Avg Enrollments", value: ownedClasses.length > 0 ? Math.round(totalBookings / ownedClasses.length) : 0, icon: "analytics", color: "var(--rating)" },
+                    { label: t("dash.stat.totalClasses"), value: ownedClasses.length, icon: "classes", color: "var(--accent)" },
+                    { label: t("dash.stat.totalStudents"), value: totalBookings, icon: "students", color: "#5d3a5f" },
+                    { label: t("dash.stat.estRevenue"), value: totalRevenue + " EGP", icon: "revenue", color: "var(--success)" },
+                    { label: t("dash.stat.avgEnrollments"), value: ownedClasses.length > 0 ? Math.round(totalBookings / ownedClasses.length) : 0, icon: "analytics", color: "var(--rating)" },
                   ].map((s, idx) => (
                     <motion.div
                       key={s.label}
@@ -1292,7 +1307,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 {/* Tutor BarChart Analytics */}
                 {ownedClasses.length > 0 && (
                   <div style={{ ...cardBase, marginBottom: "1.5rem" }}>
-                    <SectionHeader title="Top Enrollments" />
+                    <SectionHeader title={t("dash.section.topEnrollments")} />
                     <div style={{ height: 300, width: "100%", marginTop: "1rem" }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={tutorEnrollmentData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -1314,7 +1329,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 {/* Per-class breakdown */}
                 {ownedClasses.length > 0 && (
                   <>
-                    <SectionHeader title="Per-Class Breakdown" />
+                    <SectionHeader title={t("dash.section.perClassBreakdown")} />
                     <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
                       {ownedClasses.map((cls, i) => (
                         <motion.div
@@ -1339,19 +1354,19 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                           <div style={{ display: "flex", gap: 20, flexWrap: "wrap" as const }}>
                             <div style={{ textAlign: "center" as const }}>
                               <div style={{ color: "#5d3a5f", fontWeight: 700, fontSize: 16 }}>{cls.bookingsCount}</div>
-                              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>students</div>
+                              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{t("dash.stat.students")}</div>
                             </div>
                             <div style={{ textAlign: "center" as const }}>
                               <div style={{ color: "var(--success)", fontWeight: 700, fontSize: 16 }}>
                                 {cls.priceEgp * cls.bookingsCount} EGP
                               </div>
-                              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>revenue</div>
+                              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{t("dash.stat.revenue")}</div>
                             </div>
                             <div style={{ textAlign: "center" as const }}>
                               <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: 16 }}>
-                                {cls.priceEgp === 0 ? "Free" : cls.priceEgp + " EGP"}
+                                {cls.priceEgp === 0 ? t("dash.free") : cls.priceEgp + " EGP"}
                               </div>
-                              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>price</div>
+                              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{t("dash.stat.price")}</div>
                             </div>
                           </div>
                         </motion.div>
@@ -1377,10 +1392,10 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
               marginBottom: "1.75rem",
             }}
           >
-            <StatCard label="Classes" numericValue={centerData?.classes.length ?? 0} icon="classes" color="var(--accent)" delay={0.1} />
-            <StatCard label="Tutors" numericValue={centerData?.tutors.length ?? 0} icon="tutor" color="#1c6e7a" delay={0.15} />
-            <StatCard label="Bookings" numericValue={centerTotalBookings} icon="clipboard" color="#5d3a5f" delay={0.2} />
-            <StatCard label="Est. Revenue" numericValue={centerTotalRevenue} suffix=" EGP" icon="revenue" color="var(--success)" delay={0.25} />
+            <StatCard label={t("dash.stat.classes")} numericValue={centerData?.classes.length ?? 0} icon="classes" color="var(--accent)" delay={0.1} />
+            <StatCard label={t("nav.tutors")} numericValue={centerData?.tutors.length ?? 0} icon="tutor" color="#1c6e7a" delay={0.15} />
+            <StatCard label={t("dash.stat.bookings")} numericValue={centerTotalBookings} icon="clipboard" color="#5d3a5f" delay={0.2} />
+            <StatCard label={t("dash.stat.estRevenue")} numericValue={centerTotalRevenue} suffix=" EGP" icon="revenue" color="var(--success)" delay={0.25} />
           </div>
 
           {/* Center info banner */}
@@ -1440,7 +1455,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                   textDecoration: "none",
                 }}
               >
-                View Public Page →
+                {t("dash.action.viewPublicPage")}
               </Link>
             </motion.div>
           )}
@@ -1458,13 +1473,13 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25 }}
               >
-                <SectionHeader title="Center Overview" />
+                <SectionHeader title={t("dash.section.centerOverview")} />
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
                   {[
-                    { label: "Total Classes", value: centerData?.classes.length ?? 0, icon: "classes", color: "var(--accent)" },
-                    { label: "Total Tutors", value: centerData?.tutors.length ?? 0, icon: "tutor", color: "#1c6e7a" },
-                    { label: "Total Students", value: centerTotalBookings, icon: "students", color: "#5d3a5f" },
-                    { label: "Est. Revenue", value: centerTotalRevenue, icon: "revenue", color: "var(--success)", suffix: " EGP" },
+                    { label: t("dash.stat.totalClasses"), value: centerData?.classes.length ?? 0, icon: "classes", color: "var(--accent)" },
+                    { label: t("dash.stat.totalTutors"), value: centerData?.tutors.length ?? 0, icon: "tutor", color: "#1c6e7a" },
+                    { label: t("dash.stat.totalStudents"), value: centerTotalBookings, icon: "students", color: "#5d3a5f" },
+                    { label: t("dash.stat.estRevenue"), value: centerTotalRevenue, icon: "revenue", color: "var(--success)", suffix: " EGP" },
                   ].map((s, idx) => (
                     <motion.div
                       key={s.label}
@@ -1499,11 +1514,11 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 transition={{ duration: 0.25 }}
               >
                 <SectionHeader
-                  title="All Classes"
+                  title={t("dash.section.allClasses")}
                   count={centerData?.classes.length ?? 0}
                   action={
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <Link href="/dashboard/bookings" className="btn-secondary" style={{ padding: "7px 12px", fontSize: 12 }}>Manage bookings</Link>
+                      <Link href="/dashboard/bookings" className="btn-secondary" style={{ padding: "7px 12px", fontSize: 12 }}>{t("dash.action.manageBookings")}</Link>
                       <Link
                         href="/create-class"
                         style={{
@@ -1517,7 +1532,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                           boxShadow: "0 2px 10px rgba(13,89,70,0.25)",
                         }}
                       >
-                        + New Class
+                        {t("dash.action.newClass")}
                       </Link>
                     </div>
                   }
@@ -1525,9 +1540,9 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 {!centerData || centerData.classes.length === 0 ? (
                   <EmptyState
                     icon="building"
-                    message="No classes created for this center yet."
+                    message={t("dash.empty.centerClasses")}
                     actionHref="/create-class"
-                    actionLabel="Create First Class"
+                    actionLabel={t("dash.empty.centerClasses.action")}
                   />
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
@@ -1549,19 +1564,19 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                                 {cls.format}
                               </span>
                               {cls.capacity && cls.bookingsCount >= cls.capacity && (
-                                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, backgroundColor: "var(--error-bg)", color: "var(--error)", border: "1px solid var(--error-border)" }}>FULL</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, backgroundColor: "var(--error-bg)", color: "var(--error)", border: "1px solid var(--error-border)" }}>{t("dash.full")}</span>
                               )}
                             </div>
                             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const, alignItems: "center" }}>
                               <span style={{ color: "var(--accent)", fontSize: 13 }}>{cls.subject}</span>
                               <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                                {cls.priceEgp === 0 ? "Free" : cls.priceEgp + " EGP"}
+                                {cls.priceEgp === 0 ? t("dash.free") : cls.priceEgp + " EGP"}
                               </span>
                               <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                                {cls.bookingsCount}{cls.capacity ? "/" + cls.capacity : ""} enrolled
+                                {cls.bookingsCount}{cls.capacity ? "/" + cls.capacity : ""} {t("dash.enrolled")}
                               </span>
                               {cls.ownerName && (
-                                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>by {cls.ownerName}</span>
+                                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("dash.by", { name: cls.ownerName })}</span>
                               )}
                               {cls.schedule && <span style={{ color: "var(--text-muted)", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 4 }}><DashboardIcon name="clock" size={13} /> {cls.schedule}</span>}
                             </div>
@@ -1570,13 +1585,13 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                             )}
                           </div>
                           <Link href={"/classes/" + cls.id} style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600, textDecoration: "none", padding: "5px 12px", border: "1px solid rgba(13,89,70,0.25)", borderRadius: 8 }}>
-                            View
+                            {t("dash.action.view")}
                           </Link>
                         </div>
                         {cls.bookings.length > 0 && (
                           <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border-light)" }}>
                             <div style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 0.6, marginBottom: 8 }}>
-                              Students ({cls.bookings.length})
+                              {t("dash.section.studentsCount", { n: cls.bookings.length })}
                             </div>
                             <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
                               {cls.bookings.map((bk) => (
@@ -1601,13 +1616,13 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25 }}
               >
-                <SectionHeader title="Tutors" count={centerData?.tutors.length ?? 0} />
+                <SectionHeader title={t("nav.tutors")} count={centerData?.tutors.length ?? 0} />
                 {!centerData || centerData.tutors.length === 0 ? (
                   <EmptyState
                     icon="tutor"
-                    message="No tutors assigned to this center yet."
+                    message={t("dash.empty.centerTutors")}
                     actionHref="/dashboard"
-                    actionLabel="Back to Dashboard"
+                    actionLabel={t("dash.action.backToDashboard")}
                   />
                 ) : (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
@@ -1643,7 +1658,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                               {tutor.fullName || tutor.name || "Unnamed"}
                             </div>
                             <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-                              {tutor.classCount} class{tutor.classCount !== 1 ? "es" : ""}
+                              {tutor.classCount} {tutor.classCount !== 1 ? t("dash.nClasses") : t("dash.nClass")}
                             </div>
                           </div>
                         </div>
@@ -1679,7 +1694,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
                             display: "inline-block",
                           }}
                         >
-                          View Profile →
+                          {t("tutor.viewProfile")}
                         </Link>
                       </motion.div>
                     ))}

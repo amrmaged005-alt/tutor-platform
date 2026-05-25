@@ -10,8 +10,7 @@ export async function sendVerificationEmail(
   _email: string,
   _token: string
 ): Promise<void> {
-  // TEMP: Email verification disabled — no-op
-  console.log("[TEMP] sendVerificationEmail called but disabled");
+  // Email verification disabled — no-op stub
 }
 
 /*

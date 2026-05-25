@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useMotionValue, useMotionValueEvent, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import type { MotionValue } from "framer-motion";
 import Link from "next/link";
+import { useI18n } from "./components/i18n";
 import {
   ArrowRight,
   Award,
@@ -634,28 +635,183 @@ const BOOK_CSS = `
 }
 `;
 
-const TOC = [
-  { id: "find", title: "Find a tutor", desc: "Search by subject, curriculum, location, and format." },
-  { id: "compare", title: "Compare classes", desc: "Review prices, schedules, seats, ratings, and profiles." },
-  { id: "book", title: "Book a session", desc: "Reserve a seat and keep every booking organized." },
-  { id: "learn", title: "Start learning", desc: "Move from scattered search to academic support faster." },
-];
+type IconComponent = React.FC<{ size?: number; strokeWidth?: number; color?: string; }>;
+interface TocData { id: string; title: string; desc: string; }
+interface StepData { title: string; desc: string; icon: IconComponent; }
+interface TrustData { title: string; desc: string; icon: IconComponent; }
 
-const STEPS = [
-  { title: "Search", desc: "Filter by subject, grade, curriculum, location, format, and price.", icon: Search },
-  { title: "Compare", desc: "Read profiles, ratings, class details, and availability before committing.", icon: TrendingUp },
-  { title: "Book", desc: "Reserve a seat and keep the booking visible in your dashboard.", icon: CheckCircle },
-  { title: "Learn", desc: "Attend the class, contact the tutor, and stay organized from one place.", icon: GraduationCap },
-];
-
-const TRUST = [
-  { title: "Verified tutors", desc: "Profiles are reviewed so students and parents have a stronger starting point.", icon: ShieldCheck },
-  { title: "Organized booking", desc: "Classes, seats, payment status, and schedules live in one structured flow.", icon: LayoutDashboard },
-  { title: "Payment-ready", desc: "Online and in-person options support different class formats and local needs.", icon: Award },
-  { title: "Less chat chaos", desc: "Coursaty turns scattered WhatsApp discovery into searchable, comparable choices.", icon: MessageSquare },
-];
-
-const CHAPTER_LABELS = ["Cover", "Contents", "How it works", "Discovery", "Trust", "Outcomes"];
+const COPY = {
+  en: {
+    toc: [
+      { id: "find",    title: "Find a tutor",    desc: "Search by subject, curriculum, location, and format." },
+      { id: "compare", title: "Compare classes",  desc: "Review prices, schedules, seats, ratings, and profiles." },
+      { id: "book",    title: "Book a session",   desc: "Reserve a seat and keep every booking organized." },
+      { id: "learn",   title: "Start learning",   desc: "Move from scattered search to academic support faster." },
+    ],
+    steps: [
+      { title: "Search",  desc: "Filter by subject, grade, curriculum, location, format, and price." },
+      { title: "Compare", desc: "Read profiles, ratings, class details, and availability before committing." },
+      { title: "Book",    desc: "Reserve a seat and keep the booking visible in your dashboard." },
+      { title: "Learn",   desc: "Attend the class, contact the tutor, and stay organized from one place." },
+    ],
+    trust: [
+      { title: "Verified tutors",    desc: "Profiles are reviewed so students and parents have a stronger starting point." },
+      { title: "Organized booking",  desc: "Classes, seats, payment status, and schedules live in one structured flow." },
+      { title: "Payment-ready",      desc: "Online and in-person options support different class formats and local needs." },
+      { title: "Less chat chaos",    desc: "Coursaty turns scattered WhatsApp discovery into searchable, comparable choices." },
+    ],
+    cover: { fieldGuide: "Coursaty Field Guide", tagline: "Find the right tutor", verified: "Verified", comparable: "Comparable", bookable: "Bookable" },
+    tutor: {
+      fallbackName: "Coursaty Tutor",
+      verified: "Verified",
+      fallbackCity: "Cairo",
+      classesSuffix: "classes",
+      subjectsFallback: "core subjects",
+      subjectsJoin: " and ",
+      bioFallback: (name: string, subjects: string) => `${name} teaches ${subjects} with clear class options.`,
+    },
+    class: {
+      online: "Online", hybrid: "Hybrid", inPerson: "In person",
+      free: "Free",
+      gradeDefault: "Students",
+      spotsLeft: (n: number) => `${n} spots left`,
+      descFallback: (grade: string) => `${grade} can compare the class, schedule, and seat availability before booking.`,
+    },
+    pages: {
+      cover: {
+        tab: "Cover", kicker: "Premium tutoring marketplace",
+        heading: "Open the right path to better tutoring.",
+        body: "Coursaty helps students and parents browse verified tutors, compare classes, and book academic support without scattered recommendations or message chaos.",
+        btnBrowse: "Browse classes", btnTutors: "Find a tutor",
+        statTutors: "verified tutors", statClasses: "active classes", statSeats: "seats booked", statCurricula: "curricula covered",
+      },
+      contents: {
+        tab: "Contents", kicker: "Table of contents",
+        heading: "A guided journey from search to first session.",
+        body: "Start with the question every family has: who can help, when are they available, and how quickly can learning begin?",
+        annotation: "Follow the path from discovery to booking with the important details visible at each step.",
+      },
+      find: {
+        tab: "Chapter I", kicker: "How it works",
+        heading: "Four pages from uncertainty to a confirmed class.",
+        body: "Coursaty is structured around the real workflow families already use: find credible options, compare fit, reserve the right session, and stay organized.",
+      },
+      compare: {
+        tab: "Chapter II", kicker: "Tutor and class discovery",
+        heading: "A catalog that students can actually compare.",
+        body: "Tutor profiles and class cards are treated like clean catalog entries: subject, curriculum, schedule, location, seats, price, and trust signals are all visible.",
+        emptyTutors: "Verified tutor profiles will appear here as your marketplace grows.",
+        emptyClasses: "Open class listings will appear here once classes are published.",
+        btnBrowse: "Explore all classes",
+      },
+      book: {
+        tab: "Chapter III", kicker: "Trust and quality",
+        heading: "More trustworthy than a forwarded phone number.",
+        body: "Coursaty turns discovery into a clearer decision. Students see the essentials before booking, while tutors and centers manage demand in one place.",
+        annotation: "The goal is not more decoration. It is a calmer system for choosing academic support with fewer unknowns.",
+      },
+      learn: {
+        tab: "Chapter IV", kicker: "Student outcome",
+        heading: "Find support faster, then focus on the learning.",
+        body: "The platform helps families move from uncertainty to action: fewer dead ends, better comparison, and a single record of what was booked.",
+        outcome1Title: "Less time searching",
+        outcome1Body: "Filtering narrows the options quickly so students can spend less time asking around.",
+        outcome2Title: "Better class fit",
+        outcome2Body: "Curriculum, level, price, format, and schedule are visible before the first message.",
+        rightKicker: "Final page",
+        rightHeading: "Start with the class that fits.",
+        rightBody: "Browse current classes, compare available tutors, or create an educator profile if you are ready to teach through Coursaty.",
+        rightBtn: "Browse all classes", rightBtnSecondary: "Join as a tutor",
+        rightAnnotation: "Coursaty is built for Egypt’s tutoring market: verified educators, organized classes, and booking flows that respect how students actually choose support.",
+      },
+    },
+  },
+  ar: {
+    toc: [
+      { id: "find",    title: "ابحث عن مدرّس",  desc: "ابحث حسب المادة والمنهج والموقع والطريقة." },
+      { id: "compare", title: "قارن الفصول",     desc: "استعرض الأسعار والمواعيد والأماكن والتقييمات والملفات." },
+      { id: "book",    title: "احجز جلسة",        desc: "احجز مقعداً وابقِ كل حجوزاتك منظّمة." },
+      { id: "learn",   title: "ابدأ التعلّم",     desc: "انتقل من البحث المشتّت إلى الدعم الأكاديمي بسرعة." },
+    ],
+    steps: [
+      { title: "ابحث",  desc: "صفّح حسب المادة والصف والمنهج والموقع والطريقة والسعر." },
+      { title: "قارن",  desc: "اقرأ الملفات الشخصية والتقييمات وتفاصيل الفصل والإتاحة قبل الحجز." },
+      { title: "احجز",  desc: "احجز مقعداً وابقِ الحجز ظاهراً في لوحة تحكّمك." },
+      { title: "تعلّم", desc: "احضر الفصل وتواصل مع المدرّس وابقَ منظّماً من مكان واحد." },
+    ],
+    trust: [
+      { title: "مدرّسون موثّقون", desc: "يُراجَع الملف الشخصي للمدرّسين لمنح الطلاب وأولياء الأمور نقطة انطلاق أقوى." },
+      { title: "حجز منظّم",       desc: "الفصول والمقاعد وحالة الدفع والمواعيد في مسار واحد." },
+      { title: "جاهز للدفع",      desc: "تدعم الخيارات الإلكترونية والحضورية تنسيقات الفصول المختلفة والاحتياجات المحلية." },
+      { title: "أقل فوضى",        desc: "تحوّل Coursaty الاكتشاف المشتّت عبر واتساب إلى خيارات قابلة للبحث والمقارنة." },
+    ],
+    cover: { fieldGuide: "دليل Coursaty", tagline: "ابحث عن المدرّس المناسب", verified: "موثّق", comparable: "قابل للمقارنة", bookable: "قابل للحجز" },
+    tutor: {
+      fallbackName: "مدرّس Coursaty",
+      verified: "موثّق",
+      fallbackCity: "القاهرة",
+      classesSuffix: "فصول",
+      subjectsFallback: "المواد الأساسية",
+      subjectsJoin: " و",
+      bioFallback: (name: string, subjects: string) => `يدرّس ${name} ${subjects} مع خيارات فصول واضحة.`,
+    },
+    class: {
+      online: "أونلاين", hybrid: "مختلط", inPerson: "حضوري",
+      free: "مجاني",
+      gradeDefault: "الطلاب",
+      spotsLeft: (n: number) => `${n} أماكن متبقية`,
+      descFallback: (grade: string) => `يمكن لـ${grade} مقارنة الفصل والجدول وتوفّر المقاعد قبل الحجز.`,
+    },
+    pages: {
+      cover: {
+        tab: "الغلاف", kicker: "منصة تعليم متميّزة",
+        heading: "افتح الطريق الصحيح نحو تجربة تعليمية أفضل.",
+        body: "تساعد Coursaty الطلاب وأولياء الأمور على تصفّح مدرّسين موثّقين، ومقارنة الفصول، وحجز الدعم الأكاديمي دون توصيات مشتّتة أو فوضى الرسائل.",
+        btnBrowse: "تصفّح الفصول", btnTutors: "ابحث عن مدرّس",
+        statTutors: "مدرّس موثّق", statClasses: "فصل نشط", statSeats: "مقعد محجوز", statCurricula: "مناهج مشمولة",
+      },
+      contents: {
+        tab: "المحتويات", kicker: "جدول المحتويات",
+        heading: "رحلة موجَّهة من البحث إلى أول جلسة.",
+        body: "ابدأ بالسؤال الذي يطرحه كل عائلة: من يستطيع المساعدة، متى يكون متاحاً، وكم يستغرق البدء؟",
+        annotation: "اتّبع المسار من الاكتشاف إلى الحجز مع ظهور التفاصيل المهمة في كل خطوة.",
+      },
+      find: {
+        tab: "الفصل الأول", kicker: "كيف يعمل",
+        heading: "أربع خطوات من الحيرة إلى فصل مؤكّد.",
+        body: "بُنيت Coursaty حول سير العمل الحقيقي الذي تتّبعه العائلات: إيجاد خيارات موثوقة، ومقارنة الملاءمة، وحجز الجلسة المناسبة، والبقاء منظّماً.",
+      },
+      compare: {
+        tab: "الفصل الثاني", kicker: "اكتشاف المدرّسين والفصول",
+        heading: "كتالوج يمكن للطلاب فعلاً مقارنته.",
+        body: "تُعامَل ملفات المدرّسين وبطاقات الفصول كإدخالات كتالوج واضحة: المادة والمنهج والجدول والموقع والمقاعد والسعر وعلامات الثقة — كلّها ظاهرة.",
+        emptyTutors: "ستظهر ملفات المدرّسين الموثّقين هنا كلما نمت منصتك.",
+        emptyClasses: "ستظهر قوائم الفصول المفتوحة هنا بمجرد نشر الفصول.",
+        btnBrowse: "استكشف جميع الفصول",
+      },
+      book: {
+        tab: "الفصل الثالث", kicker: "الثقة والجودة",
+        heading: "أكثر موثوقية من رقم هاتف مُحال.",
+        body: "تحوّل Coursaty الاكتشاف إلى قرار أوضح. يرى الطلاب الأساسيات قبل الحجز، بينما يدير المدرّسون والمراكز الطلب في مكان واحد.",
+        annotation: "الهدف ليس المزيد من الزخارف. بل نظام أهدأ لاختيار الدعم الأكاديمي مع قدر أقل من المجهول.",
+      },
+      learn: {
+        tab: "الفصل الرابع", kicker: "نتيجة الطالب",
+        heading: "اعثر على الدعم بسرعة، ثم ركّز على التعلّم.",
+        body: "تساعد المنصة العائلات على الانتقال من الحيرة إلى العمل: طرق مسدودة أقل، ومقارنة أفضل، وسجل واحد لما تم حجزه.",
+        outcome1Title: "وقت أقل في البحث",
+        outcome1Body: "يضيّق الفلتر الخيارات بسرعة حتى يقضي الطلاب وقتاً أقل في السؤال.",
+        outcome2Title: "فصل أنسب",
+        outcome2Body: "المنهج والمستوى والسعر والطريقة والجدول كلّها ظاهرة قبل أول رسالة.",
+        rightKicker: "الصفحة الأخيرة",
+        rightHeading: "ابدأ بالفصل المناسب.",
+        rightBody: "تصفّح الفصول الحالية، وقارن المدرّسين المتاحين، أو أنشئ ملف مدرّس إذا كنت مستعداً للتدريس عبر Coursaty.",
+        rightBtn: "تصفّح جميع الفصول", rightBtnSecondary: "انضم كمدرّس",
+        rightAnnotation: "بُنيت Coursaty لسوق التعليم المصري: مدرّسون موثّقون، وفصول منظّمة، وتدفقات حجز تحترم الطريقة الحقيقية التي يختار بها الطلاب الدعم.",
+      },
+    },
+  },
+};
 
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -859,7 +1015,7 @@ function BookScroller({ pages }: { pages: BookPageData[] }) {
       <nav className="bookmark-rail" aria-label="Landing page chapters">
         {pages.map((page, index) => (
           <a key={page.id} href={`#${page.id}`} className={activeIndex === index ? "active" : undefined}>
-            {CHAPTER_LABELS[index] ?? page.tab}
+            {page.tab}
           </a>
         ))}
       </nav>
@@ -911,6 +1067,8 @@ function StatCard({ value, suffix, label }: { value: number; suffix?: string; la
 
 function CoverVisual() {
   const prefersReduced = useReducedMotion();
+  const { lang } = useI18n();
+  const c = COPY[lang].cover;
   return (
     <motion.div
       className="cover-visual"
@@ -929,18 +1087,18 @@ function CoverVisual() {
         <div className="cover-board">
           <div>
             <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", opacity: 0.72 }}>
-              Coursaty Field Guide
+              {c.fieldGuide}
             </div>
             <h2 style={{ margin: "18px 0 0", fontSize: "clamp(2rem, 5vw, 3rem)", lineHeight: 0.96, letterSpacing: "-0.04em" }}>
-              Find the right tutor
+              {c.tagline}
             </h2>
           </div>
           <div style={{ display: "grid", gap: 10 }}>
             <div style={{ height: 1, background: "rgba(251,250,246,0.22)" }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 750, opacity: 0.82 }}>
-              <span>Verified</span>
-              <span>Comparable</span>
-              <span>Bookable</span>
+              <span>{c.verified}</span>
+              <span>{c.comparable}</span>
+              <span>{c.bookable}</span>
             </div>
           </div>
         </div>
@@ -949,7 +1107,7 @@ function CoverVisual() {
   );
 }
 
-function TocCard({ item, index }: { item: (typeof TOC)[number]; index: number }) {
+function TocCard({ item, index }: { item: TocData; index: number }) {
   return (
     <a className="toc-card" href={`#${item.id}`}>
       <div className="toc-num">{String(index + 1).padStart(2, "0")}</div>
@@ -962,7 +1120,7 @@ function TocCard({ item, index }: { item: (typeof TOC)[number]; index: number })
   );
 }
 
-function StepRow({ step, index }: { step: (typeof STEPS)[number]; index: number }) {
+function StepRow({ step, index }: { step: StepData; index: number }) {
   const Icon = step.icon;
   return (
     <div className="step-row">
@@ -976,7 +1134,9 @@ function StepRow({ step, index }: { step: (typeof STEPS)[number]; index: number 
 }
 
 function TutorCard({ tutor }: { tutor: FeaturedTutor }) {
-  const name = tutor.fullName || tutor.name || "Coursaty Tutor";
+  const { lang } = useI18n();
+  const c = COPY[lang].tutor;
+  const name = tutor.fullName || tutor.name || c.fallbackName;
   const initial = name.charAt(0).toUpperCase();
 
   return (
@@ -992,17 +1152,17 @@ function TutorCard({ tutor }: { tutor: FeaturedTutor }) {
             <h3>{name}</h3>
             <div className="meta-line">
               <MapPin size={13} strokeWidth={2} />
-              <span>{tutor.city ?? "Cairo"}</span>
+              <span>{tutor.city ?? c.fallbackCity}</span>
               {tutor.center && <span>{tutor.center.name}</span>}
             </div>
           </div>
         </div>
-        {tutor.isVerified && <span className="book-badge" style={{ color: "var(--accent)" }}>Verified</span>}
+        {tutor.isVerified && <span className="book-badge" style={{ color: "var(--accent)" }}>{c.verified}</span>}
       </div>
-      <p>{tutor.bio || `${name} teaches ${tutor.subjects.slice(0, 2).join(" and ") || "core subjects"} with clear class options.`}</p>
+      <p>{tutor.bio || c.bioFallback(name, tutor.subjects.slice(0, 2).join(c.subjectsJoin) || c.subjectsFallback)}</p>
       <div className="badge-line">
         {tutor.subjects.slice(0, 3).map((subject) => <span key={subject} className="book-badge">{subject}</span>)}
-        <span className="book-badge">{tutor.classCount} classes</span>
+        <span className="book-badge">{tutor.classCount} {c.classesSuffix}</span>
         {tutor.avgRating && <span className="book-badge"><Star size={11} fill="var(--rating)" color="var(--rating)" /> {tutor.avgRating.toFixed(1)}</span>}
       </div>
     </Link>
@@ -1010,8 +1170,10 @@ function TutorCard({ tutor }: { tutor: FeaturedTutor }) {
 }
 
 function ClassCard({ cls }: { cls: FeaturedClass }) {
+  const { lang } = useI18n();
+  const c = COPY[lang].class;
   const provider = cls.center?.name || cls.owner?.fullName || cls.owner?.name || "Coursaty";
-  const format = cls.format === "ONLINE" ? "Online" : cls.format === "HYBRID" ? "Hybrid" : "In person";
+  const format = cls.format === "ONLINE" ? c.online : cls.format === "HYBRID" ? c.hybrid : c.inPerson;
 
   return (
     <Link className="catalog-card" href={`/classes/${cls.id}`}>
@@ -1023,29 +1185,29 @@ function ClassCard({ cls }: { cls: FeaturedClass }) {
           </div>
           <h3>{cls.title}</h3>
           <div className="meta-line">
-            {format === "Online" ? <Monitor size={13} strokeWidth={2} /> : <MapPin size={13} strokeWidth={2} />}
+            {cls.format === "ONLINE" ? <Monitor size={13} strokeWidth={2} /> : <MapPin size={13} strokeWidth={2} />}
             <span>{format}</span>
             {cls.schedule && <><Clock size={13} strokeWidth={2} /><span>{cls.schedule}</span></>}
           </div>
         </div>
         <div style={{ textAlign: "right", flex: "0 0 auto" }}>
           <strong style={{ color: cls.priceEgp === 0 ? "var(--success)" : "var(--text)", fontSize: 16 }}>
-            {cls.priceEgp === 0 ? "Free" : `${cls.priceEgp.toLocaleString()} EGP`}
+            {cls.priceEgp === 0 ? c.free : `${cls.priceEgp.toLocaleString()} EGP`}
           </strong>
           <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{provider}</div>
         </div>
       </div>
-      <p>{cls.description || `${cls.gradeLevel || "Students"} can compare the class, schedule, and seat availability before booking.`}</p>
+      <p>{cls.description || c.descFallback(cls.gradeLevel || c.gradeDefault)}</p>
       <div className="badge-line">
         {cls.gradeLevel && <span className="book-badge">{cls.gradeLevel}</span>}
-        {cls.spotsLeft !== null && <span className="book-badge">{Math.max(cls.spotsLeft, 0)} spots left</span>}
+        {cls.spotsLeft !== null && <span className="book-badge">{c.spotsLeft(Math.max(cls.spotsLeft, 0))}</span>}
         {cls.avgRating && <span className="book-badge"><Star size={11} fill="var(--rating)" color="var(--rating)" /> {cls.avgRating.toFixed(1)}</span>}
       </div>
     </Link>
   );
 }
 
-function TrustCard({ item }: { item: (typeof TRUST)[number] }) {
+function TrustCard({ item }: { item: TrustData }) {
   const Icon = item.icon;
   return (
     <div className="trust-card">
@@ -1075,32 +1237,38 @@ export default function Landing({
   featuredTutors?: FeaturedTutor[];
   featuredClasses?: FeaturedClass[];
 }) {
+  const { lang } = useI18n();
   const tutorCards = useMemo(() => featuredTutors.slice(0, 3), [featuredTutors]);
   const classCards = useMemo(() => featuredClasses.slice(0, 3), [featuredClasses]);
-  const pages = useMemo<BookPageData[]>(() => [
+  const pages = useMemo<BookPageData[]>(() => {
+    const p = COPY[lang].pages;
+    const STEP_ICONS = [Search, TrendingUp, CheckCircle, GraduationCap];
+    const TRUST_ICONS = [ShieldCheck, LayoutDashboard, Award, MessageSquare];
+    const TOC: TocData[] = COPY[lang].toc;
+    const STEPS: StepData[] = COPY[lang].steps.map((s, i) => ({ ...s, icon: STEP_ICONS[i] }));
+    const TRUST: TrustData[] = COPY[lang].trust.map((s, i) => ({ ...s, icon: TRUST_ICONS[i] }));
+    return [
     {
       id: "cover",
-      tab: "Cover",
+      tab: p.cover.tab,
       left: (
         <>
-          <ChapterKicker>Premium tutoring marketplace</ChapterKicker>
-          <h1 className="book-heading">Open the right path to better tutoring.</h1>
-          <p className="book-copy">
-            Coursaty helps students and parents browse verified tutors, compare classes, and book academic support without scattered recommendations or message chaos.
-          </p>
+          <ChapterKicker>{p.cover.kicker}</ChapterKicker>
+          <h1 className="book-heading">{p.cover.heading}</h1>
+          <p className="book-copy">{p.cover.body}</p>
           <div className="book-actions">
             <Link href="/classes" className="book-btn">
-              Browse classes <ArrowRight size={16} strokeWidth={2} />
+              {p.cover.btnBrowse} <ArrowRight size={16} strokeWidth={2} />
             </Link>
             <Link href="/tutors" className="book-btn-secondary">
-              Find a tutor
+              {p.cover.btnTutors}
             </Link>
           </div>
           <div className="stat-grid">
-            <StatCard value={Math.max(stats.tutors, 1)} suffix="+" label="verified tutors" />
-            <StatCard value={Math.max(stats.classes, 1)} suffix="+" label="active classes" />
-            <StatCard value={Math.max(stats.bookings, 1)} suffix="+" label="seats booked" />
-            <StatCard value={7} label="curricula covered" />
+            <StatCard value={Math.max(stats.tutors, 1)} suffix="+" label={p.cover.statTutors} />
+            <StatCard value={Math.max(stats.classes, 1)} suffix="+" label={p.cover.statClasses} />
+            <StatCard value={Math.max(stats.bookings, 1)} suffix="+" label={p.cover.statSeats} />
+            <StatCard value={7} label={p.cover.statCurricula} />
           </div>
         </>
       ),
@@ -1108,16 +1276,14 @@ export default function Landing({
     },
     {
       id: "contents",
-      tab: "Contents",
+      tab: p.contents.tab,
       left: (
         <>
-          <ChapterKicker>Table of contents</ChapterKicker>
-          <h2 className="book-heading medium">A guided journey from search to first session.</h2>
-          <p className="book-copy">
-            Start with the question every family has: who can help, when are they available, and how quickly can learning begin?
-          </p>
+          <ChapterKicker>{p.contents.kicker}</ChapterKicker>
+          <h2 className="book-heading medium">{p.contents.heading}</h2>
+          <p className="book-copy">{p.contents.body}</p>
           <div className="annotation" style={{ marginTop: 28 }}>
-            Follow the path from discovery to booking with the important details visible at each step.
+            {p.contents.annotation}
           </div>
         </>
       ),
@@ -1129,14 +1295,12 @@ export default function Landing({
     },
     {
       id: "find",
-      tab: "Chapter I",
+      tab: p.find.tab,
       left: (
         <>
-          <ChapterKicker>How it works</ChapterKicker>
-          <h2 className="book-heading medium">Four pages from uncertainty to a confirmed class.</h2>
-          <p className="book-copy">
-            Coursaty is structured around the real workflow families already use: find credible options, compare fit, reserve the right session, and stay organized.
-          </p>
+          <ChapterKicker>{p.find.kicker}</ChapterKicker>
+          <h2 className="book-heading medium">{p.find.heading}</h2>
+          <p className="book-copy">{p.find.body}</p>
         </>
       ),
       right: (
@@ -1147,17 +1311,15 @@ export default function Landing({
     },
     {
       id: "compare",
-      tab: "Chapter II",
+      tab: p.compare.tab,
       left: (
         <>
-          <ChapterKicker>Tutor and class discovery</ChapterKicker>
-          <h2 className="book-heading medium">A catalog that students can actually compare.</h2>
-          <p className="book-copy">
-            Tutor profiles and class cards are treated like clean catalog entries: subject, curriculum, schedule, location, seats, price, and trust signals are all visible.
-          </p>
+          <ChapterKicker>{p.compare.kicker}</ChapterKicker>
+          <h2 className="book-heading medium">{p.compare.heading}</h2>
+          <p className="book-copy">{p.compare.body}</p>
           <div className="catalog-grid" style={{ marginTop: 24 }}>
             {tutorCards.length > 0 ? tutorCards.map((tutor) => <TutorCard key={tutor.id} tutor={tutor} />) : (
-              <div className="annotation">Verified tutor profiles will appear here as your marketplace grows.</div>
+              <div className="annotation">{p.compare.emptyTutors}</div>
             )}
           </div>
         </>
@@ -1165,26 +1327,24 @@ export default function Landing({
       right: (
         <div className="catalog-grid">
           {classCards.length > 0 ? classCards.map((cls) => <ClassCard key={cls.id} cls={cls} />) : (
-            <div className="annotation">Open class listings will appear here once classes are published.</div>
+            <div className="annotation">{p.compare.emptyClasses}</div>
           )}
           <Link href="/classes" className="book-btn" style={{ marginTop: 4 }}>
-            Explore all classes <ArrowRight size={16} strokeWidth={2} />
+            {p.compare.btnBrowse} <ArrowRight size={16} strokeWidth={2} />
           </Link>
         </div>
       ),
     },
     {
       id: "book",
-      tab: "Chapter III",
+      tab: p.book.tab,
       left: (
         <>
-          <ChapterKicker>Trust and quality</ChapterKicker>
-          <h2 className="book-heading medium">More trustworthy than a forwarded phone number.</h2>
-          <p className="book-copy">
-            Coursaty turns discovery into a clearer decision. Students see the essentials before booking, while tutors and centers manage demand in one place.
-          </p>
+          <ChapterKicker>{p.book.kicker}</ChapterKicker>
+          <h2 className="book-heading medium">{p.book.heading}</h2>
+          <p className="book-copy">{p.book.body}</p>
           <div className="annotation" style={{ marginTop: 28 }}>
-            The goal is not more decoration. It is a calmer system for choosing academic support with fewer unknowns.
+            {p.book.annotation}
           </div>
         </>
       ),
@@ -1196,42 +1356,39 @@ export default function Landing({
     },
     {
       id: "learn",
-      tab: "Chapter IV",
+      tab: p.learn.tab,
       left: (
         <>
-          <ChapterKicker>Student outcome</ChapterKicker>
-          <h2 className="book-heading medium">Find support faster, then focus on the learning.</h2>
-          <p className="book-copy">
-            The platform helps families move from uncertainty to action: fewer dead ends, better comparison, and a single record of what was booked.
-          </p>
+          <ChapterKicker>{p.learn.kicker}</ChapterKicker>
+          <h2 className="book-heading medium">{p.learn.heading}</h2>
+          <p className="book-copy">{p.learn.body}</p>
           <div className="outcome-grid" style={{ marginTop: 26 }}>
-            <OutcomeNote icon={Zap} title="Less time searching" body="Filtering narrows the options quickly so students can spend less time asking around." />
-            <OutcomeNote icon={BookOpen} title="Better class fit" body="Curriculum, level, price, format, and schedule are visible before the first message." />
+            <OutcomeNote icon={Zap} title={p.learn.outcome1Title} body={p.learn.outcome1Body} />
+            <OutcomeNote icon={BookOpen} title={p.learn.outcome2Title} body={p.learn.outcome2Body} />
           </div>
         </>
       ),
       right: (
         <>
-          <ChapterKicker>Final page</ChapterKicker>
-          <h2 className="book-heading medium">Start with the class that fits.</h2>
-          <p className="book-copy">
-            Browse current classes, compare available tutors, or create an educator profile if you are ready to teach through Coursaty.
-          </p>
+          <ChapterKicker>{p.learn.rightKicker}</ChapterKicker>
+          <h2 className="book-heading medium">{p.learn.rightHeading}</h2>
+          <p className="book-copy">{p.learn.rightBody}</p>
           <div className="book-actions">
             <Link href="/classes" className="book-btn">
-              Browse all classes <ArrowRight size={16} strokeWidth={2} />
+              {p.learn.rightBtn} <ArrowRight size={16} strokeWidth={2} />
             </Link>
             <Link href="/signup?role=tutor" className="book-btn-secondary">
-              Join as a tutor
+              {p.learn.rightBtnSecondary}
             </Link>
           </div>
           <div className="annotation" style={{ marginTop: "auto" }}>
-            Coursaty is built for Egypt&apos;s tutoring market: verified educators, organized classes, and booking flows that respect how students actually choose support.
+            {p.learn.rightAnnotation}
           </div>
         </>
       ),
     },
-  ], [classCards, stats.bookings, stats.classes, stats.tutors, tutorCards]);
+  ];
+  }, [lang, classCards, stats.bookings, stats.classes, stats.tutors, tutorCards]);
 
   return (
     <div className="book-landing">

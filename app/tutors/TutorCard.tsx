@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { MapPin, Check, Star } from "lucide-react";
+import { useI18n } from "../components/i18n";
 
 // Types
 export interface TutorCardData {
@@ -108,6 +109,7 @@ export default function TutorCard({
   tutor: TutorCardData;
   index?: number;
 }) {
+  const { t } = useI18n();
   const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
   const visibleSubjects = tutor.subjects.slice(0, 3);
   const extraSubjects = tutor.subjects.length - 3;
@@ -168,7 +170,7 @@ export default function TutorCard({
 
             <div style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 5, display: "flex", alignItems: "center", gap: 4 }}>
               <MapPin size={12} strokeWidth={2} />
-              <span>{tutor.city ?? "Egypt"}</span>
+              <span>{tutor.city ?? t("tutor.egypt")}</span>
               {tutor.center && (
                 <>
                   <span style={{ color: "var(--text-muted)" }}>-</span>
@@ -194,7 +196,7 @@ export default function TutorCard({
                 }}
               >
                 <Check size={10} strokeWidth={3} />
-                Verified
+                {t("tutor.verified")}
               </div>
             )}
           </div>
@@ -208,11 +210,11 @@ export default function TutorCard({
               {tutor.avgRating.toFixed(1)}
             </span>
             <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
-              ({tutor.reviewCount} review{tutor.reviewCount !== 1 ? "s" : ""})
+              ({tutor.reviewCount} {tutor.reviewCount !== 1 ? t("tutor.reviews") : t("tutor.review")})
             </span>
           </div>
         ) : (
-          <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 12 }}>No reviews yet</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 12 }}>{t("tutor.noReviews")}</div>
         )}
 
         {/* Subject tags */}
@@ -245,7 +247,7 @@ export default function TutorCard({
                   fontWeight: 600,
                 }}
               >
-                +{extraSubjects} more
+                {t("tutor.moreSubjects", { n: extraSubjects })}
               </span>
             )}
           </div>
@@ -279,8 +281,8 @@ export default function TutorCard({
           }}
         >
           {[
-            { value: tutor.classCount, label: "Classes" },
-            { value: tutor.studentCount, label: "Students" },
+            { value: tutor.classCount, label: t("tutor.classes") },
+            { value: tutor.studentCount, label: t("tutor.students") },
           ].map((stat) => (
             <div key={stat.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontWeight: 700, color: "var(--text)", fontSize: 14 }}>{stat.value}</span>
@@ -319,7 +321,7 @@ export default function TutorCard({
             el.style.backgroundColor = "var(--bg-alt)";
           }}
         >
-          View Profile
+          {t("tutor.viewProfile")}
         </Link>
         {tutor.classCount > 0 ? (
           <Link
@@ -341,7 +343,7 @@ export default function TutorCard({
             onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent-hover)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent)"; }}
           >
-            Browse Classes
+            {t("tutor.browseClasses")}
           </Link>
         ) : (
           <div style={{
@@ -355,7 +357,7 @@ export default function TutorCard({
             fontSize: 12,
             fontWeight: 500,
           }}>
-            No Classes Yet
+            {t("tutor.noClasses")}
           </div>
         )}
       </div>

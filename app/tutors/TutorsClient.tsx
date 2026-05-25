@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ChevronRight, Search, X, SlidersHorizontal } from "lucide-react";
 import TutorCard, { TutorCardData } from "./TutorCard";
+import { useI18n } from "../components/i18n";
 
 // ─── CONSTANTS ─────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,8 @@ function FilterSidebar({
   setMinRating: (r: number) => void;
   onClear: () => void;
 }) {
+  const { t } = useI18n();
+
   function toggleSubject(s: string) {
     setSelectedSubjects(
       selectedSubjects.includes(s)
@@ -61,7 +64,7 @@ function FilterSidebar({
     >
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text)" }}>Filters</span>
+        <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text)" }}>{t("common.filters")}</span>
         {hasFilters && (
           <button
             onClick={onClear}
@@ -76,7 +79,7 @@ function FilterSidebar({
               padding: "3px 10px",
             }}
           >
-            Clear all
+            {t("common.clearAll")}
           </button>
         )}
       </div>
@@ -84,36 +87,39 @@ function FilterSidebar({
       {/* City */}
       <div>
         <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
-          City
+          {t("tutors.city")}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          {CITIES.map((city) => (
-            <button
-              key={city}
-              onClick={() => setSelectedCity(city)}
-              style={{
-                background: selectedCity === city ? "var(--accent-bg)" : "none",
-                border: selectedCity === city ? "1px solid var(--accent-border)" : "1px solid transparent",
-                borderRadius: 8,
-                padding: "7px 10px",
-                textAlign: "left",
-                color: selectedCity === city ? "var(--accent)" : "var(--text-secondary)",
-                fontWeight: selectedCity === city ? 600 : 400,
-                fontSize: 13,
-                cursor: "pointer",
-                transition: "all 0.15s",
-              }}
-            >
-              {city}
-            </button>
-          ))}
+          {CITIES.map((city) => {
+            const label = city === "All Cities" ? t("tutors.allCities") : city;
+            return (
+              <button
+                key={city}
+                onClick={() => setSelectedCity(city)}
+                style={{
+                  background: selectedCity === city ? "var(--accent-bg)" : "none",
+                  border: selectedCity === city ? "1px solid var(--accent-border)" : "1px solid transparent",
+                  borderRadius: 8,
+                  padding: "7px 10px",
+                  textAlign: "left",
+                  color: selectedCity === city ? "var(--accent)" : "var(--text-secondary)",
+                  fontWeight: selectedCity === city ? 600 : 400,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Subjects */}
       <div>
         <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
-          Subjects
+          {t("tutors.subjects")}
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
           {ALL_SUBJECTS.map((s) => {
@@ -144,7 +150,7 @@ function FilterSidebar({
       {/* Min Rating */}
       <div>
         <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
-          Minimum Rating
+          {t("tutors.minRating")}
         </div>
         <div style={{ display: "flex", gap: 5 }}>
           {[0, 3, 4, 4.5].map((r) => (
@@ -164,7 +170,7 @@ function FilterSidebar({
                 transition: "all 0.15s",
               }}
             >
-              {r === 0 ? "Any" : `${r}+`}
+              {r === 0 ? t("common.any") : `${r}+`}
             </button>
           ))}
         </div>
@@ -187,6 +193,8 @@ function MobileTutorFilterDrawer({
   minRating: number; setMinRating: (r: number) => void;
   onClear: () => void;
 }) {
+  const { t } = useI18n();
+
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
@@ -212,7 +220,7 @@ function MobileTutorFilterDrawer({
         }}
       />
       <div
-        role="dialog" aria-modal="true" aria-label="Filters"
+        role="dialog" aria-modal="true" aria-label={t("common.filters")}
         style={{
           position: "fixed", bottom: 0, left: 0, right: 0,
           maxHeight: "80vh",
@@ -231,8 +239,8 @@ function MobileTutorFilterDrawer({
           <div style={{ width: 40, height: 4, borderRadius: 99, background: "var(--border)" }} />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 20px 16px" }}>
-          <span style={{ fontWeight: 700, fontSize: 16, color: "var(--text)" }}>Filters</span>
-          <button onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, lineHeight: 1, display: "inline-flex" }}>
+          <span style={{ fontWeight: 700, fontSize: 16, color: "var(--text)" }}>{t("common.filters")}</span>
+          <button onClick={onClose} aria-label={t("common.close")} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, lineHeight: 1, display: "inline-flex" }}>
             <X size={20} strokeWidth={1.8} />
           </button>
         </div>
@@ -240,23 +248,26 @@ function MobileTutorFilterDrawer({
         <div style={{ padding: "0 20px 24px", display: "flex", flexDirection: "column", gap: 24 }}>
           {/* City */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>City</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>{t("tutors.city")}</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {CITIES.map(city => (
-                <button key={city} onClick={() => setSelectedCity(city)} style={{
-                  padding: "7px 14px", borderRadius: 99, fontSize: 13, cursor: "pointer",
-                  background: selectedCity === city ? "var(--accent-bg)" : "var(--bg-card)",
-                  border: `1px solid ${selectedCity === city ? "var(--accent-border)" : "var(--border-light)"}`,
-                  color: selectedCity === city ? "var(--accent)" : "var(--text-secondary)",
-                  fontWeight: selectedCity === city ? 600 : 400,
-                }}>{city}</button>
-              ))}
+              {CITIES.map(city => {
+                const label = city === "All Cities" ? t("tutors.allCities") : city;
+                return (
+                  <button key={city} onClick={() => setSelectedCity(city)} style={{
+                    padding: "7px 14px", borderRadius: 99, fontSize: 13, cursor: "pointer",
+                    background: selectedCity === city ? "var(--accent-bg)" : "var(--bg-card)",
+                    border: `1px solid ${selectedCity === city ? "var(--accent-border)" : "var(--border-light)"}`,
+                    color: selectedCity === city ? "var(--accent)" : "var(--text-secondary)",
+                    fontWeight: selectedCity === city ? 600 : 400,
+                  }}>{label}</button>
+                );
+              })}
             </div>
           </div>
 
           {/* Subjects */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Subjects</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>{t("tutors.subjects")}</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {ALL_SUBJECTS.map(s => {
                 const active = selectedSubjects.includes(s);
@@ -275,7 +286,7 @@ function MobileTutorFilterDrawer({
 
           {/* Min Rating */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Minimum Rating</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>{t("tutors.minRating")}</div>
             <div style={{ display: "flex", gap: 8 }}>
               {[0, 3, 4, 4.5].map(r => (
                 <button key={r} onClick={() => setMinRating(r)} style={{
@@ -283,7 +294,7 @@ function MobileTutorFilterDrawer({
                   border: `1px solid ${minRating === r ? "var(--accent-border)" : "var(--border-light)"}`,
                   backgroundColor: minRating === r ? "var(--accent-bg)" : "var(--bg-card)",
                   color: minRating === r ? "var(--accent)" : "var(--text-secondary)",
-                }}>{r === 0 ? "Any" : `${r}+`}</button>
+                }}>{r === 0 ? t("common.any") : `${r}+`}</button>
               ))}
             </div>
           </div>
@@ -293,12 +304,12 @@ function MobileTutorFilterDrawer({
               <button onClick={() => { onClear(); onClose(); }} style={{
                 flex: 1, padding: "12px", borderRadius: 10, border: "1px solid var(--border)",
                 background: "var(--bg-card)", color: "var(--text)", fontSize: 14, fontWeight: 600, cursor: "pointer",
-              }}>Clear all</button>
+              }}>{t("common.clearAll")}</button>
             )}
             <button onClick={onClose} style={{
               flex: 2, padding: "12px", borderRadius: 10, border: "none",
               background: "var(--accent)", color: "var(--accent-fg)", fontSize: 14, fontWeight: 600, cursor: "pointer",
-            }}>Apply Filters</button>
+            }}>{t("common.applyFilters")}</button>
           </div>
         </div>
       </div>
@@ -324,6 +335,7 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle?: string })
 // ─── MAIN CLIENT COMPONENT ─────────────────────────────────────────────────────
 
 export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
+  const { t } = useI18n();
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState("All Cities");
   const [minRating, setMinRating] = useState(0);
@@ -366,6 +378,8 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
   const newTutors = filtered.filter((t) => t.avgRating === null).slice(0, 8);
   const isFiltering = selectedSubjects.length > 0 || selectedCity !== "All Cities" || minRating > 0 || search;
 
+  const activeFilterCount = [selectedSubjects.length > 0, selectedCity !== "All Cities", minRating > 0].filter(Boolean).length;
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-alt)", color: "var(--text)" }}>
       <MobileTutorFilterDrawer
@@ -387,23 +401,23 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           {/* Breadcrumb */}
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
-            <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Home</Link>
+            <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>{t("common.home")}</Link>
             <ChevronRight size={12} strokeWidth={2} aria-hidden />
-            <span style={{ color: "var(--text)" }}>Tutors</span>
+            <span style={{ color: "var(--text)" }}>{t("common.tutors")}</span>
           </div>
 
           <h1 style={{ fontSize: "clamp(22px, 3.5vw, 32px)", fontWeight: 800, color: "var(--text)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
-            Find Your Perfect Tutor
+            {t("tutors.pageTitle")}
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
-            {tutors.length} verified tutors across Egypt - filter by subject, city, and rating.
+            {t("tutors.pageSubtitle", { count: tutors.length })}
           </p>
 
           {/* Search bar */}
           <div style={{ position: "relative", maxWidth: 520 }}>
             <div
               style={{
-                position: "absolute", left: 14, top: "50%",
+                position: "absolute", insetInlineStart: 14, top: "50%",
                 transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)",
               }}
             >
@@ -411,7 +425,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
             </div>
             <input
               type="text"
-              placeholder="Search by name, subject, or keyword..."
+              placeholder={t("tutors.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{
@@ -510,20 +524,20 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 }}
               >
                 <SlidersHorizontal size={14} strokeWidth={2} />
-                Filters
+                {t("common.filters")}
                 {isFiltering && <span style={{
                   backgroundColor: "var(--accent)", color: "var(--accent-fg)",
                   borderRadius: 99, width: 16, height: 16,
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                   fontSize: 10, fontWeight: 700,
                 }}>
-                  {[selectedSubjects.length > 0, selectedCity !== "All Cities", minRating > 0].filter(Boolean).length}
+                  {activeFilterCount}
                 </span>}
               </button>
               <span style={{ color: "var(--text-secondary)", fontSize: 14 }}>
                 <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span>
-                {" "}tutor{filtered.length !== 1 ? "s" : ""}
-                {isFiltering ? " match your filters" : " available"}
+                {" "}{filtered.length === 1 ? t("tutor.classes") : t("common.tutors").toLowerCase()}
+                {isFiltering ? ` ${t("tutors.matchFilters")}` : ` ${t("tutors.available")}`}
               </span>
             </div>
             {isFiltering && (
@@ -543,7 +557,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                   gap: 5,
                 }}
               >
-                <X size={13} strokeWidth={2} /> Clear filters
+                <X size={13} strokeWidth={2} /> {t("common.clearAll")}
               </button>
             )}
           </div>
@@ -567,10 +581,10 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                   <Search size={48} strokeWidth={1.5} style={{ margin: "0 auto", display: "block" }} aria-hidden />
                 </div>
                 <div style={{ color: "var(--text)", fontWeight: 700, fontSize: 17, marginBottom: 8 }}>
-                  No tutors found
+                  {t("tutors.noFound")}
                 </div>
                 <div style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>
-                  Try adjusting your filters or clearing your search.
+                  {t("tutors.noFoundSub")}
                 </div>
                 <button
                   onClick={clearFilters}
@@ -585,7 +599,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                     cursor: "pointer",
                   }}
                 >
-                  Clear all filters
+                  {t("common.clearFilters")}
                 </button>
               </motion.div>
             ) : isFiltering ? (
@@ -596,8 +610,8 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 exit={{ opacity: 0 }}
               >
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
-                  {filtered.map((t, i) => (
-                    <TutorCard key={t.id} tutor={t} index={i} />
+                  {filtered.map((tutor, i) => (
+                    <TutorCard key={tutor.id} tutor={tutor} index={i} />
                   ))}
                 </div>
               </motion.div>
@@ -612,11 +626,11 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 {featured.length > 0 && (
                   <section>
                     <SectionTitle
-                      title="Top Rated Tutors"
-                      subtitle="Consistently rated 4.5+ by their students"
+                      title={t("tutors.topRated")}
+                      subtitle={t("tutors.topRatedSub")}
                     />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
-                      {featured.map((t, i) => <TutorCard key={t.id} tutor={t} index={i} />)}
+                      {featured.map((tutor, i) => <TutorCard key={tutor.id} tutor={tutor} index={i} />)}
                     </div>
                   </section>
                 )}
@@ -624,11 +638,11 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 {topRated.length > 0 && (
                   <section>
                     <SectionTitle
-                      title="Highly Rated"
-                      subtitle="Tutors with strong ratings and proven track records"
+                      title={t("tutors.highlyRated")}
+                      subtitle={t("tutors.highlyRatedSub")}
                     />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
-                      {topRated.map((t, i) => <TutorCard key={t.id} tutor={t} index={i} />)}
+                      {topRated.map((tutor, i) => <TutorCard key={tutor.id} tutor={tutor} index={i} />)}
                     </div>
                   </section>
                 )}
@@ -636,18 +650,18 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 {newTutors.length > 0 && (
                   <section>
                     <SectionTitle
-                      title="New on Coursaty"
-                      subtitle="Fresh tutors - be among their first students"
+                      title={t("tutors.newTutors")}
+                      subtitle={t("tutors.newTutorsSub")}
                     />
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
-                      {newTutors.map((t, i) => <TutorCard key={t.id} tutor={t} index={i} />)}
+                      {newTutors.map((tutor, i) => <TutorCard key={tutor.id} tutor={tutor} index={i} />)}
                     </div>
                   </section>
                 )}
 
                 {featured.length === 0 && topRated.length === 0 && newTutors.length === 0 && (
                   <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "48px 0", fontSize: 15 }}>
-                    No tutors available yet. Check back soon!
+                    {t("tutors.noFound")}
                   </div>
                 )}
               </motion.div>
