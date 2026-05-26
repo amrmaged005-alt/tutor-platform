@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
 export interface CenterCardData {
@@ -278,6 +279,7 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle?: string })
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function CentersClient({ centers }: { centers: CenterCardData[] }) {
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const [selectedCity, setSelectedCity] = useState("All Cities");
   const [minRating, setMinRating] = useState(0);
@@ -309,27 +311,42 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-alt)", color: "var(--text)" }}>
 
       {/* Page header */}
-      <div style={{ backgroundColor: "var(--bg-card)", borderBottom: "1px solid var(--border-light)", padding: "32px 24px 28px" }}>
+      <div style={{ backgroundColor: "var(--bg-card)", borderBottom: "1px solid var(--border-light)", padding: isMobile ? "10px 14px 12px" : "32px 24px 28px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          {/* Breadcrumb */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
-            <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Home</Link>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-            <span style={{ color: "var(--text)" }}>Learning Centers</span>
-          </div>
+          {/* Breadcrumb (desktop only) */}
+          {!isMobile && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
+              <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Home</Link>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              <span style={{ color: "var(--text)" }}>Learning Centers</span>
+            </div>
+          )}
 
-          <h1 style={{ fontSize: "clamp(22px, 3.5vw, 32px)", fontWeight: 800, color: "var(--text)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+          <h1 style={{
+            fontSize: isMobile ? 20 : "clamp(22px, 3.5vw, 32px)",
+            fontWeight: 800, color: "var(--text)",
+            margin: isMobile ? "0 0 6px" : "0 0 6px",
+            letterSpacing: "-0.02em",
+            display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap",
+          }}>
             Learning Centers
+            {isMobile && (
+              <span style={{
+                fontSize: 12, fontWeight: 700, color: "var(--text-muted)",
+                background: "var(--bg-alt)", border: "1px solid var(--border-light)",
+                borderRadius: 999, padding: "2px 8px", letterSpacing: 0,
+              }}>{centers.length}</span>
+            )}
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
+          {!isMobile && <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
             {centers.length} verified centers across Egypt — find the right institution for you.
-          </p>
+          </p>}
 
           {/* Search bar */}
-          <div style={{ position: "relative", maxWidth: 520 }}>
-            <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }}>
+          <div style={{ position: "relative", maxWidth: isMobile ? 420 : 520 }}>
+            <div style={{ position: "absolute", insetInlineStart: isMobile ? 10 : 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -338,25 +355,32 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
             <input
               type="text" placeholder="Search by name, subject, or location..."
               value={search} onChange={(e) => setSearch(e.target.value)}
-              style={{ width: "100%", backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "11px 14px 11px 42px", color: "var(--text)", fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit", transition: "border-color 0.15s, box-shadow 0.15s" }}
+              style={{ width: "100%", backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)", borderRadius: 10, padding: isMobile ? "8px 12px" : "11px 14px", paddingInlineStart: isMobile ? 34 : 42, color: "var(--text)", fontSize: isMobile ? 13 : 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit", transition: "border-color 0.15s, box-shadow 0.15s" }}
               onFocus={(e) => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
               onBlur={(e) => { e.target.style.borderColor = "var(--border-light)"; e.target.style.boxShadow = "none"; }}
             />
             {search && (
-              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>×</button>
+              <button onClick={() => setSearch("")} style={{ position: "absolute", insetInlineEnd: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>×</button>
             )}
           </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px 80px", display: "flex", gap: 28, alignItems: "flex-start" }}>
-        {/* Sidebar */}
-        <FilterSidebar
+      <div style={{
+        maxWidth: 1100, margin: "0 auto",
+        padding: isMobile ? "12px 14px 64px" : "32px 24px 80px",
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        gap: isMobile ? 16 : 28,
+        alignItems: isMobile ? "stretch" : "flex-start",
+      }}>
+        {/* Sidebar — desktop only (mobile users get the chips in the hero) */}
+        {!isMobile && <FilterSidebar
           selectedCity={selectedCity} setSelectedCity={setSelectedCity}
           minRating={minRating} setMinRating={setMinRating}
           onClear={clearFilters} hasFilters={hasFilters}
-        />
+        />}
 
         {/* Cards */}
         <div style={{ flex: 1, minWidth: 0 }}>

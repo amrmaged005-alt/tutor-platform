@@ -127,10 +127,19 @@ function MobileDrawer({
     const closedTransform = dir === "rtl" ? "translateX(-100%)" : "translateX(100%)";
 
     useEffect(() => {
-        if (open) document.body.style.overflow = "hidden";
-        else document.body.style.overflow = "";
-        return () => { document.body.style.overflow = ""; };
-    }, [open]);
+        if (!open) {
+            document.body.style.overflow = "";
+            return;
+        }
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+        window.addEventListener("keydown", onKey);
+        return () => {
+            document.body.style.overflow = prev;
+            window.removeEventListener("keydown", onKey);
+        };
+    }, [open, onClose]);
 
     return (
         <>
