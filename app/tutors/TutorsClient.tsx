@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, Search, X, SlidersHorizontal } from "lucide-react";
 import TutorCard, { TutorCardData } from "./TutorCard";
@@ -426,9 +427,39 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
           backgroundColor: "var(--bg-card)",
           borderBottom: "1px solid var(--border-light)",
           padding: isMobile ? "10px 14px 12px" : "32px 24px 28px",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        {/* Hero image on desktop — students learning together as social proof */}
+        {!isMobile && (
+          <motion.div
+            initial={{ opacity: 0, scale: 1.02 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              insetInlineStart: "auto",
+              width: "min(44%, 520px)",
+              opacity: 0.5,
+              pointerEvents: "none",
+              maskImage: "linear-gradient(90deg, transparent 0%, black 35%)",
+              WebkitMaskImage: "linear-gradient(90deg, transparent 0%, black 35%)",
+            }}
+            aria-hidden="true"
+          >
+            <Image
+              src="/higgsfield/group-study.webp"
+              alt=""
+              fill
+              priority
+              sizes="520px"
+              style={{ objectFit: "cover" }}
+            />
+          </motion.div>
+        )}
+        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
           {/* Breadcrumb */}
           <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
             <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>{t("common.home")}</Link>

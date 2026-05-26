@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import {
   CheckCircle,
@@ -81,6 +83,43 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
       }}
     >
       <div style={{ maxWidth: 520, width: "100%" }}>
+
+        {/* Celebratory hero image — only on the success / pending paths,
+            skipped on failure so it doesn't feel tone-deaf */}
+        {!isFailed && (
+          <motion.div
+            initial={{ opacity: 0, y: 14, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
+            style={{
+              position: "relative",
+              borderRadius: isMobile ? 14 : 18,
+              overflow: "hidden",
+              aspectRatio: "16 / 9",
+              marginBottom: isMobile ? "1rem" : "1.5rem",
+              boxShadow: "0 18px 40px rgba(24,23,21,0.18)",
+              border: "1px solid var(--border-light)",
+            }}
+            aria-hidden="true"
+          >
+            <Image
+              src="/higgsfield/booking-confirmed.webp"
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 600px) 92vw, 520px"
+              style={{ objectFit: "cover" }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(180deg, transparent 55%, rgba(13,89,70,0.32) 100%)",
+                pointerEvents: "none",
+              }}
+            />
+          </motion.div>
+        )}
 
         {/* Status icon */}
         <div style={{ textAlign: "center", marginBottom: isMobile ? "1rem" : "1.75rem" }}>

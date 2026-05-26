@@ -321,8 +321,36 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-alt)", color: "var(--text)" }}>
 
       {/* Page header */}
-      <div style={{ backgroundColor: "var(--bg-card)", borderBottom: "1px solid var(--border-light)", padding: isMobile ? "10px 14px 12px" : "32px 24px 28px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ backgroundColor: "var(--bg-card)", borderBottom: "1px solid var(--border-light)", padding: isMobile ? "10px 14px 12px" : "32px 24px 28px", position: "relative", overflow: "hidden" }}>
+        {/* Hero image on desktop — anchors the "verified centers across Egypt" promise visually */}
+        {!isMobile && (
+          <motion.div
+            initial={{ opacity: 0, scale: 1.02 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              insetInlineStart: "auto",
+              width: "min(46%, 540px)",
+              opacity: 0.55,
+              pointerEvents: "none",
+              maskImage: "linear-gradient(90deg, transparent 0%, black 35%)",
+              WebkitMaskImage: "linear-gradient(90deg, transparent 0%, black 35%)",
+            }}
+            aria-hidden="true"
+          >
+            <Image
+              src="/higgsfield/centers-hero.webp"
+              alt=""
+              fill
+              priority
+              sizes="540px"
+              style={{ objectFit: "cover" }}
+            />
+          </motion.div>
+        )}
+        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
           {/* Breadcrumb (desktop only) */}
           {!isMobile && (
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>

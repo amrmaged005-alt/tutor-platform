@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, ShieldCheck } from "lucide-react";
 import { useI18n } from "../components/i18n";
@@ -87,8 +88,61 @@ export default function SignupPage() {
         justifyContent: "center",
         fontFamily: "var(--font-sans)",
         padding: isMobile ? "1rem 0.875rem" : "2rem 1.5rem",
+        gap: isMobile ? 0 : 48,
       }}
     >
+      {/* Side panel — desktop only. Same atmospheric still-life as /login. */}
+      {!isMobile && (
+        <div
+          style={{
+            position: "relative",
+            width: "min(440px, 38vw)",
+            aspectRatio: "3 / 4",
+            borderRadius: 22,
+            overflow: "hidden",
+            boxShadow: "0 32px 64px rgba(24,23,21,0.18), 0 0 0 1px var(--border-light)",
+            opacity: 0,
+            animation: "signupAsideFade 0.9s ease-out 0.1s forwards",
+          }}
+          aria-hidden="true"
+        >
+          <Image
+            src="/higgsfield/auth-nook.webp"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 1100px) 38vw, 440px"
+            style={{ objectFit: "cover" }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(155deg, transparent 50%, rgba(13,89,70,0.45) 100%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              insetInlineStart: 22,
+              insetBlockEnd: 22,
+              insetInlineEnd: 22,
+              color: "#fbfaf6",
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              textShadow: "0 1px 6px rgba(0,0,0,0.4)",
+            }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.85, marginBottom: 6 }}>
+              Coursaty
+            </div>
+            <div>Start your learning journey.</div>
+          </div>
+          <style>{`@keyframes signupAsideFade { to { opacity: 1; } }`}</style>
+        </div>
+      )}
+
       <div style={{ width: "100%", maxWidth: 420 }}>
 
         {/* Logo */}
