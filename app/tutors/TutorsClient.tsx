@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ChevronRight, Search, X, SlidersHorizontal } from "lucide-react";
@@ -195,12 +195,23 @@ function MobileTutorFilterDrawer({
   onClear: () => void;
 }) {
   const { t } = useI18n();
+  const dragStartY = useRef<number | null>(null);
+  const dragDelta = useRef(0);
+  const [dragY, setDragY] = useState(0);
 
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
+    if (!open) {
+      document.body.style.overflow = "";
+      return;
+    }
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
 
   function toggleSubject(s: string) {
     setSelectedSubjects(selectedSubjects.includes(s) ? selectedSubjects.filter(x => x !== s) : [...selectedSubjects, s]);
@@ -229,14 +240,31 @@ function MobileTutorFilterDrawer({
           borderRadius: "20px 20px 0 0",
           border: "1px solid var(--border-light)", borderBottom: "none",
           zIndex: 998,
-          transform: open ? "translateY(0)" : "translateY(100%)",
-          transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          transform: open ? `translateY(${dragY}px)` : "translateY(100%)",
+          transition: dragY === 0 ? "transform 0.3s cubic-bezier(0.4,0,0.2,1)" : "none",
           display: "flex", flexDirection: "column",
           boxShadow: "var(--shadow-xl)",
           overflowY: "auto",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
+        <div
+          onTouchStart={(e) => { dragStartY.current = e.touches[0]?.clientY ?? null; dragDelta.current = 0; }}
+          onTouchMove={(e) => {
+            if (dragStartY.current === null) return;
+            const delta = (e.touches[0]?.clientY ?? 0) - dragStartY.current;
+            if (delta < 0) return;
+            dragDelta.current = delta;
+            setDragY(delta);
+          }}
+          onTouchEnd={() => {
+            const final = dragDelta.current;
+            dragStartY.current = null;
+            dragDelta.current = 0;
+            setDragY(0);
+            if (final > 80) onClose();
+          }}
+          style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px", touchAction: "none", cursor: "grab" }}
+        >
           <div style={{ width: 40, height: 4, borderRadius: 99, background: "var(--border)" }} />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 20px 16px" }}>

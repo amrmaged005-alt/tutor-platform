@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
@@ -625,6 +625,24 @@ function MobileFilterDrawer({
     letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10,
   };
 
+  // Swipe-to-close on the handle: track touch start, close if dragged > 60px down
+  const dragStartY = useRef<number | null>(null);
+  const dragDelta = useRef(0);
+  const [dragY, setDragY] = useState(0);
+
+  // Close on Escape and lock body scroll while open
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
+
   return (
     <>
       {/* Backdrop */}
@@ -649,15 +667,35 @@ function MobileFilterDrawer({
           border: "1px solid var(--border-light)",
           borderBottom: "none",
           zIndex: 998,
-          transform: open ? "translateY(0)" : "translateY(100%)",
-          transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1)",
+          transform: open ? `translateY(${dragY}px)` : "translateY(100%)",
+          transition: dragY === 0 ? "transform 0.3s cubic-bezier(0.4,0,0.2,1)" : "none",
           display: "flex", flexDirection: "column",
           boxShadow: "var(--shadow-xl)",
           overflowY: "auto",
         }}
       >
-        {/* Handle */}
-        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
+        {/* Handle — swipe-to-close */}
+        <div
+          onTouchStart={(e) => {
+            dragStartY.current = e.touches[0]?.clientY ?? null;
+            dragDelta.current = 0;
+          }}
+          onTouchMove={(e) => {
+            if (dragStartY.current === null) return;
+            const delta = (e.touches[0]?.clientY ?? 0) - dragStartY.current;
+            if (delta < 0) return;
+            dragDelta.current = delta;
+            setDragY(delta);
+          }}
+          onTouchEnd={() => {
+            const finalDelta = dragDelta.current;
+            dragStartY.current = null;
+            dragDelta.current = 0;
+            setDragY(0);
+            if (finalDelta > 80) onClose();
+          }}
+          style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px", touchAction: "none", cursor: "grab" }}
+        >
           <div style={{ width: 40, height: 4, borderRadius: 99, background: "var(--border)" }} />
         </div>
         {/* Header */}

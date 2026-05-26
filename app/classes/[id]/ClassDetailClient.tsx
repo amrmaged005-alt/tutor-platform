@@ -382,11 +382,11 @@ export default function ClassDetailClient({
           overflow: "hidden",
           background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--bg-card) 58%, var(--bg-alt) 100%)",
           borderBottom: "1px solid var(--border-light)",
-          padding: isMobile ? "1.25rem 0.875rem 1rem" : "3rem 2rem 2.5rem",
+          padding: isMobile ? "0.75rem 0.875rem 0.875rem" : "3rem 2rem 2.5rem",
         }}
       >
-        {/* Subtle subject wash */}
-        <div
+        {/* Subtle subject wash — desktop only; on mobile it eats vertical space */}
+        {!isMobile && <div
           style={{
             position: "absolute",
             top: -80,
@@ -397,15 +397,15 @@ export default function ClassDetailClient({
             background: `radial-gradient(circle, ${subjectColor.glow}14 0%, transparent 70%)`,
             pointerEvents: "none",
           }}
-        />
+        />}
 
         <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative" }}>
-          {/* Breadcrumb */}
+          {/* Breadcrumb — compact (just back link) on mobile */}
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1.5rem" }}
+            style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: isMobile ? "0.75rem" : "1.5rem" }}
           >
             <Link
               href="/classes"
@@ -418,17 +418,17 @@ export default function ClassDetailClient({
                 gap: 4,
                 transition: "color 0.2s",
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "var(--text-muted)")}
             >
-              <ArrowLeft size={14} strokeWidth={2} aria-hidden /> Browse Classes
+              <ArrowLeft size={14} strokeWidth={2} aria-hidden /> {isMobile ? "Back" : "Browse Classes"}
             </Link>
-            <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
-            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{cls.subject}</span>
-            <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
-            <span style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>
-              {cls.title.length > 40 ? cls.title.slice(0, 40) + "..." : cls.title}
-            </span>
+            {!isMobile && <>
+              <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{cls.subject}</span>
+              <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>
+                {cls.title.length > 40 ? cls.title.slice(0, 40) + "..." : cls.title}
+              </span>
+            </>}
           </motion.div>
 
           {/* Badges row */}
@@ -436,7 +436,7 @@ export default function ClassDetailClient({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.05 }}
-            style={{ display: "flex", gap: 8, flexWrap: "wrap" as const, marginBottom: "1.25rem" }}
+            style={{ display: "flex", gap: 6, flexWrap: "wrap" as const, marginBottom: isMobile ? "0.625rem" : "1.25rem" }}
           >
             <Badge color={subjectColor.badge} bg={subjectColor.bg}>
               {cls.subject}
@@ -468,10 +468,10 @@ export default function ClassDetailClient({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             style={{
-              fontSize: "clamp(1.6rem, 4vw, 2.4rem)",
+              fontSize: isMobile ? "1.35rem" : "clamp(1.6rem, 4vw, 2.4rem)",
               fontWeight: 800,
               color: "var(--text)",
-              margin: "0 0 1rem",
+              margin: isMobile ? "0 0 0.5rem" : "0 0 1rem",
               letterSpacing: -0.5,
               maxWidth: 700,
               lineHeight: 1.2,
@@ -480,25 +480,25 @@ export default function ClassDetailClient({
             {cls.title}
           </motion.h1>
 
-          {/* Social proof row */}
+          {/* Social proof row — compact on mobile (12px text, 12px gap, 3-row max) */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" as const }}
+            style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 20, flexWrap: "wrap" as const, fontSize: isMobile ? 12 : 14 }}
           >
-            <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
+            <span style={{ color: "var(--text-muted)", fontSize: "inherit" }}>
               <Users size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
               <strong style={{ color: "var(--text)" }}>{cls.bookingsCount}</strong> students enrolled
             </span>
             {cls.capacity && (
-              <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
+              <span style={{ color: "var(--text-muted)", fontSize: "inherit" }}>
                 <ClipboardList size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
                 Capacity: <strong style={{ color: "var(--text)" }}>{cls.capacity}</strong>
               </span>
             )}
             {tutor && (
-              <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
+              <span style={{ color: "var(--text-muted)", fontSize: "inherit" }}>
                 <User size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
                 by{" "}
                 <strong style={{ color: "var(--text)" }}>

@@ -2186,6 +2186,7 @@ function CoverVisual({ stats }: { stats: LandingStats }) {
           alt={backAlt}
           width={680}
           height={680}
+          loading="lazy"
           sizes="(max-width: 900px) 40vw, 180px"
         />
       </div>
@@ -2222,6 +2223,7 @@ function PhotoPlate({
         width={w}
         height={h}
         priority={priority}
+        loading={priority ? "eager" : "lazy"}
         sizes="(max-width: 900px) 92vw, 460px"
       />
       {caption ? <span className="plate-caption">{caption}</span> : null}

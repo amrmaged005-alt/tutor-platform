@@ -708,14 +708,14 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
           background: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-alt) 100%)",
           border: "1px solid rgba(13,89,70,0.25)",
           borderRadius: isMobile ? 14 : 20,
-          padding: isMobile ? "1rem" : "1.75rem 2rem",
-          marginBottom: isMobile ? "1rem" : "1.75rem",
+          padding: isMobile ? "0.875rem 1rem" : "1.75rem 2rem",
+          marginBottom: isMobile ? "0.875rem" : "1.75rem",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* bg grid */}
-        <div
+        {/* bg grid — desktop only (mobile: noisy in a small card) */}
+        {!isMobile && <div
           style={{
             position: "absolute",
             inset: 0,
@@ -723,9 +723,9 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
             backgroundSize: "36px 36px",
             pointerEvents: "none",
           }}
-        />
-        {/* glow orb */}
-        <div
+        />}
+        {/* glow orb — desktop only */}
+        {!isMobile && <div
           style={{
             position: "absolute",
             top: -60,
@@ -736,7 +736,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
             background: "radial-gradient(circle, rgba(13,89,70,0.15) 0%, transparent 70%)",
             pointerEvents: "none",
           }}
-        />
+        />}
         <div
           style={{
             display: "flex",

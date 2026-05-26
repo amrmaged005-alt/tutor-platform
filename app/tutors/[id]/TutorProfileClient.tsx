@@ -225,16 +225,18 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
         position: "relative", overflow: "hidden",
         background: `linear-gradient(135deg, var(--bg-alt) 0%, ${primaryColor}12 50%, var(--bg-card) 100%)`,
         borderBottom: "1px solid var(--border-light)",
-        padding: isMobile ? "18px 14px 16px" : "40px 24px 36px", zIndex: 1,
+        padding: isMobile ? "12px 14px 14px" : "40px 24px 36px", zIndex: 1,
       }}>
-        {/* Subtle subject wash */}
-        <div style={{ position: "absolute", top: -100, right: -100, width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}20 0%, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: -60, left: -60, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}10 0%, transparent 70%)`, pointerEvents: "none" }} />
+        {/* Subtle subject washes — desktop only on mobile they bloat the hero */}
+        {!isMobile && <>
+          <div style={{ position: "absolute", top: -100, right: -100, width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}20 0%, transparent 70%)`, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -60, left: -60, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}10 0%, transparent 70%)`, pointerEvents: "none" }} />
+        </>}
 
         <div style={{ maxWidth: 920, margin: "0 auto", position: "relative" }}>
           {/* Breadcrumb */}
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isMobile ? 12 : 28 }}>
             <Link href="/tutors" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>Back to Tutors</Link>
             {isOwner && (
               <Link href={`/tutors/${tutor.id}/edit`} style={{ backgroundColor: "var(--bg-alt)", color: "var(--text)", padding: "7px 16px", borderRadius: 9, fontSize: 13, fontWeight: 600, textDecoration: "none", border: "1px solid var(--border)" }}>
@@ -264,12 +266,11 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
               </div>
 
               {/* Location + center */}
-              <p style={{ color: "var(--text-muted)", fontSize: 14, margin: "0 0 12px", display: "flex", alignItems: "center", gap: 5 }}>
-                <span>Location</span>
+              <p style={{ color: "var(--text-muted)", fontSize: isMobile ? 12 : 14, margin: isMobile ? "0 0 8px" : "0 0 12px", display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
                 <span>{tutor.center?.city ?? "Egypt"}</span>
                 {tutor.center && (
                   <>
-                    <span style={{ color: "var(--text-secondary)" }}>-</span>
+                    <span style={{ color: "var(--text-secondary)" }}>·</span>
                     <Link href={`/centers/${tutor.center.id}`} style={{ color: "#1c6e7a", textDecoration: "none", fontWeight: 600 }}>
                       {tutor.center.name}
                     </Link>
@@ -297,19 +298,32 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                 </div>
               )}
 
-              {/* Stats row */}
-              <div style={{ display: "flex", gap: 28, marginBottom: 20, flexWrap: "wrap" }}>
+              {/* Stats row — pills on mobile, full label-stack on desktop */}
+              <div style={{ display: "flex", gap: isMobile ? 8 : 28, marginBottom: isMobile ? 14 : 20, flexWrap: "wrap" }}>
                 {[
                   { icon: "Classes", value: tutor.classes.length, label: "Classes" },
                   { icon: "Students", value: tutor.totalStudents, label: "Students" },
                   { icon: "Reviews", value: tutor.reviews.length, label: "Reviews" },
                 ].map(s => (
-                  <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 16 }}>{s.icon}</span>
-                    <div>
-                      <div style={{ fontWeight: 800, color: "var(--text)", fontSize: 18, lineHeight: 1 }}>{s.value}</div>
-                      <div style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>{s.label}</div>
-                    </div>
+                  <div key={s.label} style={isMobile ? {
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    background: "var(--bg-card)", border: "1px solid var(--border-light)",
+                    borderRadius: 999, padding: "4px 10px",
+                  } : { display: "flex", alignItems: "center", gap: 6 }}>
+                    {isMobile ? (
+                      <>
+                        <span style={{ fontWeight: 800, color: "var(--text)", fontSize: 13 }}>{s.value}</span>
+                        <span style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>{s.label}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize: 16 }}>{s.icon}</span>
+                        <div>
+                          <div style={{ fontWeight: 800, color: "var(--text)", fontSize: 18, lineHeight: 1 }}>{s.value}</div>
+                          <div style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>{s.label}</div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
