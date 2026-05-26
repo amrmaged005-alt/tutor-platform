@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
   const sessionCount = Math.min(Math.max(Number(body?.sessionCount ?? 1), 1), 5);
   const paymentType = body?.paymentType === "ONLINE" ? "ONLINE" : "IN_PERSON";
   const note = typeof body?.note === "string" ? body.note.slice(0, 500) : "";
+  const packageOption: { sessions: number; discountPct: number } | null =
+    body?.packageOption && typeof body.packageOption === "object" ? body.packageOption : null;
 
   if (!classId) {
     return NextResponse.json({ error: "Class is required." }, { status: 400 });
@@ -68,6 +70,8 @@ export async function POST(req: NextRequest) {
       capacity: true,
       priceEgp: true,
       paymentType: true,
+      packagesEnabled: true,
+      packageOptions: true,
       _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
     },
   });
@@ -92,8 +96,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const amountEgp = cls.priceEgp * sessionCount;
-  const notes = [note, `Sessions: ${sessionCount}`, `Payment: ${paymentType}`].filter(Boolean).join("\n");
+  // Validate package option if provided
+  let packageSessions = sessionCount;
+  let packageDiscount  = 0;
+  if (packageOption && cls.packagesEnabled) {
+    const options = (cls.packageOptions ?? []) as Array<{ sessions: number; discountPct: number }>;
+    const matched = options.find(
+      (o) => o.sessions === packageOption.sessions && o.discountPct === packageOption.discountPct
+    );
+    if (!matched) {
+      return NextResponse.json({ error: "Invalid package option." }, { status: 400 });
+    }
+    packageSessions = matched.sessions;
+    packageDiscount  = matched.discountPct;
+  }
+
+  const amountEgp = Math.round(cls.priceEgp * packageSessions * (1 - packageDiscount / 100));
+  const packageNote = packageOption ? `Package: ${packageSessions} sessions, ${packageDiscount}% off` : null;
+  const notes = [note, packageNote, `Sessions: ${packageSessions}`, `Payment: ${paymentType}`].filter(Boolean).join("\n");
   const isOnline = paymentType === "ONLINE" && amountEgp > 0;
   const bookingData = {
     status: isOnline ? "PENDING" as const : "CONFIRMED" as const,
