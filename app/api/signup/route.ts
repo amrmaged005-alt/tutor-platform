@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid signup details" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid signup details", code: "VALIDATION_ERROR" },
         { status: 400 }
       );
     }
@@ -31,23 +31,17 @@ export async function POST(req: NextRequest) {
 
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
-      return NextResponse.json({ error: "Email already registered" }, { status: 400 });
+      return NextResponse.json({ error: "Email already registered", code: "CONFLICT" }, { status: 409 });
     }
 
     const hashedPassword = await hash(password, 12);
 
     await prisma.user.create({
-      data: {
-        fullName,
-        name: fullName,
-        email: normalizedEmail,
-        password: hashedPassword,
-        role,
-      },
+      data: { fullName, name: fullName, email: normalizedEmail, password: hashedPassword, role },
     });
 
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong", code: "INTERNAL_ERROR" }, { status: 500 });
   }
 }
