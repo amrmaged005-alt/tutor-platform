@@ -1,11 +1,15 @@
-// TEMP: Email verification disabled
-// import { Resend } from "resend";
-//
-// const resend = new Resend(process.env.RESEND_API_KEY!);
-// const FROM = process.env.RESEND_FROM_EMAIL!;
-// const BASE_URL = process.env.NEXTAUTH_URL!;
+// Email utility — uses Resend when RESEND_API_KEY is present, no-ops otherwise.
+// To enable email: set RESEND_API_KEY and RESEND_FROM_EMAIL in your .env.
 
-// ─── Send verification email (disabled) ───────────────────────────────────────
+async function resendClient() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  const { Resend } = await import("resend");
+  return new Resend(key);
+}
+
+const FROM = () => process.env.RESEND_FROM_EMAIL ?? "noreply@coursaty.com";
+
 export async function sendVerificationEmail(
   _email: string,
   _token: string
@@ -13,25 +17,31 @@ export async function sendVerificationEmail(
   // Email verification disabled — no-op stub
 }
 
-/*
-// ─── ORIGINAL CODE (restore to re-enable) ─────────────────────────────────────
-import { Resend } from "resend";
+export interface WaitlistNotificationParams {
+  to:         string;
+  firstName:  string;
+  classTitle: string;
+  tutorName:  string;
+  priceEgp:   number;
+  classUrl:   string;
+}
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
-const FROM = process.env.RESEND_FROM_EMAIL!;
-const BASE_URL = process.env.NEXTAUTH_URL!;
-
-export async function sendVerificationEmail(
-  email: string,
-  token: string
+export async function sendWaitlistNotification(
+  params: WaitlistNotificationParams
 ): Promise<void> {
-  const verifyUrl = `${BASE_URL}/api/auth/verify-email?token=${token}`;
+  const resend = await resendClient();
+  if (!resend) return; // email not configured — silently skip
+
+  const { to, firstName, classTitle, tutorName, priceEgp, classUrl } = params;
+
+  const { renderWaitlistEmail } = await import(
+    "@/components/email-waitlist-notification"
+  );
 
   await resend.emails.send({
-    from: FROM,
-    to: email,
-    subject: "Verify your Coursaty account",
-    html: `...`,
+    from:    FROM(),
+    to,
+    subject: `A spot just opened in ${classTitle} — book now!`,
+    html:    renderWaitlistEmail({ firstName, classTitle, tutorName, priceEgp, classUrl }),
   });
 }
-*/

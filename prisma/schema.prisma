@@ -144,6 +144,7 @@ model User {
   studentThreads MessageThread[] @relation("StudentThreads")
   tutorThreads   MessageThread[] @relation("TutorThreads")
   sentMessages   Message[]
+  waitlistEntries Waitlist[]
 
   @@index([role])
   @@index([centerId])
@@ -202,6 +203,11 @@ model Class {
   language    String      @default("Arabic")
   maxPrice    Int?
 
+  // T3: Session packages (Fiverr-style tiered pricing)
+  packagesEnabled Boolean @default(false)
+  packageOptions  Json?
+  // packageOptions shape: [{ sessions: number, discountPct: number }]
+
   centerId String?
   center   LearningCenter? @relation(fields: [centerId], references: [id])
 
@@ -213,6 +219,7 @@ model Class {
   materials   Material[]
   reviews     Review[]
   favoritedBy Favorite[]
+  waitlist    Waitlist[]
 
   @@index([subject])
   @@index([city])
@@ -419,6 +426,23 @@ model Payout {
 
   @@index([recipientId])
   @@index([status])
+}
+
+// ─── Waitlist ─────────────────────────────────────────────────────────────────
+
+model Waitlist {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  userId     String
+  classId    String
+  notifiedAt DateTime?
+  position   Int
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, classId])
+  @@index([classId, createdAt])
 }
 
 // ─── Security Models ──────────────────────────────────────────────────────────
