@@ -5,6 +5,7 @@ import { I18nProvider } from "@/app/components/i18n";
 import { ThemeProvider } from "@/app/components/Theme";
 import FooterContent from "@/app/components/FooterContent";
 import SkipLink from "@/components/SkipLink";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 
 // Runs before React hydration to prevent flash-of-wrong-theme / wrong-lang.
 const PREFS_BOOTSTRAP = `
@@ -73,10 +74,12 @@ export default function RootLayout({
       <body style={{ margin: 0, padding: 0, backgroundColor: "var(--bg)", color: "var(--text)" }}>
         <ThemeProvider>
           <I18nProvider>
-            <SkipLink />
-            <Navbar />
-            <main id="main-content" tabIndex={-1}>{children}</main>
-            <FooterContent />
+            <ToastProvider>
+              <SkipLink />
+              <Navbar />
+              <main id="main-content" tabIndex={-1}>{children}</main>
+              <FooterContent />
+            </ToastProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>

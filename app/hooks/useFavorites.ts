@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/app/components/i18n";
+import { useToast } from "@/components/ui/ToastProvider";
 
 type FavoriteType = "class" | "tutor";
 type Favorites = { classIds: string[]; tutorIds: string[] };
@@ -13,6 +15,8 @@ export function useFavorites(): {
   favorites: Favorites;
 } {
   const [favorites, setFavorites] = useState<Favorites>(EMPTY);
+  const { t } = useI18n();
+  const { showToast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -54,9 +58,20 @@ export function useFavorites(): {
 
     if (!res.ok) {
       setFavorites(favorites);
+      showToast({
+        tone: "error",
+        title: res.status === 401 ? t("toast.favorites.signIn") : t("toast.favorites.failed"),
+      });
       throw new Error("Favorite request failed");
     }
-  }, [favorites]);
+
+    showToast({
+      tone: "success",
+      title: wasSaved
+        ? t(type === "class" ? "toast.favorites.classRemoved" : "toast.favorites.tutorRemoved")
+        : t(type === "class" ? "toast.favorites.classSaved" : "toast.favorites.tutorSaved"),
+    });
+  }, [favorites, showToast, t]);
 
   return useMemo(() => ({ isFavorited, toggle, favorites }), [favorites, isFavorited, toggle]);
 }

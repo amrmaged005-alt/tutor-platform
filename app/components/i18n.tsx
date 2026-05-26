@@ -5,6 +5,13 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 // ─── Translation dictionary ───────────────────────────────────────────────────
 const DICT = {
   "a11y.skipToContent":   { en: "Skip to main content",       ar: "تخطي إلى المحتوى الرئيسي" },
+  "toast.favorites.classSaved": { en: "Class saved to favorites", ar: "تم حفظ الفصل في المفضلة" },
+  "toast.favorites.classRemoved": { en: "Class removed from favorites", ar: "تمت إزالة الفصل من المفضلة" },
+  "toast.favorites.tutorSaved": { en: "Tutor saved to favorites", ar: "تم حفظ المدرس في المفضلة" },
+  "toast.favorites.tutorRemoved": { en: "Tutor removed from favorites", ar: "تمت إزالة المدرس من المفضلة" },
+  "toast.favorites.signIn": { en: "Sign in to save favorites", ar: "سجّل الدخول لحفظ المفضلة" },
+  "toast.favorites.failed": { en: "We couldn't update your favorites. Try again.", ar: "لم نتمكن من تحديث المفضلة. حاول مرة أخرى." },
+  "toast.dismiss":        { en: "Dismiss notification",       ar: "إغلاق الإشعار" },
 
   // ── Navigation ───────────────────────────────────────────────────────────────
   "nav.classes":          { en: "Classes",                    ar: "الفصول" },
