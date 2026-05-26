@@ -397,7 +397,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
         style={{
           backgroundColor: "var(--bg-card)",
           borderBottom: "1px solid var(--border-light)",
-          padding: isMobile ? "14px 14px 14px" : "32px 24px 28px",
+          padding: isMobile ? "10px 14px 12px" : "32px 24px 28px",
         }}
       >
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -408,12 +408,25 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
             <span style={{ color: "var(--text)" }}>{t("common.tutors")}</span>
           </div>
 
-          <h1 style={{ fontSize: "clamp(22px, 3.5vw, 32px)", fontWeight: 800, color: "var(--text)", margin: isMobile ? "0 0 4px" : "0 0 6px", letterSpacing: "-0.02em" }}>
+          <h1 style={{
+            fontSize: isMobile ? 20 : "clamp(22px, 3.5vw, 32px)",
+            fontWeight: 800, color: "var(--text)",
+            margin: isMobile ? "0 0 6px" : "0 0 6px",
+            letterSpacing: "-0.02em",
+            display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap",
+          }}>
             {t("tutors.pageTitle")}
+            {isMobile && (
+              <span style={{
+                fontSize: 12, fontWeight: 700, color: "var(--text-muted)",
+                background: "var(--bg-alt)", border: "1px solid var(--border-light)",
+                borderRadius: 999, padding: "2px 8px", letterSpacing: 0,
+              }}>{tutors.length}</span>
+            )}
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: isMobile ? 13 : 15, margin: isMobile ? "0 0 12px" : "0 0 24px" }}>
+          {!isMobile && <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
             {t("tutors.pageSubtitle", { count: tutors.length })}
-          </p>
+          </p>}
 
           {/* Search bar */}
           <div style={{ position: "relative", maxWidth: isMobile ? 420 : 520 }}>

@@ -1209,6 +1209,182 @@ const BOOK_CSS = `
 .book-mobile-card .tutor-highlight { grid-template-columns: 78px 1fr; padding: 10px; }
 .book-mobile-card .booking-card { padding: 10px 12px; }
 .book-mobile-card .booking-cta { min-width: 92px; height: 34px; font-size: 12px; }
+
+/* ── Dashboard preview mock ─────────────────────────────── */
+.dashboard-mock {
+  background: var(--sheet-strong);
+  border: 1px solid var(--sheet-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.dashboard-mock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.dashboard-mock-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dashboard-mock-header .pill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.dashboard-mock-row {
+  display: grid;
+  grid-template-columns: 8px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  transition: border-color 220ms ease, background 220ms ease, opacity 220ms ease;
+  opacity: 0;
+  transform: translateY(6px);
+}
+.dashboard-mock.in-view .dashboard-mock-row {
+  opacity: 1;
+  transform: translateY(0);
+}
+.dashboard-mock.in-view .dashboard-mock-row:nth-child(2) { transition-delay: 80ms; }
+.dashboard-mock.in-view .dashboard-mock-row:nth-child(3) { transition-delay: 180ms; }
+.dashboard-mock.in-view .dashboard-mock-row:nth-child(4) { transition-delay: 280ms; }
+.dashboard-mock-row .swatch {
+  width: 6px;
+  height: 26px;
+  border-radius: 99px;
+  background: var(--accent);
+}
+.dashboard-mock-row .swatch.gold { background: var(--rating); }
+.dashboard-mock-row .swatch.teal { background: #1c6e7a; }
+.dashboard-mock-row strong {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 750;
+  display: block;
+  line-height: 1.25;
+}
+.dashboard-mock-row .row-sub {
+  font-size: 11px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dashboard-mock-row .status {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  white-space: nowrap;
+}
+.dashboard-mock-row .status.pending {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 32%, transparent);
+}
+.dashboard-mock-row .status.upcoming {
+  background: rgba(28,110,122,0.10);
+  color: #1c6e7a;
+  border-color: rgba(28,110,122,0.30);
+}
+
+/* ── Mini tutor row (cover spread) ─────────────────────────────── */
+.mini-tutor-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(160px, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 6px;
+}
+.mini-tutor-row::-webkit-scrollbar { display: none; }
+.mini-tutor-chip {
+  scroll-snap-align: start;
+  background: var(--sheet);
+  border: 1px solid var(--sheet-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 180ms ease, border-color 180ms ease;
+  min-width: 0;
+}
+.mini-tutor-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-border);
+}
+.mini-tutor-chip .avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-weight: 850;
+  font-size: 13px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.mini-tutor-chip .avatar img,
+.mini-tutor-chip .avatar :global(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mini-tutor-chip strong {
+  font-size: 12.5px;
+  font-weight: 750;
+  color: var(--ink);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.mini-tutor-chip .meta {
+  font-size: 10.5px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+}
+.book-mobile-card .mini-tutor-row { grid-auto-columns: minmax(140px, 1fr); margin-top: 12px; }
+.book-mobile-card .mini-tutor-chip { padding: 8px 10px; grid-template-columns: 28px 1fr; gap: 8px; }
+.book-mobile-card .mini-tutor-chip .avatar { width: 28px; height: 28px; font-size: 11px; }
+.book-mobile-card .dashboard-mock { padding: 10px; gap: 8px; }
+.book-mobile-card .dashboard-mock-row { padding: 8px 10px; }
 `;
 
 type IconComponent = React.FC<{ size?: number; strokeWidth?: number; color?: string; }>;
@@ -1323,6 +1499,19 @@ const COPY = {
         rightBtn: "Browse all classes", rightBtnSecondary: "Join as a tutor",
         rightAnnotation: "Coursaty is built for Egypt’s tutoring market: verified educators, organized classes, and booking flows that respect how students actually choose support.",
         plateCaption: "Outcome",
+        dashboard: {
+          title: "Your bookings",
+          live: "Live",
+          row1Title: "IGCSE Physics — Mechanics",
+          row1Sub: "Tue & Thu · 7:00 PM",
+          row2Title: "Math Tutoring — One-on-One",
+          row2Sub: "Online · This Saturday",
+          row3Title: "Chemistry Review",
+          row3Sub: "Awaiting payment confirmation",
+          confirmed: "Confirmed",
+          upcoming: "Upcoming",
+          pending: "Pending",
+        },
       },
     },
   },
@@ -1432,10 +1621,114 @@ const COPY = {
         rightBtn: "تصفّح جميع الفصول", rightBtnSecondary: "انضم كمدرّس",
         rightAnnotation: "بُنيت Coursaty لسوق التعليم المصري: مدرّسون موثّقون، وفصول منظّمة، وتدفقات حجز تحترم الطريقة الحقيقية التي يختار بها الطلاب الدعم.",
         plateCaption: "النتيجة",
+        dashboard: {
+          title: "حجوزاتك",
+          live: "مباشر",
+          row1Title: "فيزياء IGCSE — ميكانيكا",
+          row1Sub: "الثلاثاء والخميس · 7:00 م",
+          row2Title: "دروس رياضيات خصوصية",
+          row2Sub: "أونلاين · السبت القادم",
+          row3Title: "مراجعة كيمياء",
+          row3Sub: "بانتظار تأكيد الدفع",
+          confirmed: "تم التأكيد",
+          upcoming: "قريباً",
+          pending: "معلّق",
+        },
       },
     },
   },
 };
+
+function DashboardPreview() {
+  const { lang } = useI18n();
+  const c = COPY[lang].pages.learn.dashboard;
+  const ref = useRef<HTMLDivElement | null>(null);
+  const inView = useInView(ref, { amount: 0.4, once: true });
+  return (
+    <div ref={ref} className={`dashboard-mock ${inView ? "in-view" : ""}`}>
+      <div className="dashboard-mock-header">
+        <h4>
+          <LayoutDashboard size={14} strokeWidth={2.4} color="var(--accent)" />
+          {c.title}
+        </h4>
+        <span className="pill">{c.live}</span>
+      </div>
+      <div className="dashboard-mock-row">
+        <span className="swatch" aria-hidden="true" />
+        <div>
+          <strong>{c.row1Title}</strong>
+          <span className="row-sub">
+            <Calendar size={11} strokeWidth={2} />
+            {c.row1Sub}
+          </span>
+        </div>
+        <span className="status">{c.confirmed}</span>
+      </div>
+      <div className="dashboard-mock-row">
+        <span className="swatch teal" aria-hidden="true" />
+        <div>
+          <strong>{c.row2Title}</strong>
+          <span className="row-sub">
+            <Monitor size={11} strokeWidth={2} />
+            {c.row2Sub}
+          </span>
+        </div>
+        <span className="status upcoming">{c.upcoming}</span>
+      </div>
+      <div className="dashboard-mock-row">
+        <span className="swatch gold" aria-hidden="true" />
+        <div>
+          <strong>{c.row3Title}</strong>
+          <span className="row-sub">
+            <Clock size={11} strokeWidth={2} />
+            {c.row3Sub}
+          </span>
+        </div>
+        <span className="status pending">{c.pending}</span>
+      </div>
+    </div>
+  );
+}
+
+function MiniTutorRow({ tutors }: { tutors: FeaturedTutor[] }) {
+  const { lang } = useI18n();
+  const c = COPY[lang].tutor;
+  if (tutors.length === 0) return null;
+  return (
+    <div className="mini-tutor-row" aria-label={lang === "ar" ? "مدرّسون مميّزون" : "Featured tutors"}>
+      {tutors.slice(0, 6).map((t) => {
+        const name = t.fullName || t.name || c.fallbackName;
+        const initial = name.charAt(0).toUpperCase();
+        return (
+          <Link key={t.id} href={`/tutors/${t.id}`} className="mini-tutor-chip">
+            <span className="avatar">
+              {t.photoUrl ? (
+                <Image src={t.photoUrl} alt={name} width={68} height={68} />
+              ) : (
+                initial
+              )}
+            </span>
+            <span style={{ minWidth: 0 }}>
+              <strong>{name}</strong>
+              <span className="meta">
+                {t.avgRating ? (
+                  <>
+                    <Star size={10} fill="var(--rating)" color="var(--rating)" />
+                    {t.avgRating.toFixed(1)}
+                  </>
+                ) : (
+                  <>{t.subjects[0] ?? c.subjectsFallback}</>
+                )}
+                <span aria-hidden="true">·</span>
+                <span>{t.classCount} {c.classesSuffix}</span>
+              </span>
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 
 function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -2231,6 +2524,7 @@ export default function Landing({
             <StatCard value={Math.max(stats.bookings, 1)} suffix="+" label={p.cover.statSeats} />
             <StatCard value={7} label={p.cover.statCurricula} />
           </div>
+          <MiniTutorRow tutors={featuredTutors} />
         </>
       ),
       right: <CoverVisual stats={stats} />,
@@ -2377,6 +2671,9 @@ export default function Landing({
             <OutcomeNote icon={Zap} title={p.learn.outcome1Title} body={p.learn.outcome1Body} />
             <OutcomeNote icon={BookOpen} title={p.learn.outcome2Title} body={p.learn.outcome2Body} />
           </div>
+          <div style={{ marginTop: 18 }}>
+            <DashboardPreview />
+          </div>
         </>
       ),
       right: (
@@ -2407,7 +2704,7 @@ export default function Landing({
       ),
     },
   ];
-  }, [lang, classCards, stats, tutorCards]);
+  }, [lang, classCards, stats, tutorCards, featuredTutors]);
 
   return (
     <div className="book-landing">

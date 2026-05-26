@@ -870,15 +870,15 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
         position: "relative", overflow: "hidden",
         background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--bg-card) 58%, var(--bg-alt) 100%)",
         borderBottom: "1px solid var(--border-light)",
-        padding: isMobile ? "16px 14px 14px" : "52px 24px 44px", zIndex: 1,
+        padding: isMobile ? "10px 14px 12px" : "52px 24px 44px", zIndex: 1,
       }}>
-        {/* Subtle wash */}
-        <div style={{
+        {/* Subtle wash — desktop only; on mobile it eats vertical space without payoff */}
+        {!isMobile && <div style={{
           position: "absolute", top: -120, right: -80,
           width: 500, height: 500, borderRadius: "50%",
           background: "radial-gradient(circle, rgba(13,89,70,0.10) 0%, transparent 65%)",
           pointerEvents: "none",
-        }} />
+        }} />}
 
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
           {!isMobile && <Link href="/" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>{copy.home}</Link>}
@@ -888,31 +888,39 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08 }}
             style={{
-              fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 900,
+              fontSize: isMobile ? 20 : "clamp(26px, 4vw, 44px)", fontWeight: 900,
               margin: isMobile ? "0 0 6px" : "20px 0 10px", letterSpacing: "-0.03em", lineHeight: 1.15,
+              display: "inline-flex", alignItems: "baseline", gap: 8, flexWrap: "wrap",
             }}
           >
             {copy.browse}{" "}
             <span style={{ background: "linear-gradient(90deg, #1c6e7a, var(--accent))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               {copy.classes}
             </span>
+            {isMobile && (
+              <span style={{
+                fontSize: 12, fontWeight: 700, color: "var(--text-muted)",
+                background: "var(--bg-card)", border: "1px solid var(--border-light)",
+                borderRadius: 999, padding: "2px 8px", letterSpacing: 0,
+              }}>{classes.length}</span>
+            )}
           </motion.h1>
 
-          <motion.p
+          {!isMobile && <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.13 }}
-            style={{ color: "var(--text-muted)", fontSize: isMobile ? 13 : 17, marginBottom: isMobile ? 10 : 24, maxWidth: 460 }}
+            style={{ color: "var(--text-muted)", fontSize: 17, marginBottom: 24, maxWidth: 460 }}
           >
             {copy.subtitle(classes.length)}
-          </motion.p>
+          </motion.p>}
 
           {/* Search */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18 }}
-            style={{ position: "relative", maxWidth: isMobile ? 420 : 560, marginBottom: isMobile ? 8 : 20 }}
+            style={{ position: "relative", maxWidth: isMobile ? 420 : 560, marginBottom: isMobile ? 0 : 20 }}
           >
             <Search size={isMobile ? 15 : 18} strokeWidth={1.8} style={{ position: "absolute", insetInlineStart: isMobile ? 10 : 16, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)" }} />
             <input
@@ -986,7 +994,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
       {/* ── MAIN CONTENT ── */}
       <div style={{
         maxWidth: 1100, margin: "0 auto",
-        padding: isMobile ? "16px 14px 64px" : "36px 24px 80px",
+        padding: isMobile ? "10px 14px 64px" : "36px 24px 80px",
         position: "relative", zIndex: 1,
         display: "flex", gap: 28, alignItems: "flex-start",
       }}>
@@ -1006,7 +1014,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
         {/* Cards area */}
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* Controls row */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isMobile ? 12 : 24, flexWrap: "wrap", gap: isMobile ? 6 : 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {/* Mobile filters button */}
               <button
@@ -1027,11 +1035,16 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                   {[selectedSubjects.length > 0, selectedFormats.length > 0, !!selectedCurriculum, !!selectedGrade, maxPrice < 2000].filter(Boolean).length}
                 </span>}
               </button>
-              <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
-                {copy.showing}{" "}
-                <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span>
-                {" "}{filtered.length === 1 ? copy.classWord : copy.classesWord}
-                {hasFilters && ` ${copy.matchingFilters}`}
+              <span style={{
+                color: "var(--text-muted)",
+                fontSize: isMobile ? 12 : 14,
+                display: hasFilters || !isMobile ? "inline" : "none",
+              }}>
+                {isMobile ? (
+                  <><span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span> {copy.matchingFilters}</>
+                ) : (
+                  <>{copy.showing}{" "}<span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span>{" "}{filtered.length === 1 ? copy.classWord : copy.classesWord}{hasFilters && ` ${copy.matchingFilters}`}</>
+                )}
               </span>
             </div>
 
