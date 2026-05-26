@@ -2400,7 +2400,14 @@ function TutorCard({ tutor }: { tutor: FeaturedTutor }) {
       <div className="card-top">
         <div style={{ display: "flex", gap: 12, minWidth: 0 }}>
           {tutor.photoUrl ? (
-            <img className="avatar-mark" src={tutor.photoUrl} alt={name} />
+            <Image
+              className="avatar-mark"
+              src={tutor.photoUrl}
+              alt={name}
+              width={42}
+              height={42}
+              unoptimized={tutor.photoUrl.startsWith("data:") || tutor.photoUrl.startsWith("blob:")}
+            />
           ) : (
             <div className="avatar-mark">{initial}</div>
           )}

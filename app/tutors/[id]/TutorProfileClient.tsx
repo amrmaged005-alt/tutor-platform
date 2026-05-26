@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { BookOpen } from "lucide-react";
@@ -69,7 +70,16 @@ function Avatar({ name, photoUrl, size = 96 }: { name: string; photoUrl: string 
   const colors = [["var(--accent)","var(--accent-hover)"],["#5d3a5f","var(--accent)"],["var(--success)","var(--success)"],["#8a5e1a","var(--warning)"],["#1c6e7a","var(--accent)"]];
   const pair = colors[(name.charCodeAt(0) ?? 0) % colors.length];
   if (photoUrl) {
-    return <img src={photoUrl} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "4px solid var(--bg-card)", boxShadow: `0 0 0 3px ${pair[0]}40`, flexShrink: 0 }} />;
+    return (
+      <Image
+        src={photoUrl}
+        alt={name}
+        width={size}
+        height={size}
+        unoptimized={photoUrl.startsWith("data:") || photoUrl.startsWith("blob:")}
+        style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", border: "4px solid var(--bg-card)", boxShadow: `0 0 0 3px ${pair[0]}40`, flexShrink: 0 }}
+      />
+    );
   }
   return (
     <div style={{

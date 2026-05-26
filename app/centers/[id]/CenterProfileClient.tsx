@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home, MapPin, MessageCircle, Mail } from "lucide-react";
@@ -79,7 +80,16 @@ function Stars({ rating }: { rating: number }) {
 function TutorAvatar({ name, photoUrl, size = 56 }: { name: string; photoUrl: string | null; size?: number }) {
   const colors = [["var(--accent)","var(--accent-hover)"],["#5d3a5f","var(--accent)"],["var(--success)","var(--success)"],["#8a5e1a","var(--warning)"]];
   const pair = colors[(name.charCodeAt(0) ?? 0) % colors.length];
-  if (photoUrl) return <img src={photoUrl} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
+  if (photoUrl) return (
+    <Image
+      src={photoUrl}
+      alt={name}
+      width={size}
+      height={size}
+      unoptimized={photoUrl.startsWith("data:") || photoUrl.startsWith("blob:")}
+      style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+    />
+  );
   return (
     <div style={{ width: size, height: size, borderRadius: "50%", background: `radial-gradient(circle at 35% 35%, ${pair[0]}, ${pair[1]})`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: size * 0.38, color: "var(--bg-card)" }}>
       {(name[0] ?? "T").toUpperCase()}
@@ -238,7 +248,14 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
             {/* Logo */}
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
               {center.logoUrl ? (
-                <img src={center.logoUrl} alt={center.name} style={{ width: isMobile ? 64 : 100, height: isMobile ? 64 : 100, borderRadius: isMobile ? 14 : 20, objectFit: "cover", border: "3px solid var(--text-secondary)" }} />
+                <Image
+                  src={center.logoUrl}
+                  alt={center.name}
+                  width={isMobile ? 64 : 100}
+                  height={isMobile ? 64 : 100}
+                  unoptimized={center.logoUrl.startsWith("data:") || center.logoUrl.startsWith("blob:")}
+                  style={{ width: isMobile ? 64 : 100, height: isMobile ? 64 : 100, borderRadius: isMobile ? 14 : 20, objectFit: "cover", border: "3px solid var(--text-secondary)" }}
+                />
               ) : (
                 <div style={{ width: isMobile ? 64 : 100, height: isMobile ? 64 : 100, borderRadius: isMobile ? 14 : 20, background: "linear-gradient(135deg, var(--accent), var(--accent-hover))", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: isMobile ? 28 : 40, color: "var(--accent-fg)", boxShadow: isMobile ? "0 0 0 3px var(--accent-border)" : "0 0 0 4px var(--accent-border), 0 0 0 7px rgba(13,89,70,0.19)" }}>
                   {center.name[0]?.toUpperCase()}

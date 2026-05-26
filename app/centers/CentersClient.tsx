@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { useIsMobile } from "../hooks/useIsMobile";
 
@@ -48,7 +49,16 @@ function Stars({ rating }: { rating: number }) {
 // ─── CENTER LOGO ───────────────────────────────────────────────────────────────
 function CenterLogo({ name, logoUrl, size = 56 }: { name: string; logoUrl: string | null; size?: number }) {
   if (logoUrl) {
-    return <img src={logoUrl} alt={name} style={{ width: size, height: size, borderRadius: 12, objectFit: "cover", flexShrink: 0, border: "1px solid var(--border-light)" }} />;
+    return (
+      <Image
+        src={logoUrl}
+        alt={name}
+        width={size}
+        height={size}
+        unoptimized={logoUrl.startsWith("data:") || logoUrl.startsWith("blob:")}
+        style={{ width: size, height: size, borderRadius: 12, objectFit: "cover", flexShrink: 0, border: "1px solid var(--border-light)" }}
+      />
+    );
   }
   const colors = ["var(--accent-bg-soft)", "var(--accent-bg-soft)", "var(--accent-bg)", "var(--warning-bg)", "var(--accent-bg-soft)"];
   const textColors = ["var(--accent-hover)", "var(--accent)", "var(--success)", "var(--warning)", "var(--accent)"];

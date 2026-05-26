@@ -78,6 +78,16 @@ const nextConfig: NextConfig = {
 
   // Recommended: enforce trailing slash consistency
   trailingSlash: false,
+
+  // Tutor / center photoUrl + logoUrl fields are free-text URLs entered by
+  // users. There is no app-managed upload endpoint that constrains the host,
+  // so we allow any HTTPS image origin. next/image still optimizes (resize,
+  // format negotiation, lazy loading) before serving them to the browser.
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**" },
+    ],
+  },
 };
 
 export default nextConfig;
