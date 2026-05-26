@@ -131,15 +131,19 @@ model User {
   centerId String?
   center   LearningCenter? @relation(fields: [centerId], references: [id])
 
-  accounts     Account[]
-  sessions     Session[]
-  classTutors  ClassTutor[]
-  bookings     Booking[]
-  ownedClasses Class[]      @relation("ClassOwner")
-  reviews      Review[]
-  payouts      Payout[]
-  auditLogs    AuditLog[]   @relation("AuditActor")
-  pushTokens   PushToken[]
+  accounts       Account[]
+  sessions       Session[]
+  classTutors    ClassTutor[]
+  bookings       Booking[]
+  ownedClasses   Class[]         @relation("ClassOwner")
+  reviews        Review[]
+  payouts        Payout[]
+  auditLogs      AuditLog[]      @relation("AuditActor")
+  pushTokens     PushToken[]
+  favorites      Favorite[]
+  studentThreads MessageThread[] @relation("StudentThreads")
+  tutorThreads   MessageThread[] @relation("TutorThreads")
+  sentMessages   Message[]
 
   @@index([role])
   @@index([centerId])
@@ -181,7 +185,15 @@ model Class {
   capacity    Int     @default(20)
   isOnline    Boolean @default(false)
   isActive    Boolean @default(true)
-  schedule    String?
+  schedule    String? // legacy display fallback
+
+  // A1: Structured schedule fields
+  startDate       DateTime?
+  endDate         DateTime?
+  sessionDays     String[]
+  sessionTimeFrom String?
+  sessionTimeTo   String?
+  recurrence      String? // "weekly" | "biweekly" | "once"
 
   format      ClassFormat @default(IN_PERSON)
   paymentType PaymentType @default(IN_PERSON)
@@ -196,10 +208,11 @@ model Class {
   ownerId String?
   owner   User?   @relation(fields: [ownerId], references: [id], name: "ClassOwner")
 
-  tutors    ClassTutor[]
-  bookings  Booking[]
-  materials Material[]
-  reviews   Review[]
+  tutors      ClassTutor[]
+  bookings    Booking[]
+  materials   Material[]
+  reviews     Review[]
+  favoritedBy Favorite[]
 
   @@index([subject])
   @@index([city])
@@ -235,9 +248,9 @@ model Booking {
   notes         String?
 
   // Payment tracking
-  amountEgp      Int? // Price snapshot at booking time
-  platformFeeEgp Int? // Coursaty's cut
-  tutorPayoutEgp Int? // Tutor/center receives this
+  amountEgp      Int?
+  platformFeeEgp Int?
+  tutorPayoutEgp Int?
   paymobOrderId  String? @unique
   paymobPaymentKey String?
   idempotencyKey String? @unique
@@ -271,6 +284,7 @@ model Material {
   title    String
   url      String?
   fileUrl  String?
+  type     String?
   isLocked Boolean @default(true)
 
   class Class @relation(fields: [classId], references: [id])
@@ -286,10 +300,64 @@ model Review {
   rating    Int
   comment   String?
 
+  // A2: Review moderation
+  isApproved  Boolean   @default(false)
+  moderatedAt DateTime?
+
   class   Class @relation(fields: [classId], references: [id])
   student User  @relation(fields: [studentId], references: [id])
 
   @@unique([classId, studentId])
+}
+
+// A3: Favorites
+model Favorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  classId   String?
+  tutorId   String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class     Class?   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, classId])
+  @@unique([userId, tutorId])
+  @@index([userId])
+}
+
+// A4: Messaging
+model MessageThread {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentId String
+  tutorId   String
+  student   User   @relation("StudentThreads", fields: [studentId], references: [id])
+  tutor     User   @relation("TutorThreads", fields: [tutorId], references: [id])
+
+  messages Message[]
+
+  @@unique([studentId, tutorId])
+  @@index([studentId])
+  @@index([tutorId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  threadId String
+  senderId String
+  content  String
+  isRead   Boolean @default(false)
+
+  thread MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender User          @relation(fields: [senderId], references: [id])
+
+  @@index([threadId])
+  @@index([senderId])
+  @@index([createdAt])
 }
 
 model PushToken {
@@ -363,11 +431,11 @@ model AuditLog {
   actorRole String?
   actor     User?   @relation("AuditActor", fields: [actorId], references: [id])
 
-  action     String // e.g. "booking.confirmed", "user.suspended"
-  targetType String? // e.g. "Booking", "User", "Class"
+  action     String
+  targetType String?
   targetId   String?
 
-  metadata  Json? // Extra context — NEVER put passwords/tokens here
+  metadata  Json?
   ipAddress String?
   userAgent String?
 
