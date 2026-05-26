@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
+import { ClassFormat, Curriculum, type Prisma } from "../../../generated/prisma";
+
+const PUBLIC_SEARCH_CACHE = {
+  "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+};
 
 export async function GET(req: Request) {
   try {
@@ -19,7 +24,7 @@ export async function GET(req: Request) {
     const skip        = (page - 1) * limit;
 
     // Build the Prisma filter object dynamically
-    const where: any = {};
+    const where: Prisma.ClassWhereInput = {};
 
     // Subject filter (exact match from dropdown)
     if (subject) {
@@ -27,8 +32,8 @@ export async function GET(req: Request) {
     }
 
     // Curriculum filter
-    if (curriculum) {
-      where.curriculum = curriculum;
+    if (Object.values(Curriculum).includes(curriculum as Curriculum)) {
+      where.curriculum = curriculum as Curriculum;
     }
 
     // Grade level filter (partial text match)
@@ -40,8 +45,8 @@ export async function GET(req: Request) {
     }
 
     // Format filter (IN_PERSON, ONLINE, HYBRID)
-    if (format) {
-      where.format = format;
+    if (Object.values(ClassFormat).includes(format as ClassFormat)) {
+      where.format = format as ClassFormat;
     }
 
     // Location filter (partial match)
@@ -54,9 +59,10 @@ export async function GET(req: Request) {
 
     // Price range filter
     if (minPrice || maxPrice) {
-      where.priceEgp = {};
-      if (minPrice) where.priceEgp.gte = Number(minPrice);
-      if (maxPrice) where.priceEgp.lte = Number(maxPrice);
+      const priceFilter: Prisma.IntFilter = {};
+      if (minPrice) priceFilter.gte = Number(minPrice);
+      if (maxPrice) priceFilter.lte = Number(maxPrice);
+      where.priceEgp = priceFilter;
     }
 
     // Text search: match class title, OR tutor name, OR center name
@@ -94,7 +100,7 @@ export async function GET(req: Request) {
     }
 
     // Sort options
-    let orderBy: any = { createdAt: "desc" }; // newest first (default)
+    let orderBy: Prisma.ClassOrderByWithRelationInput = { createdAt: "desc" }; // newest first (default)
     if (sortBy === "price_asc")  orderBy = { priceEgp: "asc" };
     if (sortBy === "price_desc") orderBy = { priceEgp: "desc" };
     if (sortBy === "popular")    orderBy = { bookings: { _count: "desc" } };
@@ -115,7 +121,10 @@ export async function GET(req: Request) {
       prisma.class.count({ where }),
     ]);
 
-    return NextResponse.json({ items, total, hasMore: skip + items.length < total });
+    return NextResponse.json(
+      { items, total, hasMore: skip + items.length < total },
+      { headers: PUBLIC_SEARCH_CACHE }
+    );
   } catch (error) {
     console.error("Search error:", error);
     return NextResponse.json({ error: "Search failed" }, { status: 500 });

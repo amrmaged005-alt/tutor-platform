@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "../../generated/prisma";
 
+const PUBLIC_TUTORS_CACHE = {
+  "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+};
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -100,7 +104,10 @@ export async function GET(req: NextRequest) {
       ? withStats.filter((t) => (t.avgRating ?? 0) >= minRating)
       : withStats;
 
-    return NextResponse.json({ items: filtered, total, hasMore: skip + filtered.length < total });
+    return NextResponse.json(
+      { items: filtered, total, hasMore: skip + filtered.length < total },
+      { headers: PUBLIC_TUTORS_CACHE }
+    );
   } catch {
     return NextResponse.json({ error: "Failed to fetch tutors", code: "INTERNAL_ERROR" }, { status: 500 });
   }

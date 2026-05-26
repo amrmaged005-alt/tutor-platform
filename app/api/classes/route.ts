@@ -4,6 +4,10 @@ import { prisma } from "../../../lib/prisma";
 import { ClassCreateSchema } from "@/schemas/class";
 import { isRateLimited, generalLimiter } from "@/lib/ratelimit";
 
+const PUBLIC_CLASSES_CACHE = {
+  "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+};
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const page  = Math.max(1, Number(searchParams.get("page")  ?? 1));
@@ -26,7 +30,10 @@ export async function GET(req: NextRequest) {
     prisma.class.count({ where: { isActive: true } }),
   ]);
 
-  return NextResponse.json({ items, total, hasMore: skip + items.length < total });
+  return NextResponse.json(
+    { items, total, hasMore: skip + items.length < total },
+    { headers: PUBLIC_CLASSES_CACHE }
+  );
 }
 
 function isSameOrigin(req: NextRequest): boolean {
