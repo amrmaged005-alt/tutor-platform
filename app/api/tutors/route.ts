@@ -11,9 +11,11 @@ export async function GET(req: NextRequest) {
     const page      = Math.max(1, Number(searchParams.get("page") ?? 1));
     const limit     = Math.min(50, Math.max(1, Number(searchParams.get("limit") ?? 12)));
     const skip      = (page - 1) * limit;
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
 
     const where: Prisma.UserWhereInput = {
-      role:        "TUTOR",
+      role:        { in: ["TUTOR", "CENTER_ADMIN"] },
       isSuspended: false,
     };
 
@@ -42,10 +44,20 @@ export async function GET(req: NextRequest) {
           subjects:    true,
           isVerified:  true,
           createdAt:   true,
-          ownedClasses: { select: { id: true }, where: { isActive: true } },
-          reviews: {
-            select: { rating: true },
-            where:  { isApproved: true },
+          center: {
+            select: { id: true, name: true, city: true },
+          },
+          ownedClasses: {
+            where: { isActive: true },
+            select: {
+              id: true,
+              city: true,
+              bookings: { select: { id: true, createdAt: true, studentId: true } },
+              reviews: {
+                select: { rating: true },
+                where:  { isApproved: true },
+              },
+            },
           },
         },
         orderBy: { createdAt: "desc" },
@@ -54,12 +66,34 @@ export async function GET(req: NextRequest) {
     ]);
 
     const withStats = tutors.map((t) => {
-      const ratings   = t.reviews.map((r) => r.rating);
+      const reviews = t.ownedClasses.flatMap((cls) => cls.reviews);
+      const bookings = t.ownedClasses.flatMap((cls) => cls.bookings);
+      const bookingsByStudent = bookings.reduce<Record<string, number>>((acc, booking) => {
+        acc[booking.studentId] = (acc[booking.studentId] ?? 0) + 1;
+        return acc;
+      }, {});
+      const lastBookedAt = bookings.reduce<Date | null>((latest, booking) => {
+        if (!latest || booking.createdAt > latest) return booking.createdAt;
+        return latest;
+      }, null);
+      const ratings   = reviews.map((r) => r.rating);
       const avgRating = ratings.length > 0
         ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
         : null;
-      const { reviews, ownedClasses, ...rest } = t;
-      return { ...rest, avgRating, classCount: ownedClasses.length };
+      const city = t.center?.city ?? t.ownedClasses.find((cls) => cls.city)?.city ?? "Cairo";
+      const { ownedClasses, ...rest } = t;
+      return {
+        ...rest,
+        city,
+        center: t.center ? { id: t.center.id, name: t.center.name } : null,
+        avgRating,
+        classCount: ownedClasses.length,
+        studentCount: bookings.length,
+        reviewCount: reviews.length,
+        studentsThisWeek: bookings.filter((booking) => booking.createdAt >= weekAgo).length,
+        repeatStudentCount: Object.values(bookingsByStudent).filter((count) => count > 1).length,
+        lastBookedAt: lastBookedAt?.toISOString() ?? null,
+      };
     });
 
     const filtered = minRating > 0

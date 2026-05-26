@@ -2,105 +2,24 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { MapPin, Check, Star } from "lucide-react";
+import { BadgeCheck, Heart, MapPin } from "lucide-react";
 import { useI18n } from "../components/i18n";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useFavorites } from "../hooks/useFavorites";
+import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
+import { useState } from "react";
+import {
+  Avatar,
+  Stars,
+  SubjectPill,
+  TutorTrustSignals,
+  VerifiedBadge,
+  getRelativeBookedLabel,
+  subjectColor,
+  type TutorCardData,
+} from "./TutorCardParts";
 
-// Types
-export interface TutorCardData {
-  id: string;
-  fullName: string | null;
-  name: string | null;
-  bio: string | null;
-  subjects: string[];
-  photoUrl: string | null;
-  city: string | null;
-  center: { id: string; name: string } | null;
-  classCount: number;
-  studentCount: number;
-  avgRating: number | null;
-  reviewCount: number;
-  isVerified: boolean;
-}
-
-// Subject colors
-const SUBJECT_COLORS: Record<string, string> = {
-  Math: "var(--accent)", Mathematics: "var(--accent)",
-  Physics: "var(--accent)", Chemistry: "var(--success)",
-  Biology: "var(--accent)", English: "var(--warning)",
-  Arabic: "var(--error)", History: "var(--warning)",
-  Geography: "var(--accent)", French: "var(--accent)",
-  "Computer Science": "var(--accent)", Science: "var(--success)",
-  Economics: "var(--warning)", Accounting: "var(--warning)", Business: "var(--accent)",
-};
-
-function subjectColor(s: string) {
-  return SUBJECT_COLORS[s] ?? "var(--accent)";
-}
-
-// Avatar
-function Avatar({ name, photoUrl, size = 64 }: { name: string; photoUrl: string | null; size?: number }) {
-  const initial = (name[0] || "T").toUpperCase();
-  const colors = ["var(--accent-bg-soft)", "var(--accent-bg-soft)", "var(--accent-bg)", "var(--warning-bg)", "var(--accent-bg-soft)"];
-  const textColors = ["var(--accent-hover)", "var(--accent)", "var(--success)", "var(--warning)", "var(--accent)"];
-  const idx = initial.charCodeAt(0) % colors.length;
-
-  if (photoUrl) {
-    return (
-      <img
-        src={photoUrl}
-        alt={name}
-        style={{
-          width: size,
-          height: size,
-          borderRadius: "50%",
-          objectFit: "cover",
-          border: "2px solid var(--border-light)",
-          flexShrink: 0,
-        }}
-      />
-    );
-  }
-
-  return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        backgroundColor: colors[idx],
-        flexShrink: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight: 700,
-        fontSize: size * 0.38,
-        color: textColors[idx],
-        border: "2px solid var(--border-light)",
-      }}
-    >
-      {initial}
-    </div>
-  );
-}
-
-// Star rating
-function Stars({ rating }: { rating: number }) {
-  const full = Math.round(rating);
-  return (
-    <span style={{ display: "inline-flex", gap: 1 }}>
-      {Array.from({ length: 5 }, (_, i) => (
-        <Star
-          key={i}
-          size={12}
-          strokeWidth={i < full ? 0 : 1.5}
-          fill={i < full ? "var(--rating)" : "none"}
-          color={i < full ? "var(--rating)" : "var(--text-dim)"}
-        />
-      ))}
-    </span>
-  );
-}
+export type { TutorCardData };
 
 // Main component
 export default function TutorCard({
@@ -112,39 +31,80 @@ export default function TutorCard({
 }) {
   const { t } = useI18n();
   const isMobile = useIsMobile();
-  const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
+  const { isFavorited, toggle } = useFavorites();
+  const [modalOpen, setModalOpen] = useState(false);
+  const displayName = tutor.fullName || tutor.name || t("tutor.unnamed");
   const visibleSubjects = tutor.subjects.slice(0, isMobile ? 2 : 3);
   const extraSubjects = tutor.subjects.length - (isMobile ? 2 : 3);
   const primaryColor = subjectColor(tutor.subjects[0] ?? "Math");
+  const saved = isFavorited("tutor", tutor.id);
+  const lastBookedLabel = getRelativeBookedLabel(tutor.lastBookedAt, t);
+
+  async function onFavorite(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await toggle("tutor", tutor.id);
+    } catch {
+      setModalOpen(true);
+    }
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.35, delay: index * 0.05, ease: "easeOut" }}
-      style={{
-        backgroundColor: "var(--bg-card)",
-        border: "1px solid var(--border-light)",
-        borderRadius: isMobile ? 12 : 14,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        cursor: "pointer",
-        transition: "border-color 0.2s, box-shadow 0.2s",
-        position: "relative",
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLDivElement;
-        el.style.borderColor = "var(--accent-border)";
-        el.style.boxShadow = "0 4px 16px rgba(37,99,235,0.08)";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLDivElement;
-        el.style.borderColor = "var(--border-light)";
-        el.style.boxShadow = "none";
-      }}
-    >
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.35, delay: index * 0.05, ease: "easeOut" }}
+        style={{
+          backgroundColor: "var(--bg-card)",
+          border: "1px solid var(--border-light)",
+          borderRadius: isMobile ? 12 : 14,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          cursor: "pointer",
+          transition: "border-color 0.2s, box-shadow 0.2s",
+          position: "relative",
+        }}
+        onMouseEnter={(e) => {
+          const el = e.currentTarget as HTMLDivElement;
+          el.style.borderColor = "var(--accent-border)";
+          el.style.boxShadow = "var(--shadow-md)";
+        }}
+        onMouseLeave={(e) => {
+          const el = e.currentTarget as HTMLDivElement;
+          el.style.borderColor = "var(--border-light)";
+          el.style.boxShadow = "none";
+        }}
+      >
+      <motion.button
+        type="button"
+        aria-label={saved ? t("tutor.removeFavorite") : t("tutor.saveFavorite")}
+        onClick={onFavorite}
+        animate={saved ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+        transition={{ duration: 0.25 }}
+        style={{
+          position: "absolute",
+          top: 10,
+          insetInlineEnd: 10,
+          zIndex: 3,
+          width: 34,
+          height: 34,
+          borderRadius: 999,
+          border: "1px solid var(--border-light)",
+          backgroundColor: "color-mix(in srgb, var(--bg-card) 88%, transparent)",
+          color: saved ? "var(--error)" : "var(--text-muted)",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <Heart size={17} strokeWidth={2} fill={saved ? "currentColor" : "none"} />
+      </motion.button>
       {/* Top accent bar */}
       <div style={{ height: 3, backgroundColor: primaryColor, flexShrink: 0 }} />
 
@@ -165,9 +125,17 @@ export default function TutorCard({
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
               }}
             >
-              {displayName}
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</span>
+              {tutor.isVerified && (
+                <span title={t("tutor.verifiedTooltip")} style={{ color: "var(--accent)", display: "inline-flex", flexShrink: 0 }}>
+                  <BadgeCheck size={14} strokeWidth={2} aria-hidden />
+                </span>
+              )}
             </div>
 
             <div style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 5, display: "flex", alignItems: "center", gap: 4 }}>
@@ -181,26 +149,7 @@ export default function TutorCard({
               )}
             </div>
 
-            {tutor.isVerified && (
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  backgroundColor: "var(--accent-bg)",
-                  border: "1px solid var(--accent-border)",
-                  borderRadius: 99,
-                  padding: "2px 8px",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "var(--accent)",
-                  letterSpacing: 0.2,
-                }}
-              >
-                <Check size={10} strokeWidth={3} />
-                {t("tutor.verified")}
-              </div>
-            )}
+            {tutor.isVerified && <VerifiedBadge label={t("tutor.verified")} />}
           </div>
         </div>
 
@@ -219,24 +168,22 @@ export default function TutorCard({
           <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 12 }}>{t("tutor.noReviews")}</div>
         )}
 
+        <TutorTrustSignals
+          tutor={tutor}
+          compact={isMobile}
+          labels={{
+            topTutor: t("tutor.topTutor"),
+            studentsThisWeek: t("tutor.studentsThisWeek", { n: tutor.studentsThisWeek ?? 0 }),
+            repeatStudents: t("tutor.repeatStudents", { n: tutor.repeatStudentCount ?? 0 }),
+            lastBooked: lastBookedLabel,
+          }}
+        />
+
         {/* Subject tags */}
         {tutor.subjects.length > 0 && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
             {visibleSubjects.map((s) => (
-              <span
-                key={s}
-                style={{
-                  backgroundColor: `${subjectColor(s)}12`,
-                  border: `1px solid ${subjectColor(s)}30`,
-                  color: subjectColor(s),
-                  borderRadius: 999,
-                  padding: "2px 9px",
-                  fontSize: 11,
-                  fontWeight: 600,
-                }}
-              >
-                {s}
-              </span>
+              <SubjectPill key={s} subject={s} />
             ))}
             {extraSubjects > 0 && (
               <span
@@ -363,7 +310,8 @@ export default function TutorCard({
           </div>
         )}
       </div>
-    </motion.div>
+      </motion.div>
+      <SignInRequiredModal open={modalOpen} onClose={() => setModalOpen(false)} callbackUrl="/favorites" />
+    </>
   );
 }
-

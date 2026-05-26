@@ -167,6 +167,7 @@ const DICT = {
 
   // ── Tutor card ────────────────────────────────────────────────────────────────
   "tutor.verified":       { en: "Verified",                   ar: "موثّق" },
+  "tutor.unnamed":        { en: "Coursaty Tutor",             ar: "مدرس كورساتي" },
   "tutor.noReviews":      { en: "No reviews yet",             ar: "لا توجد تقييمات بعد" },
   "tutor.review":         { en: "review",                     ar: "تقييم" },
   "tutor.reviews":        { en: "reviews",                    ar: "تقييم" },
@@ -177,6 +178,15 @@ const DICT = {
   "tutor.noClasses":      { en: "No Classes Yet",             ar: "لا فصول بعد" },
   "tutor.moreSubjects":   { en: "+{n} more",                  ar: "+{n} أخرى" },
   "tutor.egypt":          { en: "Egypt",                      ar: "مصر" },
+  "tutor.verifiedTooltip": { en: "Identity and profile details verified by Coursaty", ar: "تم التحقق من الهوية وتفاصيل الملف بواسطة كورساتي" },
+  "tutor.saveFavorite":   { en: "Save tutor to favorites",    ar: "احفظ المدرس في المفضلة" },
+  "tutor.removeFavorite": { en: "Remove tutor from favorites", ar: "إزالة المدرس من المفضلة" },
+  "tutor.topTutor":       { en: "Top Tutor",                  ar: "مدرس مميز" },
+  "tutor.studentsThisWeek": { en: "{n} enrolled this week",   ar: "{n} حجزوا هذا الأسبوع" },
+  "tutor.repeatStudents": { en: "{n} repeat students",        ar: "{n} طلاب متكررون" },
+  "tutor.lastBookedMinutes": { en: "Last booked {n}m ago",    ar: "آخر حجز منذ {n} د" },
+  "tutor.lastBookedHours": { en: "Last booked {n}h ago",      ar: "آخر حجز منذ {n} س" },
+  "tutor.lastBookedDays": { en: "Last booked {n}d ago",       ar: "آخر حجز منذ {n} ي" },
 
   // ── Booking confirmed ─────────────────────────────────────────────────────────
   "booking.confirmed":    { en: "Booking Confirmed",          ar: "تم تأكيد الحجز" },
