@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,6 +8,7 @@ import '../core/l10n.dart';
 import '../core/models.dart';
 import '../core/theme.dart';
 import '../widgets/marketplace_widgets.dart';
+import '../widgets/skeletons.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
@@ -16,6 +19,7 @@ class BrowseScreen extends StatefulWidget {
 
 class _BrowseScreenState extends State<BrowseScreen> {
   final _search = TextEditingController();
+  Timer? _debounce;
   int _tab = 0;
   bool _grid = true;
   late Future<({List<AppClass> classes, List<TutorProfile> tutors})> _future;
@@ -28,7 +32,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
   Future<({List<AppClass> classes, List<TutorProfile> tutors})> _load() async {
     final app = context.app;
-    final classes = await app.marketplace.classes(search: _search.text);
+    final classes = await app.marketplace.classPage(
+      search: _search.text,
+      limit: 10,
+    );
     final tutors = await app.marketplace.tutors(search: _search.text);
     return (classes: classes, tutors: tutors);
   }
@@ -36,10 +43,16 @@ class _BrowseScreenState extends State<BrowseScreen> {
   @override
   void dispose() {
     _search.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
   void _refresh() => setState(() => _future = _load());
+  void _onSearchChanged(String _) {
+    setState(() {});
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), _refresh);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +78,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
               controller: _search,
               hint: l.t('browse.search'),
               onSubmitted: (_) => _refresh(),
-              onChanged: (_) => setState(() {}),
+              onChanged: _onSearchChanged,
             ),
           ),
           Padding(
@@ -88,7 +101,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   future: _future,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
-                      return const LoadingList();
+                      return _tab == 0
+                          ? const SkeletonClassGrid()
+                          : const LoadingList();
                     }
                     if (_tab == 0) {
                       return _ClassResults(

@@ -195,7 +195,8 @@ class MockData {
         : tutor.subjects.first;
     final price = 180 + (index % 7) * 55;
     final capacity = 8 + (index % 5) * 4;
-    final enrolled = 2 + (index % capacity);
+    final enrolled = index % 9 == 0 ? capacity : 2 + (index % capacity);
+    final remaining = capacity - enrolled;
     return AppClass(
       id: 'class-${index + 1}',
       title:
@@ -215,12 +216,25 @@ class MockData {
       gradeLevel: 'Grade ${7 + (index % 6)}',
       schedule: '${_day(index)} ${4 + (index % 5)}:00 PM',
       capacity: capacity,
-      spotsLeft: capacity - enrolled,
+      spotsLeft: remaining,
+      totalSeats: capacity,
+      enrolledSeats: enrolled,
+      durationMinutes: [60, 75, 90, 120][index % 4],
+      level: _level(index),
+      status: index % 11 == 0 ? 'DRAFT' : 'ACTIVE',
+      thumbnailUrl: _thumb(index),
       paymentType: index % 3 == 0 ? 'ONLINE' : 'IN_PERSON',
       avgRating: 4.3 + (index % 7) / 10,
       reviewCount: 8 + index,
       providerName: tutor.name,
       tutors: [TutorMini(id: tutor.id, name: tutor.name, isVerified: true)],
+      postClassContent: index % 6 == 0
+          ? const PostClassContent(
+              notesUrl: 'Session notes ready after class',
+              recordingUrl: 'https://drive.google.com/example',
+              homeworkUrl: 'Homework worksheet placeholder',
+            )
+          : null,
     );
   });
 
@@ -357,4 +371,14 @@ class MockData {
       ['Beginner', 'Intermediate', 'Advanced'][index % 3];
   static String _day(int index) =>
       ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Sat'][index % 6];
+  static String _thumb(int index) {
+    const ids = [
+      'photo-1503676260728-1c00da094a0b',
+      'photo-1522202176988-66273c2fd55f',
+      'photo-1509062522246-3755977927d7',
+      'photo-1532094349884-543bc11b234d',
+      'photo-1513258496099-48168024aec0',
+    ];
+    return 'https://images.unsplash.com/${ids[index % ids.length]}?auto=format&fit=crop&w=600&q=70';
+  }
 }

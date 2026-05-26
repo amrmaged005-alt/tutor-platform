@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
 import '../app_state.dart';
@@ -206,6 +207,15 @@ class AppClassCard extends StatelessWidget {
     final l = context.l10n;
     final app = context.appWatch;
     final price = item.priceEgp == 0 ? l.t('common.free') : egp(item.priceEgp);
+    final seatsText = '${item.seatsTaken} / ${item.seatLimit}';
+    final seatRatio = item.seatLimit == 0
+        ? 0.0
+        : (item.seatsTaken / item.seatLimit).clamp(0.0, 1.0);
+    final seatColor = item.isFull
+        ? Theme.of(context).colorScheme.error
+        : item.isLowSeats
+        ? AppColors.rating
+        : c.accent;
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () => context.push('/classes/${item.id}', extra: item),
@@ -259,15 +269,76 @@ class AppClassCard extends StatelessWidget {
                 color: c.accent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Center(
-                child: Icon(
-                  _subjectIcon(item.subject),
-                  color: c.accent,
-                  size: compact ? 22 : 26,
+              clipBehavior: Clip.antiAlias,
+              child: item.thumbnailUrl == null
+                  ? Center(
+                      child: Icon(
+                        _subjectIcon(item.subject),
+                        color: c.accent,
+                        size: compact ? 22 : 26,
+                      ),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: item.thumbnailUrl!,
+                      fit: BoxFit.cover,
+                      fadeInDuration: const Duration(milliseconds: 120),
+                      placeholder: (_, _) => Center(
+                        child: Icon(
+                          _subjectIcon(item.subject),
+                          color: c.accent,
+                          size: compact ? 22 : 26,
+                        ),
+                      ),
+                      errorWidget: (_, _, _) => Center(
+                        child: Icon(
+                          _subjectIcon(item.subject),
+                          color: c.accent,
+                          size: compact ? 22 : 26,
+                        ),
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 7),
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      minHeight: 5,
+                      value: seatRatio,
+                      color: seatColor,
+                      backgroundColor: c.border,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Text(
+                  item.isFull ? l.t('classes.full') : seatsText,
+                  style: TextStyle(
+                    color: seatColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+            if (item.isLowSeats) ...[
+              const SizedBox(height: 5),
+              Text(
+                l
+                    .t('classes.onlyLeft')
+                    .replaceFirst('{count}', '${item.remainingSeats}'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.rating,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
+            ],
+            const SizedBox(height: 7),
             Text(
               item.title,
               maxLines: 2,

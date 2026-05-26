@@ -10,6 +10,8 @@ import 'models.dart';
 const userKey = 'coursaty_mobile_user';
 const _localUsersKey = 'coursaty_local_users';
 const _localBookingsKey = 'coursaty_local_bookings';
+const _localEnrollmentsKey = 'coursaty_local_enrollments';
+const _managedClassesKey = 'coursaty_managed_classes';
 
 class AuthService {
   AuthService(this._api, this._storage);
@@ -129,6 +131,7 @@ class AuthService {
 class MarketplaceRepository {
   MarketplaceRepository(this._api);
   final ApiClient _api;
+  final Map<String, List<AppClass>> _classCache = {};
 
   Future<List<AppClass>> classes({
     String search = '',
@@ -139,6 +142,17 @@ class MarketplaceRepository {
     double maxPrice = 500,
     String sortBy = 'newest',
   }) async {
+    final key = _classKey(
+      search: search,
+      subject: subject,
+      curriculum: curriculum,
+      format: format,
+      city: city,
+      maxPrice: maxPrice,
+      sortBy: sortBy,
+    );
+    final cached = _classCache[key];
+    if (cached != null) return cached;
     try {
       final data = await _api.getMap(
         '/api/classes/search',
@@ -156,9 +170,15 @@ class MarketplaceRepository {
           .whereType<Map<String, dynamic>>()
           .map(AppClass.fromJson)
           .toList();
-      if (items.isNotEmpty) return items;
+      if (items.isNotEmpty) {
+        final merged = await _withLocalClasses(items);
+        final available = await _applyEnrollments(merged);
+        _classCache[key] = available;
+        return available;
+      }
     } catch (_) {}
-    return MockData.filteredClasses(
+    await Future<void>.delayed(const Duration(milliseconds: 380));
+    final fallback = MockData.filteredClasses(
       search: search,
       subject: subject,
       format: format,
@@ -166,14 +186,49 @@ class MarketplaceRepository {
       maxPrice: maxPrice,
       sortBy: sortBy,
     );
+    final merged = await _withLocalClasses(fallback);
+    final available = await _applyEnrollments(merged);
+    _classCache[key] = available;
+    return available;
+  }
+
+  Future<List<AppClass>> classPage({
+    String search = '',
+    String subject = '',
+    String curriculum = '',
+    String format = '',
+    String city = '',
+    double maxPrice = 500,
+    String sortBy = 'newest',
+    int offset = 0,
+    int limit = 10,
+  }) async {
+    final all = await classes(
+      search: search,
+      subject: subject,
+      curriculum: curriculum,
+      format: format,
+      city: city,
+      maxPrice: maxPrice,
+      sortBy: sortBy,
+    );
+    if (offset >= all.length) return [];
+    final end = offset + limit > all.length ? all.length : offset + limit;
+    return all.sublist(offset, end);
   }
 
   Future<AppClass> classById(String id) async {
     try {
       final data = await _api.getMap('/api/mobile/classes/$id');
-      return AppClass.fromJson(data['class'] as Map<String, dynamic>);
+      return (await _applyEnrollments([
+        AppClass.fromJson(data['class'] as Map<String, dynamic>),
+      ])).first;
     } catch (_) {
-      return MockData.classById(id);
+      final managed = await _managedClasses();
+      final matches = managed.where((item) => item.id == id).toList();
+      return (await _applyEnrollments([
+        matches.isEmpty ? MockData.classById(id) : matches.first,
+      ])).first;
     }
   }
 
@@ -218,12 +273,32 @@ class MarketplaceRepository {
     } catch (_) {}
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(_localBookingsKey) ?? [];
-    return raw
+    final local = raw
         .map(
           (item) =>
               BookingItem.fromJson(jsonDecode(item) as Map<String, dynamic>),
         )
         .toList();
+    if (local.isNotEmpty) return local;
+    final sample = MockData.classes.take(6).toList();
+    return List<BookingItem>.generate(sample.length, (index) {
+      final cls = sample[index];
+      final done = index > 2;
+      return BookingItem(
+        id: 'mock-booking-${index + 1}',
+        status: done ? 'COMPLETED' : 'CONFIRMED',
+        paymentStatus: index % 3 == 0 ? 'PENDING' : 'PAID',
+        createdAt: DateTime.now().subtract(Duration(days: index * 3)),
+        classItem: cls,
+        amountEgp: cls.priceEgp,
+        studentName: ['Ahmed Ali', 'Mona Adel', 'Laila Samir'][index % 3],
+        studentPhone: '010${(10000000 + index * 44123)}',
+        attendance: {
+          '2026-06-01': index % 2 == 0,
+          '2026-06-08': index % 3 != 0,
+        },
+      );
+    });
   }
 
   Future<BookingResult> bookClass({
@@ -232,6 +307,10 @@ class MarketplaceRepository {
     required String paymentType,
     String note = '',
   }) async {
+    final currentClass = await classById(classId);
+    if (currentClass.isFull) {
+      throw const ApiException('This class is full.');
+    }
     try {
       final data = await _api.postMap(
         '/api/bookings',
@@ -242,9 +321,11 @@ class MarketplaceRepository {
           if (note.trim().isNotEmpty) 'note': note.trim(),
         },
       );
+      await _incrementEnrollment(classId);
       return BookingResult.fromJson(data);
     } catch (_) {
-      final cls = MockData.classById(classId);
+      final cls = currentClass;
+      await _incrementEnrollment(classId);
       final booking = BookingItem(
         id: 'local-booking-${DateTime.now().millisecondsSinceEpoch}',
         status: 'CONFIRMED',
@@ -263,18 +344,8 @@ class MarketplaceRepository {
           'paymentStatus': booking.paymentStatus,
           'createdAt': booking.createdAt.toIso8601String(),
           'amountEgp': booking.amountEgp,
-          'class': {
-            'id': cls.id,
-            'title': cls.title,
-            'subject': cls.subject,
-            'city': cls.city,
-            'priceEgp': cls.priceEgp,
-            'bookingsCount': cls.bookingsCount,
-            'format': cls.format,
-            'curriculum': cls.curriculum,
-            'language': cls.language,
-            'providerName': cls.providerName,
-          },
+          'class': cls.toJson(),
+          'attendance': booking.attendance,
         }),
       );
       await prefs.setStringList(_localBookingsKey, current);
@@ -337,6 +408,115 @@ class MarketplaceRepository {
     (item) => item.id == id,
     orElse: () => MockData.centers.first,
   );
+
+  Future<List<AppClass>> managedClasses({required String role}) async {
+    final local = await _managedClasses();
+    if (local.isNotEmpty) return local;
+    final isCenter = role == 'CENTER_ADMIN' || role == 'CENTER';
+    return MockData.classes
+        .where(
+          (item) => isCenter
+              ? item.city == 'Cairo'
+              : item.tutors.any((tutor) => tutor.id == 'tutor-amina') ||
+                    item.providerName.contains('Amina'),
+        )
+        .take(8)
+        .toList();
+  }
+
+  Future<void> saveManagedClass(AppClass item) async {
+    final items = await _managedClasses();
+    final index = items.indexWhere((entry) => entry.id == item.id);
+    if (index >= 0) {
+      items[index] = item;
+    } else {
+      items.insert(0, item);
+    }
+    await _saveManagedClasses(items);
+    _classCache.clear();
+  }
+
+  Future<void> deleteManagedClass(String id) async {
+    final items = await _managedClasses();
+    items.removeWhere((item) => item.id == id);
+    await _saveManagedClasses(items);
+    _classCache.clear();
+  }
+
+  String _classKey({
+    required String search,
+    required String subject,
+    required String curriculum,
+    required String format,
+    required String city,
+    required double maxPrice,
+    required String sortBy,
+  }) => [
+    search.trim().toLowerCase(),
+    subject,
+    curriculum,
+    format,
+    city,
+    maxPrice.round(),
+    sortBy,
+  ].join('|');
+
+  Future<List<AppClass>> _withLocalClasses(List<AppClass> base) async {
+    final managed = await _managedClasses();
+    if (managed.isEmpty) return base;
+    final byId = {for (final item in base) item.id: item};
+    for (final item in managed) {
+      if (item.status != 'DRAFT') byId[item.id] = item;
+    }
+    return byId.values.toList();
+  }
+
+  Future<List<AppClass>> _managedClasses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_managedClassesKey) ?? [];
+    return raw
+        .map(
+          (item) => AppClass.fromJson(jsonDecode(item) as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  Future<void> _saveManagedClasses(List<AppClass> items) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _managedClassesKey,
+      items.map((item) => jsonEncode(item.toJson())).toList(),
+    );
+  }
+
+  Future<List<AppClass>> _applyEnrollments(List<AppClass> items) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_localEnrollmentsKey);
+    final deltas = raw == null
+        ? <String, dynamic>{}
+        : jsonDecode(raw) as Map<String, dynamic>;
+    return items.map((item) {
+      final delta = (deltas[item.id] as num?)?.toInt() ?? 0;
+      if (delta == 0) return item;
+      final taken = item.seatsTaken + delta;
+      return item.copyWith(
+        bookingsCount: taken,
+        enrolledSeats: taken,
+        spotsLeft: item.seatLimit - taken,
+      );
+    }).toList();
+  }
+
+  Future<void> _incrementEnrollment(String classId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_localEnrollmentsKey);
+    final deltas = raw == null
+        ? <String, dynamic>{}
+        : jsonDecode(raw) as Map<String, dynamic>;
+    deltas[classId] = ((deltas[classId] as num?)?.toInt() ?? 0) + 1;
+    await prefs.setString(_localEnrollmentsKey, jsonEncode(deltas));
+    _classCache.clear();
+  }
 }
 
 class TutorService {

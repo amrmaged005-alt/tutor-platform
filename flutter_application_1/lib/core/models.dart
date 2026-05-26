@@ -43,11 +43,18 @@ class AppClass {
     this.schedule,
     this.capacity,
     this.spotsLeft,
+    this.totalSeats,
+    this.enrolledSeats,
+    this.durationMinutes = 90,
+    this.level = 'Intermediate',
+    this.status = 'ACTIVE',
+    this.thumbnailUrl,
     this.paymentType = 'IN_PERSON',
     this.avgRating,
     this.reviewCount = 0,
     this.providerName = 'Coursaty',
     this.tutors = const [],
+    this.postClassContent,
   });
 
   final String id;
@@ -65,11 +72,28 @@ class AppClass {
   final String? schedule;
   final int? capacity;
   final int? spotsLeft;
+  final int? totalSeats;
+  final int? enrolledSeats;
+  final int durationMinutes;
+  final String level;
+  final String status;
+  final String? thumbnailUrl;
   final String paymentType;
   final double? avgRating;
   final int reviewCount;
   final String providerName;
   final List<TutorMini> tutors;
+  final PostClassContent? postClassContent;
+
+  int get seatLimit => totalSeats ?? capacity ?? 20;
+  int get seatsTaken => enrolledSeats ?? bookingsCount;
+  int get remainingSeats {
+    final left = spotsLeft ?? (seatLimit - seatsTaken);
+    return left < 0 ? 0 : left;
+  }
+
+  bool get isFull => remainingSeats <= 0;
+  bool get isLowSeats => !isFull && remainingSeats <= 3;
 
   factory AppClass.fromJson(Map<String, dynamic> json) {
     final center = json['center'] as Map<String, dynamic>?;
@@ -102,6 +126,16 @@ class AppClass {
       schedule: json['schedule'] as String?,
       capacity: (json['capacity'] as num?)?.toInt(),
       spotsLeft: (json['spotsLeft'] as num?)?.toInt(),
+      totalSeats:
+          (json['totalSeats'] as num?)?.toInt() ??
+          (json['capacity'] as num?)?.toInt(),
+      enrolledSeats:
+          (json['enrolledSeats'] as num?)?.toInt() ??
+          (json['bookingsCount'] as num?)?.toInt(),
+      durationMinutes: (json['durationMinutes'] as num?)?.toInt() ?? 90,
+      level: (json['level'] as String?) ?? 'Intermediate',
+      status: (json['status'] as String?) ?? 'ACTIVE',
+      thumbnailUrl: json['thumbnailUrl'] as String?,
       paymentType: (json['paymentType'] as String?) ?? 'IN_PERSON',
       avgRating: (json['avgRating'] as num?)?.toDouble(),
       reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
@@ -111,8 +145,122 @@ class AppClass {
           (owner?['name'] as String?) ??
           (rawTutors.isNotEmpty ? rawTutors.first.name : 'Coursaty'),
       tutors: rawTutors,
+      postClassContent: json['postClassContent'] is Map<String, dynamic>
+          ? PostClassContent.fromJson(
+              json['postClassContent'] as Map<String, dynamic>,
+            )
+          : null,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'subject': subject,
+    'city': city,
+    'priceEgp': priceEgp,
+    'bookingsCount': bookingsCount,
+    'format': format,
+    'curriculum': curriculum,
+    'language': language,
+    'description': description,
+    'location': location,
+    'gradeLevel': gradeLevel,
+    'schedule': schedule,
+    'capacity': capacity,
+    'spotsLeft': remainingSeats,
+    'totalSeats': seatLimit,
+    'enrolledSeats': seatsTaken,
+    'durationMinutes': durationMinutes,
+    'level': level,
+    'status': status,
+    'thumbnailUrl': thumbnailUrl,
+    'paymentType': paymentType,
+    'avgRating': avgRating,
+    'reviewCount': reviewCount,
+    'providerName': providerName,
+    'tutors': tutors.map((item) => item.toJson()).toList(),
+    'postClassContent': postClassContent?.toJson(),
+  };
+
+  AppClass copyWith({
+    String? id,
+    String? title,
+    String? subject,
+    String? city,
+    int? priceEgp,
+    int? bookingsCount,
+    String? format,
+    String? curriculum,
+    String? language,
+    String? description,
+    String? location,
+    String? gradeLevel,
+    String? schedule,
+    int? capacity,
+    int? spotsLeft,
+    int? totalSeats,
+    int? enrolledSeats,
+    int? durationMinutes,
+    String? level,
+    String? status,
+    String? thumbnailUrl,
+    String? paymentType,
+    double? avgRating,
+    int? reviewCount,
+    String? providerName,
+    List<TutorMini>? tutors,
+    PostClassContent? postClassContent,
+  }) => AppClass(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    subject: subject ?? this.subject,
+    city: city ?? this.city,
+    priceEgp: priceEgp ?? this.priceEgp,
+    bookingsCount: bookingsCount ?? this.bookingsCount,
+    format: format ?? this.format,
+    curriculum: curriculum ?? this.curriculum,
+    language: language ?? this.language,
+    description: description ?? this.description,
+    location: location ?? this.location,
+    gradeLevel: gradeLevel ?? this.gradeLevel,
+    schedule: schedule ?? this.schedule,
+    capacity: capacity ?? this.capacity,
+    spotsLeft: spotsLeft ?? this.spotsLeft,
+    totalSeats: totalSeats ?? this.totalSeats,
+    enrolledSeats: enrolledSeats ?? this.enrolledSeats,
+    durationMinutes: durationMinutes ?? this.durationMinutes,
+    level: level ?? this.level,
+    status: status ?? this.status,
+    thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+    paymentType: paymentType ?? this.paymentType,
+    avgRating: avgRating ?? this.avgRating,
+    reviewCount: reviewCount ?? this.reviewCount,
+    providerName: providerName ?? this.providerName,
+    tutors: tutors ?? this.tutors,
+    postClassContent: postClassContent ?? this.postClassContent,
+  );
+}
+
+class PostClassContent {
+  const PostClassContent({this.notesUrl, this.recordingUrl, this.homeworkUrl});
+
+  final String? notesUrl;
+  final String? recordingUrl;
+  final String? homeworkUrl;
+
+  factory PostClassContent.fromJson(Map<String, dynamic> json) =>
+      PostClassContent(
+        notesUrl: json['notesUrl'] as String?,
+        recordingUrl: json['recordingUrl'] as String?,
+        homeworkUrl: json['homeworkUrl'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+    'notesUrl': notesUrl,
+    'recordingUrl': recordingUrl,
+    'homeworkUrl': homeworkUrl,
+  };
 }
 
 class TutorMini {
@@ -134,6 +282,13 @@ class TutorMini {
     photoUrl: json['photoUrl'] as String?,
     isVerified: json['isVerified'] == true,
   );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'photoUrl': photoUrl,
+    'isVerified': isVerified,
+  };
 }
 
 class TutorProfile {
@@ -234,6 +389,8 @@ class BookingItem {
     required this.classItem,
     this.amountEgp,
     this.studentName,
+    this.studentPhone,
+    this.attendance = const {},
   });
 
   final String id;
@@ -243,6 +400,8 @@ class BookingItem {
   final AppClass classItem;
   final int? amountEgp;
   final String? studentName;
+  final String? studentPhone;
+  final Map<String, bool> attendance;
 
   factory BookingItem.fromJson(Map<String, dynamic> json) {
     final student = json['student'] as Map<String, dynamic>?;
@@ -257,6 +416,11 @@ class BookingItem {
       amountEgp: (json['amountEgp'] as num?)?.toInt(),
       studentName:
           (student?['fullName'] as String?) ?? (student?['name'] as String?),
+      studentPhone:
+          (student?['phone'] as String?) ?? (json['studentPhone'] as String?),
+      attendance: (json['attendance'] as Map<String, dynamic>? ?? {}).map(
+        (key, value) => MapEntry(key, value == true),
+      ),
     );
   }
 }

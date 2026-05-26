@@ -59,6 +59,12 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
     }
     final item = _item;
     if (item == null) return;
+    if (item.isFull) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.t('classes.full'))));
+      return;
+    }
     await showBookingSheet(context, item);
   }
 
@@ -227,8 +233,10 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: _book,
-                      child: Text(l.t('classes.book')),
+                      onPressed: item.isFull ? null : _book,
+                      child: Text(
+                        item.isFull ? l.t('classes.full') : l.t('classes.book'),
+                      ),
                     ),
                   ],
                 ),
@@ -257,8 +265,14 @@ class _InfoCard extends StatelessWidget {
       (
         Icons.people_outline_rounded,
         l.t('classes.enrolled'),
-        '${item.bookingsCount}',
+        '${item.seatsTaken} / ${item.seatLimit}',
       ),
+      (
+        Icons.timer_outlined,
+        l.t('classes.duration'),
+        '${item.durationMinutes} min',
+      ),
+      (Icons.trending_up_rounded, l.t('classes.level'), item.level),
     ];
     final c = context.c;
     return Container(

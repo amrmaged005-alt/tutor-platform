@@ -6,6 +6,9 @@ import 'core/models.dart';
 import 'screens/auth_screen.dart';
 import 'screens/booking_sheet.dart';
 import 'screens/browse_screen.dart';
+import 'screens/center/center_dashboard_screen.dart';
+import 'screens/center/center_manage_screen.dart';
+import 'screens/center/center_tutors_screen.dart';
 import 'screens/center_profile_screen.dart';
 import 'screens/class_detail_screen.dart';
 import 'screens/dashboard_screen.dart';
@@ -16,6 +19,8 @@ import 'screens/profile_screen.dart';
 import 'screens/saved_screen.dart';
 import 'screens/shell_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/tutor/tutor_classes_screen.dart';
+import 'screens/tutor/tutor_dashboard_screen.dart';
 import 'screens/tutor_detail_screen.dart';
 
 GoRouter createRouter(AppState state) {
@@ -27,6 +32,8 @@ GoRouter createRouter(AppState state) {
       final needsAuth =
           location == '/dashboard' ||
           location == '/profile' ||
+          location.startsWith('/tutor') ||
+          location.startsWith('/center/') ||
           location.startsWith('/book/');
       if (needsAuth && !state.isSignedIn) return '/login';
       if ((location == '/login' || location == '/signup') && state.isSignedIn) {
@@ -69,6 +76,30 @@ GoRouter createRouter(AppState state) {
           GoRoute(
             path: '/profile',
             pageBuilder: _fade((context, state) => const ProfileScreen()),
+          ),
+          GoRoute(
+            path: '/tutor/classes',
+            pageBuilder: _fade((context, state) => const TutorClassesScreen()),
+          ),
+          GoRoute(
+            path: '/tutor/dashboard',
+            pageBuilder: _fade(
+              (context, state) => const TutorDashboardScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/center/manage',
+            pageBuilder: _fade((context, state) => const CenterManageScreen()),
+          ),
+          GoRoute(
+            path: '/center/dashboard',
+            pageBuilder: _fade(
+              (context, state) => const CenterDashboardScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/center/tutors',
+            pageBuilder: _fade((context, state) => const CenterTutorsScreen()),
           ),
         ],
       ),

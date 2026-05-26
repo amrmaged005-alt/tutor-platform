@@ -8,17 +8,21 @@ class ShellScreen extends StatelessWidget {
   const ShellScreen({super.key, required this.child});
   final Widget child;
 
-  int _index(String location) {
-    if (location.startsWith('/browse') ||
-        location.startsWith('/classes') ||
+  int _index(String location, List<_NavItem> items) {
+    var selected = 0;
+    for (var i = 0; i < items.length; i++) {
+      if (location == items[i].path ||
+          location.startsWith('${items[i].path}/')) {
+        selected = i;
+      }
+    }
+    if (location.startsWith('/classes') ||
         location.startsWith('/tutors') ||
         location.startsWith('/centers')) {
-      return 1;
+      final browse = items.indexWhere((item) => item.path == '/browse');
+      if (browse >= 0) return browse;
     }
-    if (location.startsWith('/dashboard')) return 2;
-    if (location.startsWith('/saved')) return 3;
-    if (location.startsWith('/profile')) return 4;
-    return 0;
+    return selected;
   }
 
   @override
@@ -26,49 +30,141 @@ class ShellScreen extends StatelessWidget {
     final l = context.l10n;
     final app = context.app;
     final location = GoRouterState.of(context).uri.path;
+    final items = _itemsFor(app.user?.role ?? 'STUDENT', l);
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index(location),
+        selectedIndex: _index(location, items),
         onDestinationSelected: (index) {
-          final path = switch (index) {
-            0 => '/',
-            1 => '/browse',
-            2 => app.isSignedIn ? '/dashboard' : '/login',
-            3 => '/saved',
-            4 => app.isSignedIn ? '/profile' : '/login',
-            _ => '/',
-          };
+          final target = items[index];
+          final path = target.needsAuth && !app.isSignedIn
+              ? '/login'
+              : target.path;
           context.go(path);
         },
         destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home_rounded),
-            label: l.t('nav.home'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.school_outlined),
-            selectedIcon: const Icon(Icons.school_rounded),
-            label: l.t('nav.browse'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.event_note_outlined),
-            selectedIcon: const Icon(Icons.event_note_rounded),
-            label: l.t('nav.bookings'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.favorite_border_rounded),
-            selectedIcon: const Icon(Icons.favorite_rounded),
-            label: l.t('nav.saved'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.account_circle_outlined),
-            selectedIcon: const Icon(Icons.account_circle_rounded),
-            label: l.t('profile.title'),
-          ),
+          for (final item in items)
+            NavigationDestination(
+              icon: Icon(item.icon),
+              selectedIcon: Icon(item.selectedIcon),
+              label: item.label,
+            ),
         ],
       ),
     );
   }
+
+  List<_NavItem> _itemsFor(String role, AppLocalizations l) {
+    if (role == 'TUTOR') {
+      return [
+        _NavItem('/', l.t('nav.home'), Icons.home_outlined, Icons.home_rounded),
+        _NavItem(
+          '/tutor/classes',
+          l.t('dashboard.myClasses'),
+          Icons.school_outlined,
+          Icons.school_rounded,
+          needsAuth: true,
+        ),
+        _NavItem(
+          '/tutor/dashboard',
+          l.t('dashboard.title'),
+          Icons.insights_outlined,
+          Icons.insights_rounded,
+          needsAuth: true,
+        ),
+        _NavItem(
+          '/notifications',
+          l.t('nav.notifications'),
+          Icons.notifications_outlined,
+          Icons.notifications_rounded,
+          needsAuth: true,
+        ),
+        _NavItem(
+          '/profile',
+          l.t('profile.title'),
+          Icons.account_circle_outlined,
+          Icons.account_circle_rounded,
+          needsAuth: true,
+        ),
+      ];
+    }
+    if (role == 'CENTER_ADMIN' || role == 'CENTER') {
+      return [
+        _NavItem('/', l.t('nav.home'), Icons.home_outlined, Icons.home_rounded),
+        _NavItem(
+          '/center/manage',
+          l.t('nav.manage'),
+          Icons.edit_note_outlined,
+          Icons.edit_note_rounded,
+          needsAuth: true,
+        ),
+        _NavItem(
+          '/center/dashboard',
+          l.t('dashboard.title'),
+          Icons.insights_outlined,
+          Icons.insights_rounded,
+          needsAuth: true,
+        ),
+        _NavItem(
+          '/center/tutors',
+          l.t('nav.tutors'),
+          Icons.groups_outlined,
+          Icons.groups_rounded,
+          needsAuth: true,
+        ),
+        _NavItem(
+          '/profile',
+          l.t('profile.title'),
+          Icons.account_circle_outlined,
+          Icons.account_circle_rounded,
+          needsAuth: true,
+        ),
+      ];
+    }
+    return [
+      _NavItem('/', l.t('nav.home'), Icons.home_outlined, Icons.home_rounded),
+      _NavItem(
+        '/browse',
+        l.t('nav.browse'),
+        Icons.school_outlined,
+        Icons.school_rounded,
+      ),
+      _NavItem(
+        '/dashboard',
+        l.t('nav.bookings'),
+        Icons.event_note_outlined,
+        Icons.event_note_rounded,
+        needsAuth: true,
+      ),
+      _NavItem(
+        '/saved',
+        l.t('nav.saved'),
+        Icons.favorite_border_rounded,
+        Icons.favorite_rounded,
+      ),
+      _NavItem(
+        '/profile',
+        l.t('profile.title'),
+        Icons.account_circle_outlined,
+        Icons.account_circle_rounded,
+        needsAuth: true,
+      ),
+    ];
+  }
+}
+
+class _NavItem {
+  const _NavItem(
+    this.path,
+    this.label,
+    this.icon,
+    this.selectedIcon, {
+    this.needsAuth = false,
+  });
+
+  final String path;
+  final String label;
+  final IconData icon;
+  final IconData selectedIcon;
+  final bool needsAuth;
 }
