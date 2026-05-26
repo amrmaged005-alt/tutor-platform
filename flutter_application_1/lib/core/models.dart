@@ -228,3 +228,89 @@ class BookingItem {
     );
   }
 }
+
+class BookingResult {
+  const BookingResult({
+    required this.bookingId,
+    required this.message,
+    this.paymentUrl,
+  });
+
+  final String bookingId;
+  final String message;
+  final String? paymentUrl;
+
+  factory BookingResult.fromJson(Map<String, dynamic> json) => BookingResult(
+    bookingId: (json['bookingId'] as String?) ?? '',
+    message: (json['message'] as String?) ?? 'Booking received.',
+    paymentUrl: json['paymentUrl'] as String?,
+  );
+}
+
+class ReviewItem {
+  const ReviewItem({
+    required this.id,
+    required this.rating,
+    required this.createdAt,
+    required this.reviewerName,
+    this.comment,
+  });
+
+  final String id;
+  final int rating;
+  final DateTime createdAt;
+  final String reviewerName;
+  final String? comment;
+
+  factory ReviewItem.fromJson(Map<String, dynamic> json) {
+    final student = json['student'] as Map<String, dynamic>?;
+    final rawName =
+        (student?['fullName'] as String?) ??
+        (student?['name'] as String?) ??
+        (json['reviewerName'] as String?) ??
+        'Student';
+    return ReviewItem(
+      id: json['id'] as String,
+      rating: (json['rating'] as num?)?.toInt() ?? 0,
+      createdAt:
+          DateTime.tryParse((json['createdAt'] ?? '').toString()) ??
+          DateTime.now(),
+      reviewerName: rawName.trim().split(RegExp(r'\s+')).first,
+      comment: json['comment'] as String?,
+    );
+  }
+}
+
+class ClassFilters {
+  const ClassFilters({
+    this.subjects = const [],
+    this.format = '',
+    this.maxPrice = 500,
+    this.city = '',
+    this.sortBy = 'newest',
+  });
+
+  final List<String> subjects;
+  final String format;
+  final double maxPrice;
+  final String city;
+  final String sortBy;
+
+  String get primarySubject => subjects.isEmpty ? '' : subjects.first;
+
+  ClassFilters copyWith({
+    List<String>? subjects,
+    String? format,
+    double? maxPrice,
+    String? city,
+    String? sortBy,
+  }) => ClassFilters(
+    subjects: subjects ?? this.subjects,
+    format: format ?? this.format,
+    maxPrice: maxPrice ?? this.maxPrice,
+    city: city ?? this.city,
+    sortBy: sortBy ?? this.sortBy,
+  );
+
+  static const empty = ClassFilters();
+}

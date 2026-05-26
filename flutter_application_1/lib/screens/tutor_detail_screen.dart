@@ -6,6 +6,7 @@ import '../core/l10n.dart';
 import '../core/models.dart';
 import '../core/theme.dart';
 import '../widgets/marketplace_widgets.dart';
+import '../widgets/review_widgets.dart';
 
 class TutorDetailScreen extends StatefulWidget {
   const TutorDetailScreen({super.key, required this.tutorId, this.initial});
@@ -182,12 +183,26 @@ class _TutorDetailScreenState extends State<TutorDetailScreen> {
                       body: l.t('tutors.empty'),
                     )
                   else
-                    ...tutor.classes.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: AppClassCard(item: item),
+                    SizedBox(
+                      height: 212,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemBuilder: (_, i) => SizedBox(
+                          width: 220,
+                          child: AppClassCard(
+                            item: tutor.classes[i],
+                            compact: true,
+                          ),
+                        ),
+                        separatorBuilder: (_, _) => const SizedBox(width: 10),
+                        itemCount: tutor.classes.length,
                       ),
                     ),
+                  ReviewsSection(
+                    title: l.t('reviews.title'),
+                    load: () => context.app.marketplace.tutorReviews(tutor.id),
+                  ),
                 ],
               ),
             ),

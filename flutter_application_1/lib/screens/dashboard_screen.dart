@@ -6,6 +6,7 @@ import '../core/l10n.dart';
 import '../core/models.dart';
 import '../core/theme.dart';
 import '../widgets/marketplace_widgets.dart';
+import '../widgets/stats_row.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -48,6 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 final roleTitle = user.role == 'STUDENT'
                     ? l.t('dashboard.mine')
                     : l.t('dashboard.manage');
+                final bookings = snapshot.data ?? [];
                 return RefreshIndicator(
                   onRefresh: () async => _refresh(),
                   child: ListView(
@@ -102,12 +104,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                             IconButton(
-                              onPressed: () => context.go('/account'),
+                              onPressed: () => _showSettings(context),
                               icon: const Icon(Icons.settings_outlined),
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      DashboardStatsRow(bookings: bookings),
                       SectionHeader(title: roleTitle),
                       if (snapshot.connectionState != ConnectionState.done)
                         const SizedBox(height: 320, child: LoadingList())
@@ -119,7 +123,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           action: l.t('common.retry'),
                           onAction: _refresh,
                         )
-                      else if ((snapshot.data ?? []).isEmpty)
+                      else if (bookings.isEmpty)
                         StateView(
                           icon: Icons.event_busy_outlined,
                           title: l.t('dashboard.empty'),
@@ -130,14 +134,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           onAction: () => context.go('/classes'),
                         )
                       else
-                        ...(snapshot.data ?? []).map(
-                          (booking) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _BookingCard(
-                              booking: booking,
-                              showStudent: user.role != 'STUDENT',
-                            ),
-                          ),
+                        _BookingTabs(
+                          bookings: bookings,
+                          showStudent: user.role != 'STUDENT',
+                          showClasses: user.role != 'STUDENT',
                         ),
                     ],
                   ),
@@ -146,6 +146,142 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
     );
   }
+
+  void _showSettings(BuildContext context) {
+    final app = context.app;
+    final l = context.l10n;
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SwitchListTile(
+                value: app.isDark,
+                onChanged: app.setDark,
+                title: Text(l.t('account.theme')),
+                secondary: const Icon(Icons.dark_mode_outlined),
+              ),
+              ListTile(
+                leading: const Icon(Icons.language_rounded),
+                title: Text(l.t('account.language')),
+                trailing: Text(
+                  app.lang == AppLang.en
+                      ? l.t('account.english')
+                      : l.t('account.arabic'),
+                ),
+                onTap: () => app.setLang(
+                  app.lang == AppLang.en ? AppLang.ar : AppLang.en,
+                ),
+              ),
+              if (app.user != null && app.user!.role != 'STUDENT')
+                ListTile(
+                  leading: const Icon(Icons.construction_rounded),
+                  title: Text(l.t('common.comingSoon')),
+                  subtitle: Text(l.t('account.roleFeature')),
+                ),
+              OutlinedButton(
+                onPressed: () async {
+                  await app.logout();
+                  if (context.mounted) context.go('/');
+                },
+                child: Text(l.t('auth.logout')),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BookingTabs extends StatelessWidget {
+  const _BookingTabs({
+    required this.bookings,
+    required this.showStudent,
+    required this.showClasses,
+  });
+
+  final List<BookingItem> bookings;
+  final bool showStudent;
+  final bool showClasses;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final active = bookings
+        .where((b) => b.status == 'PENDING' || b.paymentStatus == 'UNPAID')
+        .toList();
+    final completed = bookings
+        .where((b) => b.status == 'CONFIRMED' && b.paymentStatus == 'PAID')
+        .toList();
+    final cancelled = bookings.where((b) => b.status == 'CANCELLED').toList();
+    final uniqueClasses = <String, AppClass>{};
+    for (final booking in bookings) {
+      uniqueClasses[booking.classItem.id] = booking.classItem;
+    }
+    final tabs = [
+      Tab(text: l.t('dashboard.active')),
+      Tab(text: l.t('dashboard.completed')),
+      Tab(text: l.t('dashboard.cancelled')),
+      if (showClasses) Tab(text: l.t('dashboard.myClasses')),
+    ];
+    final views = [
+      _BookingList(items: active, showStudent: showStudent),
+      _BookingList(items: completed, showStudent: showStudent),
+      _BookingList(items: cancelled, showStudent: showStudent),
+      if (showClasses) _ClassList(items: uniqueClasses.values.toList()),
+    ];
+    return DefaultTabController(
+      length: tabs.length,
+      child: Column(
+        children: [
+          TabBar(isScrollable: true, tabs: tabs),
+          SizedBox(height: 420, child: TabBarView(children: views)),
+        ],
+      ),
+    );
+  }
+}
+
+class _BookingList extends StatelessWidget {
+  const _BookingList({required this.items, required this.showStudent});
+  final List<BookingItem> items;
+  final bool showStudent;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return StateView(
+        icon: Icons.event_busy_outlined,
+        title: context.l10n.t('dashboard.empty'),
+        body: context.l10n.t('home.subtitle'),
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.only(top: 12),
+      itemBuilder: (_, i) =>
+          _BookingCard(booking: items[i], showStudent: showStudent),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
+      itemCount: items.length,
+    );
+  }
+}
+
+class _ClassList extends StatelessWidget {
+  const _ClassList({required this.items});
+  final List<AppClass> items;
+
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    padding: const EdgeInsets.only(top: 12),
+    itemBuilder: (_, i) => AppClassCard(item: items[i]),
+    separatorBuilder: (_, _) => const SizedBox(height: 10),
+    itemCount: items.length,
+  );
 }
 
 class _BookingCard extends StatelessWidget {
@@ -260,93 +396,4 @@ class _StatusPill extends StatelessWidget {
       ),
     ),
   );
-}
-
-class AccountScreen extends StatelessWidget {
-  const AccountScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final app = context.app;
-    final l = context.l10n;
-    final c = context.c;
-    final user = app.user;
-    return Scaffold(
-      appBar: AppBar(title: Text(l.t('account.title'))),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: c.card,
-              border: Border.all(color: c.border),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const BrandMark(),
-                const SizedBox(height: 12),
-                Text(
-                  user?.name ?? l.t('auth.welcome'),
-                  style: TextStyle(
-                    color: c.text,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                if (user != null)
-                  Text(
-                    user.email,
-                    style: TextStyle(
-                      color: c.secondary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            value: app.isDark,
-            onChanged: app.setDark,
-            title: Text(l.t('account.theme')),
-            secondary: const Icon(Icons.dark_mode_outlined),
-          ),
-          ListTile(
-            leading: const Icon(Icons.language_rounded),
-            title: Text(l.t('account.language')),
-            trailing: Text(
-              app.lang == AppLang.en
-                  ? l.t('account.english')
-                  : l.t('account.arabic'),
-            ),
-            onTap: () =>
-                app.setLang(app.lang == AppLang.en ? AppLang.ar : AppLang.en),
-          ),
-          if (user != null && user.role != 'STUDENT')
-            ListTile(
-              leading: const Icon(Icons.construction_rounded),
-              title: Text(l.t('common.comingSoon')),
-              subtitle: Text(l.t('account.roleFeature')),
-            ),
-          const SizedBox(height: 12),
-          if (user == null)
-            ElevatedButton(
-              onPressed: () => context.go('/login'),
-              child: Text(l.t('auth.signIn')),
-            )
-          else
-            OutlinedButton(
-              onPressed: () async {
-                await app.logout();
-                if (context.mounted) context.go('/');
-              },
-              child: Text(l.t('auth.logout')),
-            ),
-        ],
-      ),
-    );
-  }
 }

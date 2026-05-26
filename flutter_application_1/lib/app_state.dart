@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/api_client.dart';
 import 'core/l10n.dart';
@@ -8,6 +9,9 @@ import 'core/services.dart';
 
 const _langKey = 'coursaty_lang';
 const _themeKey = 'coursaty_theme';
+const _onboardingKey = 'coursaty_onboarding_done';
+const _savedClassesKey = 'coursaty_saved_classes';
+const _lastCityKey = 'coursaty_last_city';
 
 class AppState extends ChangeNotifier {
   AppState()
@@ -28,6 +32,9 @@ class AppState extends ChangeNotifier {
   ThemeMode themeMode = ThemeMode.system;
   AuthUser? user;
   bool bootstrapping = true;
+  bool onboardingDone = false;
+  String lastCity = 'Cairo';
+  Set<String> savedClassIds = <String>{};
 
   bool get isSignedIn => user != null;
   bool get isDark => themeMode == ThemeMode.dark;
@@ -42,6 +49,12 @@ class AppState extends ChangeNotifier {
         : rawTheme == 'light'
         ? ThemeMode.light
         : ThemeMode.system;
+
+    final prefs = await SharedPreferences.getInstance();
+    onboardingDone = prefs.getBool(_onboardingKey) ?? false;
+    lastCity = prefs.getString(_lastCityKey) ?? 'Cairo';
+    savedClassIds =
+        prefs.getStringList(_savedClassesKey)?.toSet() ?? <String>{};
 
     user = await auth.cachedUser();
     try {
@@ -64,6 +77,31 @@ class AppState extends ChangeNotifier {
   Future<void> setDark(bool enabled) async {
     themeMode = enabled ? ThemeMode.dark : ThemeMode.light;
     await storage.write(key: _themeKey, value: enabled ? 'dark' : 'light');
+    notifyListeners();
+  }
+
+  Future<void> completeOnboarding() async {
+    onboardingDone = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardingKey, true);
+    notifyListeners();
+  }
+
+  Future<void> setLastCity(String city) async {
+    lastCity = city;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastCityKey, city);
+    notifyListeners();
+  }
+
+  bool isSaved(String classId) => savedClassIds.contains(classId);
+
+  Future<void> toggleSaved(String classId) async {
+    final next = Set<String>.from(savedClassIds);
+    if (!next.add(classId)) next.remove(classId);
+    savedClassIds = next;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_savedClassesKey, savedClassIds.toList());
     notifyListeners();
   }
 
@@ -101,8 +139,15 @@ class AppScope extends InheritedNotifier<AppState> {
     assert(scope != null, 'AppScope not found');
     return scope!.notifier!;
   }
+
+  static AppState watch(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<AppScope>();
+    assert(scope != null, 'AppScope not found');
+    return scope!.notifier!;
+  }
 }
 
 extension AppStateX on BuildContext {
   AppState get app => AppScope.of(this);
+  AppState get appWatch => AppScope.watch(this);
 }

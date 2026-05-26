@@ -4,16 +4,20 @@ import 'package:go_router/go_router.dart';
 import 'app_state.dart';
 import 'core/models.dart';
 import 'screens/auth_screen.dart';
+import 'screens/booking_sheet.dart';
 import 'screens/class_detail_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/listing_screens.dart';
+import 'screens/notifications_screen.dart';
+import 'screens/saved_screen.dart';
 import 'screens/shell_screen.dart';
+import 'screens/splash_screen.dart';
 import 'screens/tutor_detail_screen.dart';
 
 GoRouter createRouter(AppState state) {
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/splash',
     refreshListenable: state,
     redirect: (context, routeState) {
       final location = routeState.matchedLocation;
@@ -46,14 +50,41 @@ GoRouter createRouter(AppState state) {
             pageBuilder: _fade((context, state) => const TutorsScreen()),
           ),
           GoRoute(
+            path: '/saved',
+            pageBuilder: _fade((context, state) => const SavedScreen()),
+          ),
+          GoRoute(
             path: '/dashboard',
             pageBuilder: _fade((context, state) => const DashboardScreen()),
           ),
-          GoRoute(
-            path: '/account',
-            pageBuilder: _fade((context, state) => const AccountScreen()),
-          ),
         ],
+      ),
+      GoRoute(
+        path: '/splash',
+        pageBuilder: _fade((context, state) => const SplashScreen()),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: _fade((context, state) => const OnboardingScreen()),
+      ),
+      GoRoute(
+        path: '/notifications',
+        pageBuilder: _fade((context, state) => const NotificationsScreen()),
+      ),
+      GoRoute(
+        path: '/booking-confirmed',
+        pageBuilder: (context, state) {
+          final extra = state.extra;
+          if (extra is ({BookingResult booking, AppClass item})) {
+            return MaterialPage(
+              child: BookingConfirmationScreen(
+                result: extra.booking,
+                item: extra.item,
+              ),
+            );
+          }
+          return MaterialPage(child: const HomeScreen());
+        },
       ),
       GoRoute(
         path: '/login',

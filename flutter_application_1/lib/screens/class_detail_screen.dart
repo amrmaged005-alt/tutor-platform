@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../app_state.dart';
 import '../core/l10n.dart';
 import '../core/models.dart';
 import '../core/theme.dart';
+import 'booking_sheet.dart';
 import '../widgets/marketplace_widgets.dart';
+import '../widgets/review_widgets.dart';
 
 class ClassDetailScreen extends StatefulWidget {
   const ClassDetailScreen({super.key, required this.classId, this.initial});
@@ -19,12 +22,13 @@ class ClassDetailScreen extends StatefulWidget {
 class _ClassDetailScreenState extends State<ClassDetailScreen> {
   AppClass? _item;
   bool _loading = false;
-  bool _booking = false;
+  Future<List<AppClass>>? _relatedFuture;
 
   @override
   void initState() {
     super.initState();
     _item = widget.initial;
+    if (_item != null) _relatedFuture = _loadRelated(_item!);
     if (_item == null) _load();
   }
 
@@ -32,9 +36,15 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
     setState(() => _loading = true);
     try {
       _item = await context.app.marketplace.classById(widget.classId);
+      if (_item != null) _relatedFuture = _loadRelated(_item!);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<List<AppClass>> _loadRelated(AppClass item) async {
+    final all = await context.app.marketplace.classes(subject: item.subject);
+    return all.where((cls) => cls.id != item.id).take(4).toList();
   }
 
   Future<void> _book() async {
@@ -49,30 +59,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
     }
     final item = _item;
     if (item == null) return;
-    final confirm = await showModalBottomSheet<bool>(
-      context: context,
-      builder: (context) => _ConfirmBookingSheet(item: item),
-    );
-    if (confirm != true) return;
-    setState(() => _booking = true);
-    try {
-      await app.marketplace.bookClass(item.id);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l.t('classes.bookingReceived'))));
-      context.go('/dashboard');
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.toString()),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _booking = false);
-    }
+    await showBookingSheet(context, item);
   }
 
   @override
@@ -80,10 +67,30 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
     final l = context.l10n;
     final c = context.c;
     final item = _item;
+    final appWatch = context.appWatch;
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: () => context.pop()),
         title: Text(item?.subject ?? l.t('classes.title')),
+        actions: [
+          if (item != null) ...[
+            IconButton(
+              onPressed: () => appWatch.toggleSaved(item.id),
+              icon: Icon(
+                appWatch.isSaved(item.id)
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+              ),
+            ),
+            IconButton(
+              onPressed: () => Share.share(
+                'https://coursaty.com/classes/${item.id}',
+                subject: item.title,
+              ),
+              icon: const Icon(Icons.ios_share_rounded),
+            ),
+          ],
+        ],
       ),
       body: _loading || item == null
           ? const LoadingList()
@@ -164,9 +171,38 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                     ),
                   ),
                 ],
+                ReviewsSection(
+                  title: l.t('reviews.title'),
+                  classId: item.id,
+                  load: () => context.app.marketplace.classReviews(item.id),
+                ),
+                SectionHeader(title: l.t('classes.related')),
+                FutureBuilder<List<AppClass>>(
+                  future: _relatedFuture,
+                  builder: (context, snapshot) {
+                    final items = snapshot.data ?? [];
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const SizedBox(height: 110, child: LoadingList());
+                    }
+                    if (items.isEmpty) return const SizedBox.shrink();
+                    return SizedBox(
+                      height: 206,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemBuilder: (_, i) => SizedBox(
+                          width: 220,
+                          child: AppClassCard(item: items[i], compact: true),
+                        ),
+                        separatorBuilder: (_, _) => const SizedBox(width: 10),
+                        itemCount: items.length,
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
-      bottomSheet: item == null
+      bottomNavigationBar: item == null
           ? null
           : SafeArea(
               top: false,
@@ -191,14 +227,8 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: _booking ? null : _book,
-                      child: _booking
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l.t('classes.book')),
+                      onPressed: _book,
+                      child: Text(l.t('classes.book')),
                     ),
                   ],
                 ),
@@ -269,59 +299,6 @@ class _InfoCard extends StatelessWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _ConfirmBookingSheet extends StatelessWidget {
-  const _ConfirmBookingSheet({required this.item});
-  final AppClass item;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = context.l10n;
-    final c = context.c;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l.t('classes.confirmBook'),
-              style: TextStyle(
-                color: c.text,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              item.title,
-              style: TextStyle(color: c.secondary, fontSize: 14, height: 1.45),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text(l.t('common.cancel')),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: Text(l.t('classes.book')),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

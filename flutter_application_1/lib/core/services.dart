@@ -72,6 +72,8 @@ class MarketplaceRepository {
     String subject = '',
     String curriculum = '',
     String format = '',
+    String city = '',
+    double maxPrice = 500,
     String sortBy = 'newest',
   }) async {
     final data = await _api.getMap(
@@ -81,6 +83,8 @@ class MarketplaceRepository {
         if (subject.isNotEmpty) 'subject': subject,
         if (curriculum.isNotEmpty) 'curriculum': curriculum,
         if (format.isNotEmpty) 'format': format,
+        if (city.isNotEmpty) 'location': city,
+        if (maxPrice < 500) 'maxPrice': maxPrice.round(),
         'sortBy': sortBy,
       },
     );
@@ -118,18 +122,55 @@ class MarketplaceRepository {
   }
 
   Future<List<BookingItem>> bookings() async {
-    final data = await _api.getMap('/api/mobile/bookings');
+    final data = await _api.getMap('/api/bookings');
     return (data['bookings'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(BookingItem.fromJson)
         .toList();
   }
 
-  Future<String> bookClass(String classId) async {
+  Future<BookingResult> bookClass({
+    required String classId,
+    required int sessionCount,
+    required String paymentType,
+    String note = '',
+  }) async {
     final data = await _api.postMap(
-      '/api/mobile/book-class',
-      data: {'classId': classId},
+      '/api/bookings',
+      data: {
+        'classId': classId,
+        'sessionCount': sessionCount,
+        'paymentType': paymentType,
+        if (note.trim().isNotEmpty) 'note': note.trim(),
+      },
     );
-    return (data['message'] as String?) ?? 'Booking received.';
+    return BookingResult.fromJson(data);
+  }
+
+  Future<List<ReviewItem>> classReviews(String classId) async {
+    final data = await _api.getMap('/api/classes/$classId/reviews');
+    return (data['reviews'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(ReviewItem.fromJson)
+        .toList();
+  }
+
+  Future<List<ReviewItem>> tutorReviews(String tutorId) async {
+    final data = await _api.getMap('/api/tutors/$tutorId/reviews');
+    return (data['reviews'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(ReviewItem.fromJson)
+        .toList();
+  }
+
+  Future<void> leaveClassReview({
+    required String classId,
+    required int rating,
+    required String comment,
+  }) async {
+    await _api.postMap(
+      '/api/classes/$classId/reviews',
+      data: {'rating': rating, 'comment': comment.trim()},
+    );
   }
 }

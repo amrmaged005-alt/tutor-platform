@@ -10,9 +10,8 @@ class ShellScreen extends StatelessWidget {
 
   int _index(String location) {
     if (location.startsWith('/classes')) return 1;
-    if (location.startsWith('/tutors')) return 2;
+    if (location.startsWith('/saved')) return 2;
     if (location.startsWith('/dashboard')) return 3;
-    if (location.startsWith('/account')) return 4;
     return 0;
   }
 
@@ -29,9 +28,9 @@ class ShellScreen extends StatelessWidget {
           final path = switch (index) {
             0 => '/',
             1 => '/classes',
-            2 => '/tutors',
+            2 => '/saved',
             3 => app.isSignedIn ? '/dashboard' : '/login',
-            _ => '/account',
+            _ => '/',
           };
           context.go(path);
         },
@@ -47,19 +46,14 @@ class ShellScreen extends StatelessWidget {
             label: l.t('nav.classes'),
           ),
           NavigationDestination(
-            icon: const Icon(Icons.person_search_outlined),
-            selectedIcon: const Icon(Icons.person_search_rounded),
-            label: l.t('nav.tutors'),
+            icon: const Icon(Icons.favorite_border_rounded),
+            selectedIcon: const Icon(Icons.favorite_rounded),
+            label: l.t('nav.saved'),
           ),
           NavigationDestination(
             icon: const Icon(Icons.event_note_outlined),
             selectedIcon: const Icon(Icons.event_note_rounded),
             label: l.t('nav.bookings'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.account_circle_outlined),
-            selectedIcon: const Icon(Icons.account_circle_rounded),
-            label: l.t('nav.account'),
           ),
         ],
       ),

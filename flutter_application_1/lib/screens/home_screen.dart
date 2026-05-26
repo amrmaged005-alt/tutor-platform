@@ -5,6 +5,8 @@ import '../app_state.dart';
 import '../core/l10n.dart';
 import '../core/models.dart';
 import '../core/theme.dart';
+import 'filter_sheet.dart';
+import '../widgets/home_sections.dart';
 import '../widgets/marketplace_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,7 +18,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _search = TextEditingController();
-  late Future<({List<AppClass> classes, List<TutorProfile> tutors})> _future;
+  late Future<
+    ({List<AppClass> classes, List<AppClass> near, List<TutorProfile> tutors})
+  >
+  _future;
 
   @override
   void initState() {
@@ -24,11 +29,20 @@ class _HomeScreenState extends State<HomeScreen> {
     _future = _load();
   }
 
-  Future<({List<AppClass> classes, List<TutorProfile> tutors})> _load() async {
-    final repo = context.app.marketplace;
+  Future<
+    ({List<AppClass> classes, List<AppClass> near, List<TutorProfile> tutors})
+  >
+  _load() async {
+    final app = context.app;
+    final repo = app.marketplace;
     final classes = await repo.classes(sortBy: 'popular');
+    final near = await repo.classes(city: app.lastCity, sortBy: 'popular');
     final tutors = await repo.tutors();
-    return (classes: classes.take(6).toList(), tutors: tutors.take(5).toList());
+    return (
+      classes: classes.take(6).toList(),
+      near: near.take(4).toList(),
+      tutors: tutors.take(5).toList(),
+    );
   }
 
   @override
@@ -46,6 +60,11 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const BrandMark(compact: true),
         actions: [
           IconButton(
+            onPressed: () => context.push('/notifications'),
+            icon: const Icon(Icons.notifications_none_rounded),
+            tooltip: l.t('notifications.title'),
+          ),
+          IconButton(
             onPressed: () => context.app.setLang(
               context.app.lang == AppLang.en ? AppLang.ar : AppLang.en,
             ),
@@ -59,7 +78,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onRefresh: () async => setState(() => _future = _load()),
         child:
             FutureBuilder<
-              ({List<AppClass> classes, List<TutorProfile> tutors})
+              ({
+                List<AppClass> classes,
+                List<AppClass> near,
+                List<TutorProfile> tutors,
+              })
             >(
               future: _future,
               builder: (context, snapshot) {
@@ -120,22 +143,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     SectionHeader(title: l.t('home.subjects')),
-                    SizedBox(
-                      height: 42,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemBuilder: (_, i) => FilterChipButton(
-                          label: subjects[i],
-                          selected: false,
-                          onTap: () => context.push(
-                            '/classes?search=${Uri.encodeComponent(subjects[i])}',
-                          ),
-                        ),
-                        separatorBuilder: (_, _) => const SizedBox(width: 8),
-                        itemCount: subjects.length,
+                    const SubjectIconGrid(),
+                    SectionHeader(title: l.t('home.trending')),
+                    const TrendingBanners(),
+                    if (!loading && data != null && data.near.isNotEmpty) ...[
+                      NearYouHeader(
+                        city: context.app.lastCity,
+                        onChange: _chooseCity,
                       ),
-                    ),
+                      SizedBox(
+                        height: 206,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemBuilder: (_, i) => SizedBox(
+                            width: 220,
+                            child: AppClassCard(
+                              item: data.near[i],
+                              compact: true,
+                            ),
+                          ),
+                          separatorBuilder: (_, _) => const SizedBox(width: 10),
+                          itemCount: data.near.length,
+                        ),
+                      ),
+                    ],
                     SectionHeader(
                       title: l.t('home.featuredClasses'),
                       action: l.t('home.viewAll'),
@@ -153,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                     else
                       SizedBox(
-                        height: 192,
+                        height: 206,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -187,5 +219,33 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
       ),
     );
+  }
+
+  Future<void> _chooseCity() async {
+    final app = context.app;
+    final current = app.lastCity;
+    final next = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.all(16),
+          children: egyptCities
+              .map(
+                (city) => ListTile(
+                  title: Text(city),
+                  trailing: current == city ? const Icon(Icons.check) : null,
+                  onTap: () => Navigator.pop(context, city),
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    );
+    if (next != null) {
+      await app.setLastCity(next);
+      if (mounted) setState(() => _future = _load());
+    }
   }
 }

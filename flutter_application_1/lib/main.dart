@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_state.dart';
 import 'core/l10n.dart';
+import 'core/notification_service.dart';
 import 'core/supabase_config.dart';
 import 'core/theme.dart';
 import 'router.dart';
@@ -9,6 +10,7 @@ import 'router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initSupabase();
+  await NotificationService.instance.initialize();
   final state = AppState();
   await state.bootstrap();
   runApp(CoursatyApp(state: state));

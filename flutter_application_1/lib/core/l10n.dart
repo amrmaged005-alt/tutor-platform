@@ -30,6 +30,7 @@ class AppLocalizations {
     'nav.tutors': {AppLang.en: 'Tutors', AppLang.ar: 'المدرسون'},
     'nav.bookings': {AppLang.en: 'Bookings', AppLang.ar: 'الحجوزات'},
     'nav.account': {AppLang.en: 'Account', AppLang.ar: 'الحساب'},
+    'nav.saved': {AppLang.en: 'Saved', AppLang.ar: 'المحفوظات'},
     'home.kicker': {
       AppLang.en: 'Egypt tutoring marketplace',
       AppLang.ar: 'منصة الدروس في مصر',
@@ -61,6 +62,51 @@ class AppLocalizations {
       AppLang.ar: 'تصفح حسب المادة',
     },
     'home.viewAll': {AppLang.en: 'View all', AppLang.ar: 'عرض الكل'},
+    'home.trending': {AppLang.en: 'Trending now', AppLang.ar: 'الأكثر رواجًا'},
+    'home.trendMath': {
+      AppLang.en: 'Exam-ready math groups this week',
+      AppLang.ar: 'مجموعات رياضيات جاهزة للامتحانات هذا الأسبوع',
+    },
+    'home.trendOnline': {
+      AppLang.en: 'Online classes with flexible timing',
+      AppLang.ar: 'فصول أونلاين بمواعيد مرنة',
+    },
+    'home.trendExam': {
+      AppLang.en: 'IGCSE and international curriculum picks',
+      AppLang.ar: 'اختيارات IGCSE والمناهج الدولية',
+    },
+    'home.nearYou': {AppLang.en: 'Near you in', AppLang.ar: 'بالقرب منك في'},
+    'onboarding.skip': {AppLang.en: 'Skip', AppLang.ar: 'تخطي'},
+    'onboarding.next': {AppLang.en: 'Next', AppLang.ar: 'التالي'},
+    'onboarding.start': {
+      AppLang.en: 'Start learning',
+      AppLang.ar: 'ابدأ التعلم',
+    },
+    'onboarding.tutors': {
+      AppLang.en: 'Find Expert Tutors',
+      AppLang.ar: 'اعثر على مدرسين خبراء',
+    },
+    'onboarding.tutorsBody': {
+      AppLang.en:
+          'Compare trusted tutors, centers, subjects, ratings, and prices in seconds.',
+      AppLang.ar:
+          'قارن المدرسين والمراكز والمواد والتقييمات والأسعار خلال ثوانٍ.',
+    },
+    'onboarding.book': {AppLang.en: 'Book Instantly', AppLang.ar: 'احجز فورًا'},
+    'onboarding.bookBody': {
+      AppLang.en:
+          'Reserve your seat, add notes, and choose online payment or pay at center.',
+      AppLang.ar: 'احجز مقعدك، أضف ملاحظاتك، واختر الدفع أونلاين أو في المركز.',
+    },
+    'onboarding.pace': {
+      AppLang.en: 'Learn at Your Pace',
+      AppLang.ar: 'تعلم بالسرعة المناسبة لك',
+    },
+    'onboarding.paceBody': {
+      AppLang.en:
+          'Keep upcoming bookings, class details, and reminders organized in one app.',
+      AppLang.ar: 'احتفظ بحجوزاتك وتفاصيل فصولك وتنبيهاتك منظمة في تطبيق واحد.',
+    },
     'auth.welcome': {
       AppLang.en: 'Welcome to Coursaty',
       AppLang.ar: 'أهلاً بك في كورساتي',
@@ -163,6 +209,84 @@ class AppLocalizations {
     'classes.schedule': {AppLang.en: 'Schedule', AppLang.ar: 'الموعد'},
     'classes.location': {AppLang.en: 'Location', AppLang.ar: 'المكان'},
     'classes.language': {AppLang.en: 'Language', AppLang.ar: 'اللغة'},
+    'classes.related': {
+      AppLang.en: 'You might also like',
+      AppLang.ar: 'قد يعجبك أيضًا',
+    },
+    'booking.title': {AppLang.en: 'Booking summary', AppLang.ar: 'ملخص الحجز'},
+    'booking.sessions': {
+      AppLang.en: 'Student/session count',
+      AppLang.ar: 'عدد الطلاب/الحصص',
+    },
+    'booking.note': {
+      AppLang.en: 'Add a note for the tutor',
+      AppLang.ar: 'أضف ملاحظة للمدرس',
+    },
+    'booking.payNow': {
+      AppLang.en: 'Pay Now (Online)',
+      AppLang.ar: 'ادفع الآن أونلاين',
+    },
+    'booking.payNowBody': {
+      AppLang.en: 'Continue to secure Paymob checkout.',
+      AppLang.ar: 'تابع إلى صفحة دفع آمنة عبر Paymob.',
+    },
+    'booking.payCenter': {
+      AppLang.en: 'Pay at Center',
+      AppLang.ar: 'الدفع في المركز',
+    },
+    'booking.payCenterBody': {
+      AppLang.en: 'Confirm your seat and pay directly at class.',
+      AppLang.ar: 'أكد مقعدك وادفع مباشرة عند الحضور.',
+    },
+    'booking.confirm': {AppLang.en: 'Confirm', AppLang.ar: 'تأكيد'},
+    'booking.success': {
+      AppLang.en: 'Booking confirmed',
+      AppLang.ar: 'تم تأكيد الحجز',
+    },
+    'booking.id': {AppLang.en: 'Booking ID', AppLang.ar: 'رقم الحجز'},
+    'booking.viewBookings': {
+      AppLang.en: 'View My Bookings',
+      AppLang.ar: 'عرض حجوزاتي',
+    },
+    'reviews.title': {AppLang.en: 'Reviews', AppLang.ar: 'التقييمات'},
+    'reviews.empty': {
+      AppLang.en: 'No reviews yet',
+      AppLang.ar: 'لا توجد تقييمات بعد',
+    },
+    'reviews.emptyBody': {
+      AppLang.en: 'Reviews will appear here after students share feedback.',
+      AppLang.ar: 'ستظهر التقييمات هنا بعد أن يشارك الطلاب آراءهم.',
+    },
+    'reviews.leave': {AppLang.en: 'Leave review', AppLang.ar: 'أضف تقييمًا'},
+    'reviews.comment': {
+      AppLang.en: 'Tell others about your experience',
+      AppLang.ar: 'احكِ للآخرين عن تجربتك',
+    },
+    'reviews.submit': {
+      AppLang.en: 'Submit review',
+      AppLang.ar: 'إرسال التقييم',
+    },
+    'saved.title': {AppLang.en: 'Saved classes', AppLang.ar: 'الفصول المحفوظة'},
+    'saved.empty': {
+      AppLang.en: 'No saved classes yet',
+      AppLang.ar: 'لا توجد فصول محفوظة',
+    },
+    'saved.emptyBody': {
+      AppLang.en: 'Tap the heart on any class to keep it here.',
+      AppLang.ar: 'اضغط على القلب في أي فصل للاحتفاظ به هنا.',
+    },
+    'filter.title': {AppLang.en: 'Filter classes', AppLang.ar: 'تصفية الفصول'},
+    'filter.reset': {AppLang.en: 'Reset', AppLang.ar: 'إعادة ضبط'},
+    'filter.apply': {AppLang.en: 'Apply filters', AppLang.ar: 'تطبيق الفلاتر'},
+    'filter.format': {AppLang.en: 'Format', AppLang.ar: 'طريقة الحضور'},
+    'filter.both': {AppLang.en: 'Both', AppLang.ar: 'الكل'},
+    'filter.price': {AppLang.en: 'Max price', AppLang.ar: 'أعلى سعر'},
+    'filter.city': {AppLang.en: 'City', AppLang.ar: 'المدينة'},
+    'filter.sort': {AppLang.en: 'Sort', AppLang.ar: 'ترتيب'},
+    'filter.lowestPrice': {
+      AppLang.en: 'Lowest price',
+      AppLang.ar: 'الأقل سعرًا',
+    },
     'tutors.title': {AppLang.en: 'Browse tutors', AppLang.ar: 'تصفح المدرسين'},
     'tutors.search': {
       AppLang.en: 'Search tutors or subjects',
@@ -188,6 +312,12 @@ class AppLocalizations {
     },
     'dashboard.upcoming': {AppLang.en: 'Upcoming', AppLang.ar: 'قادمة'},
     'dashboard.past': {AppLang.en: 'Past', AppLang.ar: 'سابقة'},
+    'dashboard.total': {AppLang.en: 'Total', AppLang.ar: 'الإجمالي'},
+    'dashboard.active': {AppLang.en: 'Active', AppLang.ar: 'نشطة'},
+    'dashboard.completed': {AppLang.en: 'Completed', AppLang.ar: 'مكتملة'},
+    'dashboard.cancelled': {AppLang.en: 'Cancelled', AppLang.ar: 'ملغاة'},
+    'dashboard.spent': {AppLang.en: 'Spent', AppLang.ar: 'المدفوع'},
+    'dashboard.myClasses': {AppLang.en: 'My Classes', AppLang.ar: 'فصولي'},
     'account.title': {AppLang.en: 'Account', AppLang.ar: 'الحساب'},
     'account.theme': {AppLang.en: 'Dark mode', AppLang.ar: 'الوضع الداكن'},
     'account.language': {AppLang.en: 'Language', AppLang.ar: 'اللغة'},
@@ -217,6 +347,34 @@ class AppLocalizations {
     'payment.UNPAID': {AppLang.en: 'Unpaid', AppLang.ar: 'غير مدفوع'},
     'payment.PAID': {AppLang.en: 'Paid', AppLang.ar: 'مدفوع'},
     'payment.FAILED': {AppLang.en: 'Failed', AppLang.ar: 'فشل الدفع'},
+    'notifications.title': {
+      AppLang.en: 'Notifications',
+      AppLang.ar: 'الإشعارات',
+    },
+    'notifications.booking': {
+      AppLang.en: 'Booking confirmed',
+      AppLang.ar: 'تم تأكيد الحجز',
+    },
+    'notifications.bookingBody': {
+      AppLang.en: 'Your class seat is reserved.',
+      AppLang.ar: 'تم حجز مقعدك في الفصل.',
+    },
+    'notifications.soon': {
+      AppLang.en: 'Class starting soon',
+      AppLang.ar: 'الفصل سيبدأ قريبًا',
+    },
+    'notifications.soonBody': {
+      AppLang.en: 'Check your schedule before heading out.',
+      AppLang.ar: 'راجع موعدك قبل التوجه إلى الفصل.',
+    },
+    'notifications.review': {
+      AppLang.en: 'New review prompt',
+      AppLang.ar: 'تذكير بتقييم جديد',
+    },
+    'notifications.reviewBody': {
+      AppLang.en: 'Share feedback after your completed class.',
+      AppLang.ar: 'شارك رأيك بعد انتهاء الفصل.',
+    },
   };
 
   String t(String key) =>

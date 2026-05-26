@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../app_state.dart';
 import '../core/l10n.dart';
 import '../core/models.dart';
 import '../core/theme.dart';
@@ -202,6 +203,7 @@ class AppClassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.c;
     final l = context.l10n;
+    final app = context.appWatch;
     final price = item.priceEgp == 0
         ? l.t('common.free')
         : '${item.priceEgp} ${l.t('common.egp')}';
@@ -233,7 +235,38 @@ class AppClassCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 34,
+                    minHeight: 34,
+                  ),
+                  onPressed: () => app.toggleSaved(item.id),
+                  icon: Icon(
+                    app.isSaved(item.id)
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    color: app.isSaved(item.id) ? c.accent : c.muted,
+                    size: 19,
+                  ),
+                ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: compact ? 48 : 58,
+              decoration: BoxDecoration(
+                color: c.accent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Icon(
+                  _subjectIcon(item.subject),
+                  color: c.accent,
+                  size: compact ? 22 : 26,
+                ),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -287,6 +320,20 @@ class AppClassCard extends StatelessWidget {
       ),
     );
   }
+}
+
+IconData _subjectIcon(String subject) {
+  final normalized = subject.toLowerCase();
+  if (normalized.contains('math')) return Icons.calculate_outlined;
+  if (normalized.contains('physics')) return Icons.bolt_outlined;
+  if (normalized.contains('chem')) return Icons.biotech_outlined;
+  if (normalized.contains('bio') || normalized.contains('science')) {
+    return Icons.science_outlined;
+  }
+  if (normalized.contains('english') || normalized.contains('arabic')) {
+    return Icons.menu_book_outlined;
+  }
+  return Icons.school_outlined;
 }
 
 class TutorCard extends StatelessWidget {

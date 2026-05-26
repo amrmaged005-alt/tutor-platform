@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../core/l10n.dart';
 import '../core/models.dart';
+import 'filter_sheet.dart';
 import '../widgets/marketplace_widgets.dart';
 
 class ClassesScreen extends StatefulWidget {
@@ -15,9 +16,7 @@ class ClassesScreen extends StatefulWidget {
 
 class _ClassesScreenState extends State<ClassesScreen> {
   final _search = TextEditingController();
-  String _subject = '';
-  String _format = '';
-  String _sortBy = 'newest';
+  ClassFilters _filters = ClassFilters.empty;
   late Future<List<AppClass>> _future;
 
   @override
@@ -27,12 +26,38 @@ class _ClassesScreenState extends State<ClassesScreen> {
     _future = _load();
   }
 
-  Future<List<AppClass>> _load() => context.app.marketplace.classes(
-    search: _search.text,
-    subject: _subject,
-    format: _format,
-    sortBy: _sortBy,
-  );
+  Future<List<AppClass>> _load() async {
+    final repo = context.app.marketplace;
+    if (_filters.subjects.length <= 1) {
+      return repo.classes(
+        search: _search.text,
+        subject: _filters.primarySubject,
+        format: _filters.format,
+        city: _filters.city,
+        maxPrice: _filters.maxPrice,
+        sortBy: _filters.sortBy,
+      );
+    }
+    final chunks = await Future.wait(
+      _filters.subjects.map(
+        (subject) => repo.classes(
+          search: _search.text,
+          subject: subject,
+          format: _filters.format,
+          city: _filters.city,
+          maxPrice: _filters.maxPrice,
+          sortBy: _filters.sortBy,
+        ),
+      ),
+    );
+    final byId = <String, AppClass>{};
+    for (final chunk in chunks) {
+      for (final item in chunk) {
+        byId[item.id] = item;
+      }
+    }
+    return byId.values.toList();
+  }
 
   void _refresh() => setState(() => _future = _load());
 
@@ -46,7 +71,16 @@ class _ClassesScreenState extends State<ClassesScreen> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l.t('classes.title'))),
+      appBar: AppBar(
+        title: Text(l.t('classes.title')),
+        actions: [
+          IconButton(
+            onPressed: _openFilters,
+            icon: const Icon(Icons.tune_rounded),
+            tooltip: l.t('classes.filters'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -55,24 +89,15 @@ class _ClassesScreenState extends State<ClassesScreen> {
               controller: _search,
               hint: l.t('classes.search'),
               onSubmitted: (_) => _refresh(),
+              onChanged: (_) => setState(() {}),
             ),
           ),
-          _FilterRail(
-            selectedSubject: _subject,
-            selectedFormat: _format,
-            sortBy: _sortBy,
-            onSubject: (value) => setState(() {
-              _subject = value == _subject ? '' : value;
-              _future = _load();
-            }),
-            onFormat: (value) => setState(() {
-              _format = value == _format ? '' : value;
-              _future = _load();
-            }),
-            onSort: () => setState(() {
-              _sortBy = _sortBy == 'newest' ? 'popular' : 'newest';
-              _future = _load();
-            }),
+          _SuggestionRow(
+            query: _search.text,
+            onPick: (value) {
+              _search.text = value;
+              _refresh();
+            },
           ),
           Expanded(
             child: FutureBuilder<List<AppClass>>(
@@ -121,6 +146,20 @@ class _ClassesScreenState extends State<ClassesScreen> {
       ),
     );
   }
+
+  Future<void> _openFilters() async {
+    final app = context.app;
+    final next = await showClassFilterSheet(context, _filters);
+    if (next == null) return;
+    if (next.city.isNotEmpty) {
+      await app.setLastCity(next.city);
+    }
+    if (!mounted) return;
+    setState(() {
+      _filters = next;
+      _future = _load();
+    });
+  }
 }
 
 class TutorsScreen extends StatefulWidget {
@@ -164,7 +203,15 @@ class _TutorsScreenState extends State<TutorsScreen> {
               controller: _search,
               hint: l.t('tutors.search'),
               onSubmitted: (_) => _refresh(),
+              onChanged: (_) => setState(() {}),
             ),
+          ),
+          _SuggestionRow(
+            query: _search.text,
+            onPick: (value) {
+              _search.text = value;
+              _refresh();
+            },
           ),
           SizedBox(
             height: 42,
@@ -225,62 +272,32 @@ class _TutorsScreenState extends State<TutorsScreen> {
   }
 }
 
-class _FilterRail extends StatelessWidget {
-  const _FilterRail({
-    required this.selectedSubject,
-    required this.selectedFormat,
-    required this.sortBy,
-    required this.onSubject,
-    required this.onFormat,
-    required this.onSort,
-  });
-
-  final String selectedSubject;
-  final String selectedFormat;
-  final String sortBy;
-  final ValueChanged<String> onSubject;
-  final ValueChanged<String> onFormat;
-  final VoidCallback onSort;
+class _SuggestionRow extends StatelessWidget {
+  const _SuggestionRow({required this.query, required this.onPick});
+  final String query;
+  final ValueChanged<String> onPick;
 
   @override
   Widget build(BuildContext context) {
-    final l = context.l10n;
+    final text = query.trim().toLowerCase();
+    if (text.length < 2) return const SizedBox.shrink();
+    final matches = subjects
+        .where((subject) => subject.toLowerCase().contains(text))
+        .take(5)
+        .toList();
+    if (matches.isEmpty) return const SizedBox.shrink();
     return SizedBox(
-      height: 42,
-      child: ListView(
+      height: 40,
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          FilterChipButton(
-            label: sortBy == 'popular'
-                ? l.t('classes.popular')
-                : l.t('classes.newest'),
-            selected: sortBy == 'popular',
-            onTap: onSort,
-            icon: Icons.sort_rounded,
-          ),
-          const SizedBox(width: 8),
-          ...formats.map(
-            (format) => Padding(
-              padding: const EdgeInsetsDirectional.only(end: 8),
-              child: FilterChipButton(
-                label: l.t('format.$format'),
-                selected: selectedFormat == format,
-                onTap: () => onFormat(format),
-              ),
-            ),
-          ),
-          ...subjects.map(
-            (subject) => Padding(
-              padding: const EdgeInsetsDirectional.only(end: 8),
-              child: FilterChipButton(
-                label: subject,
-                selected: selectedSubject == subject,
-                onTap: () => onSubject(subject),
-              ),
-            ),
-          ),
-        ],
+        itemBuilder: (_, i) => FilterChipButton(
+          label: matches[i],
+          selected: false,
+          onTap: () => onPick(matches[i]),
+        ),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemCount: matches.length,
       ),
     );
   }
