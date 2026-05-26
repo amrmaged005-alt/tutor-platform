@@ -5,7 +5,7 @@ import PageShell from "../../components/ui/PageShell";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
-import { BarChart3, BookOpen, CreditCard, Download, GraduationCap, Hourglass, Megaphone, Pencil, Trash2, User, Users, XCircle } from "lucide-react";
+import { BarChart3, BookOpen, CheckCircle, CreditCard, Download, GraduationCap, Hourglass, Megaphone, Pencil, RefreshCw, Star, Trash2, User, Users, XCircle } from "lucide-react";
 
 function AdminIcon({ name, size = 16 }: { name: string; size?: number }) {
     const icons = {
@@ -19,6 +19,9 @@ function AdminIcon({ name, size = 16 }: { name: string; size?: number }) {
         error: XCircle,
         hourglass: Hourglass,
         megaphone: Megaphone,
+        approve: CheckCircle,
+        refund: RefreshCw,
+        reviews: Star,
         user: User,
         users: Users,
     } as const;
@@ -129,7 +132,7 @@ function Pagination({ page, setPage, totalPages }: { page: number, setPage: (p: 
     );
 }
 
-type AdminTabId = "overview" | "users" | "classes" | "bookings";
+type AdminTabId = "overview" | "users" | "classes" | "bookings" | "reviews" | "refunds";
 type RevenuePoint = { name: string; revenue: number; bookings: number };
 
 // --- Main Client Component ---
@@ -170,12 +173,52 @@ export default function AdminClient({ data }: { data: AdminData }) {
 
     const PAGE_SIZE = 15;
 
+    // Pending reviews & refunds state
+    const [pendingReviews, setPendingReviews] = useState<Array<{
+        id: string; rating: number; comment: string | null; createdAt: string;
+        student: { id: string; fullName: string | null; name: string | null };
+        class: { id: string; title: string };
+    }>>([]);
+    const [refundRequests, setRefundRequests] = useState<Array<{
+        id: string; amountEgp: number | null; refundReason: string | null; createdAt: string;
+        student: { id: string; fullName: string | null; name: string | null; email: string | null };
+        class: { id: string; title: string };
+    }>>([]);
+
+    useEffect(() => {
+        if (activeTab === "reviews") {
+            fetch("/api/admin/reviews/pending").then(r => r.ok ? r.json() : []).then(setPendingReviews).catch(() => {});
+        }
+        if (activeTab === "refunds") {
+            fetch("/api/admin/refund-requests").then(r => r.ok ? r.json() : []).then(setRefundRequests).catch(() => {});
+        }
+    }, [activeTab]);
+
+    const approveReview = async (id: string) => {
+        await fetch(`/api/admin/reviews/${id}/approve`, { method: "PATCH" });
+        setPendingReviews(prev => prev.filter(r => r.id !== id));
+    };
+    const rejectReview = async (id: string) => {
+        await fetch(`/api/admin/reviews/${id}/approve`, { method: "DELETE" });
+        setPendingReviews(prev => prev.filter(r => r.id !== id));
+    };
+    const approveRefund = async (id: string) => {
+        await fetch(`/api/admin/refund-requests/${id}/approve`, { method: "POST" });
+        setRefundRequests(prev => prev.filter(r => r.id !== id));
+    };
+    const denyRefund = async (id: string) => {
+        await fetch(`/api/admin/refund-requests/${id}/deny`, { method: "POST" });
+        setRefundRequests(prev => prev.filter(r => r.id !== id));
+    };
+
     // Tabs structure
     const tabs = [
-        { id: "overview", label: "Overview", count: "New", icon: "analytics" },
-        { id: "users", label: "Users", count: data.stats.totalUsers, icon: "users" },
-        { id: "classes", label: "Classes", count: data.stats.totalClasses, icon: "classes" },
-        { id: "bookings", label: "Bookings", count: data.stats.totalBookings, icon: "bookings" },
+        { id: "overview",  label: "Overview",     count: "New",                    icon: "analytics" },
+        { id: "users",     label: "Users",         count: data.stats.totalUsers,    icon: "users" },
+        { id: "classes",   label: "Classes",       count: data.stats.totalClasses,  icon: "classes" },
+        { id: "bookings",  label: "Bookings",      count: data.stats.totalBookings, icon: "bookings" },
+        { id: "reviews",   label: "Reviews",       count: "Mod",                    icon: "reviews" },
+        { id: "refunds",   label: "Refunds",       count: "Req",                    icon: "refund" },
     ] satisfies Array<{ id: AdminTabId; label: string; count: string | number; icon: string }>;
 
     // Colors
@@ -684,6 +727,77 @@ export default function AdminClient({ data }: { data: AdminData }) {
                             </div>
                             {filteredBookings.length === 0 && <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>No bookings match your filters.</div>}
                             <Pagination page={bookingPage} setPage={setBookingPage} totalPages={bookingPages} />
+                        </motion.div>
+                    )}
+
+                    {/* PENDING REVIEWS TAB */}
+                    {activeTab === "reviews" && (
+                        <motion.div key="reviews" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border-light)" }}>
+                                <h3 style={{ margin: 0, color: "var(--text)", fontSize: 15, fontWeight: 700 }}>Pending Reviews ({pendingReviews.length})</h3>
+                            </div>
+                            {pendingReviews.length === 0 && (
+                                <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>No pending reviews.</div>
+                            )}
+                            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                                {pendingReviews.map(r => (
+                                    <div key={r.id} style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border-light)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+                                        <div style={{ flex: 1, minWidth: 200 }}>
+                                            <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 14 }}>{r.student.fullName || r.student.name || "Student"}</div>
+                                            <div style={{ color: "var(--text-secondary)", fontSize: 13, marginTop: 2 }}>{r.class.title}</div>
+                                            <div style={{ display: "flex", gap: 2, marginTop: 4 }}>
+                                                {Array.from({ length: 5 }).map((_, i) => (
+                                                    <span key={i} style={{ color: i < r.rating ? "var(--rating)" : "var(--border-light)", fontSize: 14 }}>★</span>
+                                                ))}
+                                            </div>
+                                            {r.comment && <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4, fontStyle: "italic" }}>&ldquo;{r.comment}&rdquo;</div>}
+                                            <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 4 }}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                                        </div>
+                                        <div style={{ display: "flex", gap: 8 }}>
+                                            <button onClick={() => approveReview(r.id)} style={{ backgroundColor: "var(--success-bg)", color: "var(--success)", border: "1px solid var(--success)", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                                                ✓ Approve
+                                            </button>
+                                            <button onClick={() => rejectReview(r.id)} style={{ backgroundColor: "var(--error-bg)", color: "var(--error)", border: "1px solid var(--error-border)", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                                                ✕ Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* REFUND REQUESTS TAB */}
+                    {activeTab === "refunds" && (
+                        <motion.div key="refunds" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border-light)" }}>
+                                <h3 style={{ margin: 0, color: "var(--text)", fontSize: 15, fontWeight: 700 }}>Refund Requests ({refundRequests.length})</h3>
+                            </div>
+                            {refundRequests.length === 0 && (
+                                <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>No refund requests.</div>
+                            )}
+                            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                                {refundRequests.map(r => (
+                                    <div key={r.id} style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border-light)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+                                        <div style={{ flex: 1, minWidth: 200 }}>
+                                            <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 14 }}>{r.student.fullName || r.student.name || "Student"}</div>
+                                            <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 1 }}>{r.student.email}</div>
+                                            <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>{r.class.title}</div>
+                                            <div style={{ color: "var(--text)", fontSize: 13, fontWeight: 700, marginTop: 4 }}>{r.amountEgp ?? 0} EGP</div>
+                                            {r.refundReason && <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 4, fontStyle: "italic" }}>{r.refundReason}</div>}
+                                            <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 4 }}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                                        </div>
+                                        <div style={{ display: "flex", gap: 8 }}>
+                                            <button onClick={() => approveRefund(r.id)} style={{ backgroundColor: "var(--success-bg)", color: "var(--success)", border: "1px solid var(--success)", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                                                ✓ Approve
+                                            </button>
+                                            <button onClick={() => denyRefund(r.id)} style={{ backgroundColor: "var(--error-bg)", color: "var(--error)", border: "1px solid var(--error-border)", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                                                ✕ Deny
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </motion.div>
                     )}
 
