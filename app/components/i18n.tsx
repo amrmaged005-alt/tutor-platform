@@ -4,6 +4,8 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 
 // ─── Translation dictionary ───────────────────────────────────────────────────
 const DICT = {
+  "a11y.skipToContent":   { en: "Skip to main content",       ar: "تخطي إلى المحتوى الرئيسي" },
+
   // ── Navigation ───────────────────────────────────────────────────────────────
   "nav.classes":          { en: "Classes",                    ar: "الفصول" },
   "nav.tutors":           { en: "Tutors",                     ar: "المدرسون" },
