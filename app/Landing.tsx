@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useMotionValue, useMotionValueEvent, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import type { MotionValue } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { useI18n } from "./components/i18n";
 import {
   ArrowRight,
   Award,
   BookOpen,
+  Calendar,
   CheckCircle,
   Clock,
   GraduationCap,
@@ -21,6 +23,7 @@ import {
   Sparkles,
   Star,
   TrendingUp,
+  Users,
   Zap,
 } from "lucide-react";
 
@@ -820,6 +823,392 @@ const BOOK_CSS = `
     -webkit-line-clamp: 3;
   }
 }
+
+/* ── Editorial photo plates ─────────────────────────────── */
+.plate {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--paper-alt);
+  box-shadow:
+    0 18px 40px rgba(24,23,21,0.18),
+    0 1px 0 rgba(255,255,255,0.04) inset;
+  isolation: isolate;
+}
+.plate img,
+.plate :global(img) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: 55% 50%;
+}
+.plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 12%, rgba(255,247,225,0.18), transparent 55%),
+    linear-gradient(180deg, rgba(13,89,70,0.00) 50%, rgba(13,89,70,0.22) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+.plate-caption {
+  position: absolute;
+  inset-inline-start: 12px;
+  inset-block-end: 10px;
+  color: #fbfaf6;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.plate-caption::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: rgba(251,250,246,0.85);
+}
+@keyframes kenburns-soft {
+  0%   { transform: scale(1.04) translate3d(0, 0, 0); }
+  50%  { transform: scale(1.10) translate3d(-1%, -1.2%, 0); }
+  100% { transform: scale(1.04) translate3d(0, 0, 0); }
+}
+.plate-anim img,
+.plate-anim :global(img) {
+  animation: kenburns-soft 22s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .plate-anim img, .plate-anim :global(img) { animation: none; }
+}
+
+/* Hero polaroid stack for the cover page */
+.hero-visual {
+  position: relative;
+  min-height: 460px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+.hero-frame {
+  position: relative;
+  width: min(420px, 100%);
+  aspect-ratio: 4 / 5;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--paper-alt);
+  box-shadow:
+    0 40px 80px rgba(24,23,21,0.25),
+    0 12px 24px rgba(24,23,21,0.12),
+    0 0 0 1px rgba(216,212,199,0.6);
+  transform: rotate(-1.2deg);
+  z-index: 3;
+}
+.hero-frame img,
+.hero-frame :global(img) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: 45% 45%;
+  animation: kenburns-soft 24s ease-in-out infinite;
+}
+.hero-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 25% 18%, rgba(255,243,212,0.22), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(13,52,40,0.32) 100%);
+  pointer-events: none;
+}
+.hero-frame-tape {
+  position: absolute;
+  top: -14px;
+  inset-inline-start: 28%;
+  width: 110px;
+  height: 26px;
+  background: linear-gradient(180deg, rgba(255,245,212,0.92), rgba(241,224,176,0.78));
+  transform: rotate(-6deg);
+  border-radius: 2px;
+  box-shadow: 0 2px 6px rgba(24,23,21,0.18);
+  z-index: 5;
+  opacity: 0.92;
+}
+.hero-back-plate {
+  position: absolute;
+  inset-inline-end: -12px;
+  bottom: 12%;
+  width: 38%;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(24,23,21,0.18);
+  transform: rotate(4deg);
+  z-index: 2;
+}
+.hero-back-plate img,
+.hero-back-plate :global(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hero-stat-chip {
+  position: absolute;
+  inset-inline-start: -14px;
+  top: 12%;
+  z-index: 4;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: 2px;
+  min-width: 132px;
+  transform: rotate(-2deg);
+}
+.hero-stat-chip strong {
+  font-size: 18px;
+  color: var(--accent);
+  font-weight: 850;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.hero-stat-chip span {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+:root[data-theme="dark"] .hero-frame { box-shadow: 0 50px 100px rgba(0,0,0,0.65), 0 12px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(73,68,49,0.5); }
+:root[data-theme="dark"] .hero-frame-tape { background: linear-gradient(180deg, rgba(198,146,86,0.55), rgba(140,98,40,0.45)); }
+
+/* Compose grid for pages that mix copy + plates */
+.compose-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.compose-grid.with-plate {
+  grid-template-rows: minmax(180px, 220px) 1fr;
+}
+.plate.editorial { aspect-ratio: 16 / 9; }
+.plate.portrait { aspect-ratio: 4 / 5; }
+.plate.square { aspect-ratio: 1 / 1; }
+
+/* Tutor highlight card with portrait */
+.tutor-highlight {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 14px;
+  padding: 14px;
+  background: var(--sheet);
+  border: 1px solid var(--sheet-border);
+  border-radius: 14px;
+}
+.tutor-highlight .plate { aspect-ratio: 4/5; min-height: 130px; }
+.tutor-highlight h3 { margin: 0 0 4px; color: var(--ink); font-size: 15px; }
+.tutor-highlight .meta-line { font-size: 12px; }
+.tutor-highlight .badge-line { margin-top: 8px; }
+
+/* Booking interaction preview */
+.booking-preview {
+  display: grid;
+  gap: 14px;
+}
+.booking-card {
+  background: var(--sheet-strong);
+  border: 1px solid var(--sheet-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.booking-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 55%, rgba(13,89,70,0.06));
+  pointer-events: none;
+}
+.booking-card h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 800;
+}
+.booking-card p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.booking-cta {
+  position: relative;
+  min-width: 110px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  border: 1px solid var(--accent);
+  font-weight: 750;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 200ms ease;
+}
+.booking-cta[data-state="booking"] { background: var(--accent-hover); }
+.booking-cta[data-state="confirmed"] {
+  background: var(--success);
+  color: var(--accent-fg);
+}
+.booking-cta-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+.booking-cta-progress {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 1400ms linear;
+  pointer-events: none;
+}
+.booking-cta[data-state="booking"] .booking-cta-progress { transform: scaleX(1); }
+.booking-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 240ms ease, transform 240ms ease;
+}
+.booking-status.show { opacity: 1; transform: translateY(0); }
+.dashboard-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  background: color-mix(in srgb, var(--bg-card) 60%, transparent);
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 320ms ease, transform 320ms ease, border-color 320ms ease, background 320ms ease;
+}
+.dashboard-row strong { color: var(--ink); font-weight: 700; }
+.dashboard-row.show {
+  opacity: 1;
+  transform: translateY(0);
+  border-color: var(--accent-border);
+  background: var(--accent-bg-soft);
+}
+.dashboard-row .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-bg);
+}
+
+/* Search reveal preview on the find page */
+.search-preview {
+  display: grid;
+  gap: 10px;
+  background: var(--sheet-strong);
+  border: 1px solid var(--sheet-border);
+  border-radius: 14px;
+  padding: 14px;
+}
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.search-bar .typed {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.search-bar .caret {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background: var(--accent);
+  margin-inline-start: 2px;
+  animation: caret-blink 1s steps(2) infinite;
+}
+@keyframes caret-blink { 50% { opacity: 0; } }
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--muted);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+.chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+@media (max-width: 900px) {
+  .hero-visual { min-height: 340px; }
+  .hero-frame { width: min(280px, 80%); }
+  .hero-back-plate { width: 42%; }
+  .hero-stat-chip { min-width: 116px; padding: 8px 10px; }
+  .hero-stat-chip strong { font-size: 15px; }
+}
+.book-mobile-card .hero-visual { min-height: 200px; }
+.book-mobile-card .hero-frame { width: min(180px, 56vw); border-radius: 14px; }
+.book-mobile-card .hero-frame-tape { width: 70px; height: 18px; }
+.book-mobile-card .hero-back-plate { display: none; }
+.book-mobile-card .hero-stat-chip { transform: rotate(-2deg) scale(0.9); }
+.book-mobile-card .plate.editorial { aspect-ratio: 16/10; }
+.book-mobile-card .tutor-highlight { grid-template-columns: 78px 1fr; padding: 10px; }
+.book-mobile-card .booking-card { padding: 10px 12px; }
+.book-mobile-card .booking-cta { min-width: 92px; height: 34px; font-size: 12px; }
 `;
 
 type IconComponent = React.FC<{ size?: number; strokeWidth?: number; color?: string; }>;
@@ -877,11 +1266,20 @@ const COPY = {
         heading: "A guided journey from search to first session.",
         body: "Start with the question every family has: who can help, when are they available, and how quickly can learning begin?",
         annotation: "Follow the path from discovery to booking with the important details visible at each step.",
+        plateCaption: "Setup",
       },
       find: {
         tab: "Chapter I", kicker: "How it works",
         heading: "Four pages from uncertainty to a confirmed class.",
         body: "Coursaty is structured around the real workflow families already use: find credible options, compare fit, reserve the right session, and stay organized.",
+        searchQueries: [
+          "Math · IGCSE · Cairo",
+          "Physics · Thanaweya Amma",
+          "Chemistry · Online",
+          "English · Year 11 · Heliopolis",
+        ],
+        chips: ["Math", "Physics", "Chemistry", "Online", "Hybrid", "IGCSE"],
+        plateCaption: "Discover",
       },
       compare: {
         tab: "Chapter II", kicker: "Tutor and class discovery",
@@ -890,12 +1288,26 @@ const COPY = {
         emptyTutors: "Verified tutor profiles will appear here as your marketplace grows.",
         emptyClasses: "Open class listings will appear here once classes are published.",
         btnBrowse: "Explore all classes",
+        featuredCaption: "Featured tutor",
+        featuredBio: "Bilingual tutor for IGCSE and Thanaweya Amma — calm, structured sessions for serious students.",
+        plateCaption: "Catalog",
       },
       book: {
         tab: "Chapter III", kicker: "Trust and quality",
         heading: "More trustworthy than a forwarded phone number.",
         body: "Coursaty turns discovery into a clearer decision. Students see the essentials before booking, while tutors and centers manage demand in one place.",
         annotation: "The goal is not more decoration. It is a calmer system for choosing academic support with fewer unknowns.",
+        plateCaption: "In-class",
+        preview: {
+          title: "IGCSE Physics — Mechanics",
+          subtitle: "Tue & Thu · 7:00 PM · Heliopolis",
+          ctaIdle: "Book seat",
+          ctaBooking: "Reserving…",
+          ctaConfirmed: "Confirmed",
+          dashboardTitle: "Booking added",
+          dashboardSub: "Visible in your dashboard",
+          dashboardWhen: "Just now",
+        },
       },
       learn: {
         tab: "Chapter IV", kicker: "Student outcome",
@@ -910,6 +1322,7 @@ const COPY = {
         rightBody: "Browse current classes, compare available tutors, or create an educator profile if you are ready to teach through Coursaty.",
         rightBtn: "Browse all classes", rightBtnSecondary: "Join as a tutor",
         rightAnnotation: "Coursaty is built for Egypt’s tutoring market: verified educators, organized classes, and booking flows that respect how students actually choose support.",
+        plateCaption: "Outcome",
       },
     },
   },
@@ -962,11 +1375,20 @@ const COPY = {
         heading: "رحلة موجَّهة من البحث إلى أول جلسة.",
         body: "ابدأ بالسؤال الذي يطرحه كل عائلة: من يستطيع المساعدة، متى يكون متاحاً، وكم يستغرق البدء؟",
         annotation: "اتّبع المسار من الاكتشاف إلى الحجز مع ظهور التفاصيل المهمة في كل خطوة.",
+        plateCaption: "البداية",
       },
       find: {
         tab: "الفصل الأول", kicker: "كيف يعمل",
         heading: "أربع خطوات من الحيرة إلى فصل مؤكّد.",
         body: "بُنيت Coursaty حول سير العمل الحقيقي الذي تتّبعه العائلات: إيجاد خيارات موثوقة، ومقارنة الملاءمة، وحجز الجلسة المناسبة، والبقاء منظّماً.",
+        searchQueries: [
+          "رياضيات · IGCSE · القاهرة",
+          "فيزياء · ثانوية عامة",
+          "كيمياء · أونلاين",
+          "إنجليزي · سنة 11 · هليوبوليس",
+        ],
+        chips: ["رياضيات", "فيزياء", "كيمياء", "أونلاين", "مختلط", "IGCSE"],
+        plateCaption: "اكتشف",
       },
       compare: {
         tab: "الفصل الثاني", kicker: "اكتشاف المدرّسين والفصول",
@@ -975,12 +1397,26 @@ const COPY = {
         emptyTutors: "ستظهر ملفات المدرّسين الموثّقين هنا كلما نمت منصتك.",
         emptyClasses: "ستظهر قوائم الفصول المفتوحة هنا بمجرد نشر الفصول.",
         btnBrowse: "استكشف جميع الفصول",
+        featuredCaption: "مدرّسة مميّزة",
+        featuredBio: "مدرّسة ثنائية اللغة لـ IGCSE والثانوية العامة — جلسات هادئة ومنظّمة للطلاب الجادّين.",
+        plateCaption: "الكتالوج",
       },
       book: {
         tab: "الفصل الثالث", kicker: "الثقة والجودة",
         heading: "أكثر موثوقية من رقم هاتف مُحال.",
         body: "تحوّل Coursaty الاكتشاف إلى قرار أوضح. يرى الطلاب الأساسيات قبل الحجز، بينما يدير المدرّسون والمراكز الطلب في مكان واحد.",
         annotation: "الهدف ليس المزيد من الزخارف. بل نظام أهدأ لاختيار الدعم الأكاديمي مع قدر أقل من المجهول.",
+        plateCaption: "داخل الفصل",
+        preview: {
+          title: "فيزياء IGCSE — ميكانيكا",
+          subtitle: "الثلاثاء والخميس · 7:00 م · هليوبوليس",
+          ctaIdle: "احجز مقعدك",
+          ctaBooking: "جارٍ الحجز…",
+          ctaConfirmed: "تم التأكيد",
+          dashboardTitle: "تمت إضافة الحجز",
+          dashboardSub: "ظاهر في لوحة تحكّمك",
+          dashboardWhen: "الآن",
+        },
       },
       learn: {
         tab: "الفصل الرابع", kicker: "نتيجة الطالب",
@@ -995,6 +1431,7 @@ const COPY = {
         rightBody: "تصفّح الفصول الحالية، وقارن المدرّسين المتاحين، أو أنشئ ملف مدرّس إذا كنت مستعداً للتدريس عبر Coursaty.",
         rightBtn: "تصفّح جميع الفصول", rightBtnSecondary: "انضم كمدرّس",
         rightAnnotation: "بُنيت Coursaty لسوق التعليم المصري: مدرّسون موثّقون، وفصول منظّمة، وتدفقات حجز تحترم الطريقة الحقيقية التي يختار بها الطلاب الدعم.",
+        plateCaption: "النتيجة",
       },
     },
   },
@@ -1254,8 +1691,7 @@ function MobileBookScroller({
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const activeIndexRef = useRef(activeIndex);
-  const touchStartYRef = useRef<number | null>(null);
-  const lastFlipAtRef = useRef(0);
+  const wheelLockRef = useRef(0);
 
   useEffect(() => {
     activeIndexRef.current = activeIndex;
@@ -1273,99 +1709,115 @@ function MobileBookScroller({
     });
   }, [pages.length, setActiveIndex]);
 
-  const flipByIntent = useCallback((direction: 1 | -1) => {
-    const now = Date.now();
-    if (now - lastFlipAtRef.current < 420) return;
-
-    const current = activeIndexRef.current;
-    const next = Math.min(pages.length - 1, Math.max(0, current + direction));
-    if (next === current) return;
-
-    lastFlipAtRef.current = now;
-    scrollToIndex(next);
-  }, [pages.length, scrollToIndex]);
-
+  // Lock body scroll only while this scroller is mounted.
   useEffect(() => {
-    const bodyOverflow = document.body.style.overflow;
-    const htmlOverflow = document.documentElement.style.overflow;
-    const bodyOverscroll = document.body.style.overscrollBehaviorY;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overscrollBehaviorY = "none";
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = {
+      bodyOverflow: body.style.overflow,
+      htmlOverflow: html.style.overflow,
+      bodyOverscroll: body.style.overscrollBehaviorY,
+    };
+    body.style.overflow = "hidden";
+    html.style.overflow = "hidden";
+    body.style.overscrollBehaviorY = "none";
     return () => {
-      document.body.style.overflow = bodyOverflow;
-      document.documentElement.style.overflow = htmlOverflow;
-      document.body.style.overscrollBehaviorY = bodyOverscroll;
+      body.style.overflow = prev.bodyOverflow;
+      html.style.overflow = prev.htmlOverflow;
+      body.style.overscrollBehaviorY = prev.bodyOverscroll;
     };
   }, []);
 
+  // Track which page is closest to the viewport center for active state — works
+  // hand-in-hand with native CSS scroll-snap, no manual touch intent needed.
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
 
-    const sections = Array.from(root.querySelectorAll<HTMLElement>("[data-mobile-page-index]"));
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (!visible) return;
-        const next = Number((visible.target as HTMLElement).dataset.mobilePageIndex ?? 0);
-        setActiveIndex((current) => (current === next ? current : next));
-      },
-      { root, threshold: [0.52, 0.72] }
-    );
+    let frame = 0;
+    const compute = () => {
+      frame = 0;
+      const h = root.clientHeight || 1;
+      const idx = Math.round(root.scrollTop / h);
+      const clamped = Math.min(pages.length - 1, Math.max(0, idx));
+      setActiveIndex((current) => (current === clamped ? current : clamped));
+    };
+    const schedule = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(compute);
+    };
+    compute();
+    root.addEventListener("scroll", schedule, { passive: true });
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      root.removeEventListener("scroll", schedule);
+    };
+  }, [pages.length, setActiveIndex]);
 
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, [setActiveIndex]);
+  // Non-passive wheel listener so desktop mouse wheels actually advance one page
+  // per gesture (touch already uses native scroll-snap and needs no JS).
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaY) < 14) return;
+      const now = Date.now();
+      if (now - wheelLockRef.current < 520) {
+        event.preventDefault();
+        return;
+      }
+      wheelLockRef.current = now;
+      event.preventDefault();
+      const direction = event.deltaY > 0 ? 1 : -1;
+      scrollToIndex(activeIndexRef.current + direction);
+    };
+
+    root.addEventListener("wheel", onWheel, { passive: false });
+    return () => root.removeEventListener("wheel", onWheel);
+  }, [scrollToIndex]);
+
+  // Keyboard support so the page is operable without touch/mouse.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+      if (event.key === "ArrowDown" || event.key === "PageDown") {
+        event.preventDefault();
+        scrollToIndex(activeIndexRef.current + 1);
+      } else if (event.key === "ArrowUp" || event.key === "PageUp") {
+        event.preventDefault();
+        scrollToIndex(activeIndexRef.current - 1);
+      } else if (event.key === "Home") {
+        event.preventDefault();
+        scrollToIndex(0);
+      } else if (event.key === "End") {
+        event.preventDefault();
+        scrollToIndex(pages.length - 1);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pages.length, scrollToIndex]);
 
   return (
     <>
       <nav className="bookmark-rail" aria-label="Landing page chapters">
         {pages.map((page, index) => (
-          <a key={page.id} href={`#${page.id}`} className={activeIndex === index ? "active" : undefined}>
+          <a
+            key={page.id}
+            href={`#${page.id}`}
+            className={activeIndex === index ? "active" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              scrollToIndex(index);
+            }}
+          >
             {page.tab}
           </a>
         ))}
       </nav>
 
-      <div
-        ref={rootRef}
-        className="book-mobile-scroll"
-        onPointerDown={(event) => {
-          if (event.pointerType === "mouse") return;
-          touchStartYRef.current = event.clientY;
-        }}
-        onPointerUp={(event) => {
-          if (event.pointerType === "mouse") return;
-          const startY = touchStartYRef.current;
-          touchStartYRef.current = null;
-          if (startY === null) return;
-
-          const deltaY = startY - event.clientY;
-          if (Math.abs(deltaY) < 34) return;
-          flipByIntent(deltaY > 0 ? 1 : -1);
-        }}
-        onTouchStart={(event) => {
-          touchStartYRef.current = event.touches[0]?.clientY ?? null;
-        }}
-        onTouchEnd={(event) => {
-          const startY = touchStartYRef.current;
-          const endY = event.changedTouches[0]?.clientY;
-          touchStartYRef.current = null;
-          if (startY === null || endY === undefined) return;
-
-          const deltaY = startY - endY;
-          if (Math.abs(deltaY) < 34) return;
-          flipByIntent(deltaY > 0 ? 1 : -1);
-        }}
-        onWheel={(event) => {
-          if (Math.abs(event.deltaY) < 18) return;
-          event.preventDefault();
-          flipByIntent(event.deltaY > 0 ? 1 : -1);
-        }}
-      >
+      <div ref={rootRef} className="book-mobile-scroll">
         {pages.map((page, index) => (
           <section
             key={page.id}
@@ -1404,45 +1856,215 @@ function StatCard({ value, suffix, label }: { value: number; suffix?: string; la
   );
 }
 
-function CoverVisual() {
+function CoverVisual({ stats }: { stats: LandingStats }) {
   const prefersReduced = useReducedMotion();
   const { lang } = useI18n();
   const c = COPY[lang].cover;
+  const heroAlt = lang === "ar" ? "طالبة تدرس في غرفة مضاءة بضوء الشمس" : "Student studying in a sunlit room";
+  const backAlt = lang === "ar" ? "مدرّس يساعد طالباً على المذاكرة" : "Tutor helping a student";
   return (
     <motion.div
-      className="cover-visual"
-      initial={prefersReduced ? { opacity: 0 } : { opacity: 0, rotateY: -10, y: 18 }}
-      animate={{ opacity: 1, rotateY: 0, y: 0 }}
-      transition={{ duration: prefersReduced ? 0.12 : 0.72, ease: "easeOut" }}
-      aria-hidden="true"
+      className="hero-visual"
+      initial={prefersReduced ? { opacity: 0 } : { opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: prefersReduced ? 0.12 : 0.78, ease: "easeOut" }}
     >
-      <div className="cover-stack">
-        <div className="cover-page-back" />
-        <div className="cover-page-front">
-          <div className="cover-lines">
-            <span /><span /><span /><span />
-          </div>
-        </div>
-        <div className="cover-board">
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", opacity: 0.72 }}>
-              {c.fieldGuide}
-            </div>
-            <h2 style={{ margin: "18px 0 0", fontSize: "clamp(2rem, 5vw, 3rem)", lineHeight: 0.96, letterSpacing: "-0.04em" }}>
-              {c.tagline}
-            </h2>
-          </div>
-          <div style={{ display: "grid", gap: 10 }}>
-            <div style={{ height: 1, background: "rgba(251,250,246,0.22)" }} />
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 750, opacity: 0.82 }}>
-              <span>{c.verified}</span>
-              <span>{c.comparable}</span>
-              <span>{c.bookable}</span>
-            </div>
-          </div>
-        </div>
+      <div className="hero-stat-chip" aria-hidden="true">
+        <strong>
+          <CheckCircle size={14} strokeWidth={2.5} />
+          {c.verified}
+        </strong>
+        <span>{stats.tutors.toLocaleString()}+ {c.fieldGuide.toLowerCase()}</span>
+      </div>
+      <div className="hero-frame">
+        <span className="hero-frame-tape" aria-hidden="true" />
+        <Image
+          src="/landing/hero-student.webp"
+          alt={heroAlt}
+          width={1376}
+          height={768}
+          priority
+          sizes="(max-width: 900px) 80vw, 420px"
+        />
+      </div>
+      <div className="hero-back-plate" aria-hidden="true">
+        <Image
+          src="/landing/tutor-session.webp"
+          alt={backAlt}
+          width={680}
+          height={680}
+          sizes="(max-width: 900px) 40vw, 180px"
+        />
       </div>
     </motion.div>
+  );
+}
+
+function PhotoPlate({
+  src,
+  alt,
+  caption,
+  variant = "editorial",
+  animate = true,
+  priority = false,
+}: {
+  src: string;
+  alt: string;
+  caption?: string;
+  variant?: "editorial" | "portrait" | "square";
+  animate?: boolean;
+  priority?: boolean;
+}) {
+  const widths: Record<string, [number, number]> = {
+    editorial: [1600, 900],
+    portrait: [900, 1125],
+    square: [900, 900],
+  };
+  const [w, h] = widths[variant];
+  return (
+    <div className={`plate ${variant} ${animate ? "plate-anim" : ""}`}>
+      <Image
+        src={src}
+        alt={alt}
+        width={w}
+        height={h}
+        priority={priority}
+        sizes="(max-width: 900px) 92vw, 460px"
+      />
+      {caption ? <span className="plate-caption">{caption}</span> : null}
+    </div>
+  );
+}
+
+function SearchPreview() {
+  const { lang } = useI18n();
+  const c = COPY[lang].pages.find;
+  const queries = c.searchQueries;
+  const chips = c.chips;
+  const [queryIndex, setQueryIndex] = useState(0);
+  const [typed, setTyped] = useState("");
+  const [activeChip, setActiveChip] = useState(0);
+  const prefersReduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement | null>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+
+  useEffect(() => {
+    const target = queries[queryIndex] ?? "";
+
+    if (!inView || prefersReduced) {
+      const id = window.setTimeout(() => setTyped(target), 0);
+      return () => window.clearTimeout(id);
+    }
+
+    const resetId = window.setTimeout(() => setTyped(""), 0);
+    let i = 0;
+    const typer = window.setInterval(() => {
+      i += 1;
+      setTyped(target.slice(0, i));
+      if (i >= target.length) {
+        window.clearInterval(typer);
+      }
+    }, 55);
+    const cycle = window.setTimeout(() => {
+      setQueryIndex((n) => (n + 1) % queries.length);
+      setActiveChip((n) => (n + 1) % chips.length);
+    }, 3600);
+    return () => {
+      window.clearTimeout(resetId);
+      window.clearInterval(typer);
+      window.clearTimeout(cycle);
+    };
+  }, [inView, prefersReduced, queryIndex, queries, chips.length]);
+
+  return (
+    <div ref={ref} className="search-preview" aria-live="polite">
+      <div className="search-bar">
+        <Search size={15} strokeWidth={2.4} color="var(--accent)" />
+        <span className="typed">{typed}</span>
+        <span className="caret" aria-hidden="true" />
+      </div>
+      <div className="chip-row">
+        {chips.map((chip, i) => (
+          <span key={chip} className={`chip ${activeChip === i ? "active" : ""}`}>{chip}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BookingPreview() {
+  const { lang } = useI18n();
+  const c = COPY[lang].pages.book.preview;
+  const [phase, setPhase] = useState<"idle" | "booking" | "confirmed">("idle");
+  const prefersReduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement | null>(null);
+  const inView = useInView(ref, { amount: 0.5 });
+
+  useEffect(() => {
+    if (!inView) {
+      const id = window.setTimeout(() => setPhase("idle"), 0);
+      return () => window.clearTimeout(id);
+    }
+    if (prefersReduced) {
+      const id = window.setTimeout(() => setPhase("confirmed"), 0);
+      return () => window.clearTimeout(id);
+    }
+
+    let cancelled = false;
+    const timers: number[] = [];
+    const at = (delay: number, next: "idle" | "booking" | "confirmed") => {
+      timers.push(window.setTimeout(() => {
+        if (!cancelled) setPhase(next);
+      }, delay));
+    };
+    const cycle = (offset = 0) => {
+      at(offset, "idle");
+      at(offset + 1100, "booking");
+      at(offset + 2600, "confirmed");
+      timers.push(window.setTimeout(() => {
+        if (!cancelled) cycle();
+      }, offset + 6200));
+    };
+    cycle();
+    return () => {
+      cancelled = true;
+      timers.forEach((t) => window.clearTimeout(t));
+    };
+  }, [inView, prefersReduced]);
+
+  const ctaLabel =
+    phase === "confirmed" ? c.ctaConfirmed : phase === "booking" ? c.ctaBooking : c.ctaIdle;
+
+  return (
+    <div ref={ref} className="booking-preview">
+      <div className="booking-card">
+        <div>
+          <h4>{c.title}</h4>
+          <p>{c.subtitle}</p>
+        </div>
+        <button
+          type="button"
+          className="booking-cta"
+          data-state={phase}
+          aria-live="polite"
+          aria-label={ctaLabel}
+          tabIndex={-1}
+        >
+          <span className="booking-cta-progress" aria-hidden="true" />
+          <span className="booking-cta-text">
+            {phase === "confirmed" ? <CheckCircle size={14} strokeWidth={2.5} /> : <Calendar size={14} strokeWidth={2.4} />}
+            {ctaLabel}
+          </span>
+        </button>
+      </div>
+      <div className={`dashboard-row ${phase === "confirmed" ? "show" : ""}`}>
+        <span className="dot" aria-hidden="true" />
+        <div>
+          <strong>{c.dashboardTitle}</strong> · {c.dashboardSub}
+        </div>
+        <span>{c.dashboardWhen}</span>
+      </div>
+    </div>
   );
 }
 
@@ -1611,7 +2233,7 @@ export default function Landing({
           </div>
         </>
       ),
-      right: <CoverVisual />,
+      right: <CoverVisual stats={stats} />,
     },
     {
       id: "contents",
@@ -1621,7 +2243,15 @@ export default function Landing({
           <ChapterKicker>{p.contents.kicker}</ChapterKicker>
           <h2 className="book-heading medium">{p.contents.heading}</h2>
           <p className="book-copy">{p.contents.body}</p>
-          <div className="annotation" style={{ marginTop: 28 }}>
+          <div style={{ marginTop: 20 }}>
+            <PhotoPlate
+              src="/landing/desk-flatlay.webp"
+              alt={lang === "ar" ? "مكتب دراسة منظّم" : "Organized study desk"}
+              caption={p.contents.plateCaption}
+              variant="editorial"
+            />
+          </div>
+          <div className="annotation" style={{ marginTop: 18 }}>
             {p.contents.annotation}
           </div>
         </>
@@ -1640,11 +2270,20 @@ export default function Landing({
           <ChapterKicker>{p.find.kicker}</ChapterKicker>
           <h2 className="book-heading medium">{p.find.heading}</h2>
           <p className="book-copy">{p.find.body}</p>
+          <div style={{ marginTop: 20 }}>
+            <SearchPreview />
+          </div>
         </>
       ),
       right: (
         <div className="step-list">
           {STEPS.map((step, index) => <StepRow key={step.title} step={step} index={index} />)}
+          <PhotoPlate
+            src="/landing/parent-tablet.webp"
+            alt={lang === "ar" ? "ولي أمر يراجع الجدول مع ابنته" : "Parent reviewing schedule with daughter"}
+            caption={p.find.plateCaption}
+            variant="editorial"
+          />
         </div>
       ),
     },
@@ -1656,8 +2295,32 @@ export default function Landing({
           <ChapterKicker>{p.compare.kicker}</ChapterKicker>
           <h2 className="book-heading medium">{p.compare.heading}</h2>
           <p className="book-copy">{p.compare.body}</p>
-          <div className="catalog-grid" style={{ marginTop: 24 }}>
-            {tutorCards.length > 0 ? tutorCards.map((tutor) => <TutorCard key={tutor.id} tutor={tutor} />) : (
+          <div className="tutor-highlight" style={{ marginTop: 18 }}>
+            <PhotoPlate
+              src="/landing/tutor-portrait.webp"
+              alt={lang === "ar" ? "مدرّسة" : "Tutor"}
+              variant="portrait"
+              animate={false}
+            />
+            <div>
+              <span className="chapter-kicker" style={{ marginBottom: 6 }}>{p.compare.featuredCaption}</span>
+              <h3>Layla A. <span className="book-badge" style={{ color: "var(--accent)", marginInlineStart: 6 }}>{COPY[lang].tutor.verified}</span></h3>
+              <div className="meta-line">
+                <MapPin size={13} strokeWidth={2} />
+                <span>{lang === "ar" ? "القاهرة الجديدة" : "New Cairo"}</span>
+                <Users size={13} strokeWidth={2} />
+                <span>120+</span>
+              </div>
+              <p style={{ margin: "8px 0 0", fontSize: 12.5, lineHeight: 1.55, color: "var(--muted)" }}>{p.compare.featuredBio}</p>
+              <div className="badge-line">
+                <span className="book-badge">Math</span>
+                <span className="book-badge">Physics</span>
+                <span className="book-badge"><Star size={11} fill="var(--rating)" color="var(--rating)" /> 4.9</span>
+              </div>
+            </div>
+          </div>
+          <div className="catalog-grid" style={{ marginTop: 16 }}>
+            {tutorCards.length > 0 ? tutorCards.slice(0, 2).map((tutor) => <TutorCard key={tutor.id} tutor={tutor} />) : (
               <div className="annotation">{p.compare.emptyTutors}</div>
             )}
           </div>
@@ -1682,13 +2345,22 @@ export default function Landing({
           <ChapterKicker>{p.book.kicker}</ChapterKicker>
           <h2 className="book-heading medium">{p.book.heading}</h2>
           <p className="book-copy">{p.book.body}</p>
-          <div className="annotation" style={{ marginTop: 28 }}>
+          <div style={{ marginTop: 18 }}>
+            <BookingPreview />
+          </div>
+          <div className="annotation" style={{ marginTop: 18 }}>
             {p.book.annotation}
           </div>
         </>
       ),
       right: (
         <div className="trust-grid">
+          <PhotoPlate
+            src="/landing/tutor-session.webp"
+            alt={lang === "ar" ? "مدرّس يساعد طالباً" : "Tutor helping a student"}
+            caption={p.book.plateCaption}
+            variant="editorial"
+          />
           {TRUST.map((item) => <TrustCard key={item.title} item={item} />)}
         </div>
       ),
@@ -1701,7 +2373,7 @@ export default function Landing({
           <ChapterKicker>{p.learn.kicker}</ChapterKicker>
           <h2 className="book-heading medium">{p.learn.heading}</h2>
           <p className="book-copy">{p.learn.body}</p>
-          <div className="outcome-grid" style={{ marginTop: 26 }}>
+          <div className="outcome-grid" style={{ marginTop: 22 }}>
             <OutcomeNote icon={Zap} title={p.learn.outcome1Title} body={p.learn.outcome1Body} />
             <OutcomeNote icon={BookOpen} title={p.learn.outcome2Title} body={p.learn.outcome2Body} />
           </div>
@@ -1712,7 +2384,15 @@ export default function Landing({
           <ChapterKicker>{p.learn.rightKicker}</ChapterKicker>
           <h2 className="book-heading medium">{p.learn.rightHeading}</h2>
           <p className="book-copy">{p.learn.rightBody}</p>
-          <div className="book-actions">
+          <div style={{ marginTop: 18 }}>
+            <PhotoPlate
+              src="/landing/learning-center.webp"
+              alt={lang === "ar" ? "مركز تعليمي حديث" : "Modern learning center"}
+              caption={p.learn.plateCaption}
+              variant="editorial"
+            />
+          </div>
+          <div className="book-actions" style={{ marginTop: 18 }}>
             <Link href="/classes" className="book-btn">
               {p.learn.rightBtn} <ArrowRight size={16} strokeWidth={2} />
             </Link>
@@ -1720,14 +2400,14 @@ export default function Landing({
               {p.learn.rightBtnSecondary}
             </Link>
           </div>
-          <div className="annotation" style={{ marginTop: "auto" }}>
+          <div className="annotation" style={{ marginTop: 14 }}>
             {p.learn.rightAnnotation}
           </div>
         </>
       ),
     },
   ];
-  }, [lang, classCards, stats.bookings, stats.classes, stats.tutors, tutorCards]);
+  }, [lang, classCards, stats, tutorCards]);
 
   return (
     <div className="book-landing">
