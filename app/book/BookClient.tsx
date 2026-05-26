@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import BookMobile from "./BookMobile";
 
 const BOOK_CSS = `
 #bk-root {
@@ -488,53 +489,16 @@ const BOOK_CSS = `
   display: inline-flex;
   align-items: center;
 }
-#bk-mobile {
-  display: none;
-  min-height: 100vh;
-  background: var(--bk-bg);
-  color: var(--bk-text);
-  font-family: 'Lora', Georgia, serif;
-  padding: 1rem;
-}
-.bk-m-cover,
-.bk-m-page {
-  background: var(--bk-parchment);
-  border: 1px solid rgba(123,45,66,0.16);
-  border-radius: 10px;
-  padding: 1.4rem;
-  margin: 0 0 1rem;
-}
-.bk-m-cover {
-  color: var(--bk-parchment);
-  background: linear-gradient(150deg, #943852, #3D1220);
-  min-height: 260px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.bk-m-cover h1,
-.bk-m-page h2 {
-  font-family: 'Playfair Display', Georgia, serif;
-  margin: 0 0 0.7rem;
-  line-height: 1.12;
-}
-.bk-social-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-.bk-social {
-  color: var(--bk-spine);
-  text-decoration: none;
-  font-weight: 800;
-  font-size: 0.86rem;
-}
 @media (prefers-reduced-motion: reduce) {
-  #bk-root *, #bk-mobile * {
+  #bk-root * {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
 }
+/* Hide the desktop 3D book on mobile — BookMobile renders a stepped card UI */
 @media (max-width: 860px) {
   #bk-root { display: none; }
-  #bk-mobile { display: block; }
 }
 `;
 
@@ -761,7 +725,7 @@ export default function BookClient() {
         </nav>
       </div>
 
-      <MobileBook />
+      <BookMobile />
     </>
   );
 }
@@ -942,20 +906,5 @@ function Testimonial({ quote, name, role, initial }: { quote: string; name: stri
   );
 }
 
-function MobileBook() {
-  return (
-    <div id="bk-mobile">
-      <div className="bk-m-cover">
-        <p className="bk-eyebrow" style={{ color: "rgba(253,246,227,0.72)" }}>Coursaty</p>
-        <h1>Find the Right Tutor. First Time.</h1>
-        <p style={{ color: "rgba(253,246,227,0.78)", lineHeight: 1.7 }}>A guided story about choosing verified tutors, clear classes, and confident learning across Egypt.</p>
-        <Link href="/classes" className="bk-btn" style={{ alignSelf: "flex-start", marginTop: 16 }}>Browse Classes</Link>
-      </div>
-      <article className="bk-m-page"><h2>Finding good tutors should not be this hard</h2><p className="bk-body">Coursaty replaces scattered recommendations with searchable classes, tutor profiles, ratings, and clear booking details.</p></article>
-      <article className="bk-m-page"><h2>A better way to learn</h2><div className="bk-steps"><Step n="1" title="Search & filter" body="Find the right subject, level, format, and price." /><Step n="2" title="Book in seconds" body="Reserve a seat without message chaos." /><Step n="3" title="Learn with confidence" body="Use verified profiles and reviews to choose well." /></div></article>
-      <article className="bk-m-page"><h2>Built for Egypt&apos;s students</h2><div className="bk-feature-grid"><Feature title="Local curricula" body="National, IGCSE, American, IB, STEM." /><Feature title="Flexible formats" body="In-person, online, and hybrid." /><Feature title="Tutor trust" body="Verification, ratings, and reviews." /><Feature title="Seat visibility" body="Capacity and availability before booking." /></div></article>
-      <article className="bk-m-page"><h2>What students say</h2><Testimonial quote="I found an IGCSE Physics class in one evening instead of asking around for a week." name="Mariam S." role="Student" initial="M" /></article>
-      <article className="bk-m-page"><h2>Your perfect tutor awaits</h2><p className="bk-body">Start with a subject, grade, or curriculum.</p><div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}><Link href="/classes" className="bk-btn">Browse Classes</Link><Link href="/tutors" className="bk-btn-secondary">Find a Tutor</Link></div></article>
-    </div>
-  );
-}
+// MobileBook moved to BookMobile.tsx — extracted to keep BookClient focused on the
+// desktop 3D book-flip experience and unblock a richer stepped UI for mobile.
