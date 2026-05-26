@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
       studentId: session.user.id,
       rating,
       comment,
+      isApproved: false,
     },
   });
 
@@ -79,7 +80,7 @@ export async function GET(req: NextRequest) {
   }
 
   const reviews = await prisma.review.findMany({
-    where: { classId },
+    where: { classId, isApproved: true },
     include: {
       student: {
         select: {
