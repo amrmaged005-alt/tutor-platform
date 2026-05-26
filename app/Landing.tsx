@@ -213,11 +213,37 @@ const BOOK_CSS = `
 }
 .book-page {
   min-width: 0;
+  min-height: 0;
   position: relative;
   z-index: 3;
-  padding: clamp(28px, 4vw, 54px);
+  padding: clamp(20px, 3vw, 42px) clamp(24px, 3.5vw, 48px);
   display: flex;
   flex-direction: column;
+  /* When content overflows the spread height, scroll inside the page instead
+     of being clipped. Keeps the book metaphor while preventing data loss. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-edge) transparent;
+}
+.book-page::-webkit-scrollbar { width: 4px; }
+.book-page::-webkit-scrollbar-track { background: transparent; }
+.book-page::-webkit-scrollbar-thumb {
+  background: var(--paper-edge);
+  border-radius: 99px;
+}
+/* Soft fade at the bottom of each page hints there's more to scroll */
+.book-page::after {
+  content: "";
+  position: sticky;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 24px;
+  margin-top: -24px;
+  background: linear-gradient(180deg, transparent, var(--paper));
+  pointer-events: none;
+  flex-shrink: 0;
 }
 .book-page.left { border-right: 1px solid var(--paper-line); }
 .chapter-tab {
@@ -255,16 +281,16 @@ const BOOK_CSS = `
   background: var(--chapter);
 }
 .book-heading {
-  font-size: clamp(2rem, 4.8vw, 4.6rem);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
-  margin: 0 0 22px;
+  font-size: clamp(1.85rem, 3.6vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  margin: 0 0 18px;
   color: var(--ink);
   font-weight: 850;
 }
 .book-heading.medium {
-  font-size: clamp(1.8rem, 3.4vw, 3rem);
-  line-height: 1.06;
+  font-size: clamp(1.55rem, 2.8vw, 2.4rem);
+  line-height: 1.08;
 }
 .book-copy {
   color: var(--muted);
@@ -747,20 +773,27 @@ const BOOK_CSS = `
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 28px;
+  gap: 8px;
+  margin-top: 20px;
+}
+.trust-card,
+.outcome-note,
+.stat-card {
+  padding: 12px 14px;
 }
 .stat-card strong {
   display: block;
   color: var(--ink);
-  font-size: 24px;
+  font-size: 19px;
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .stat-card span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
+  line-height: 1.25;
+  display: block;
 }
 @media (prefers-reduced-motion: reduce) {
   .book-landing *, .book-landing *::before, .book-landing *::after {
@@ -841,7 +874,16 @@ const BOOK_CSS = `
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 35%;
   transform-origin: 55% 50%;
+}
+.plate.portrait img,
+.plate.portrait :global(img) {
+  object-position: center 22%;
+}
+.plate.square img,
+.plate.square :global(img) {
+  object-position: center 30%;
 }
 .plate::after {
   content: "";
@@ -890,16 +932,20 @@ const BOOK_CSS = `
 /* Hero polaroid stack for the cover page */
 .hero-visual {
   position: relative;
-  min-height: 460px;
+  min-height: 0;
+  height: 100%;
+  max-height: min(560px, 70vh);
   display: grid;
   place-items: center;
   isolation: isolate;
+  padding: 12px 24px;
 }
 .hero-frame {
   position: relative;
-  width: min(420px, 100%);
+  width: min(340px, 78%);
   aspect-ratio: 4 / 5;
-  border-radius: 20px;
+  max-height: 92%;
+  border-radius: 18px;
   overflow: hidden;
   background: var(--paper-alt);
   box-shadow:
@@ -915,6 +961,7 @@ const BOOK_CSS = `
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 30%;
   transform-origin: 45% 45%;
   animation: kenburns-soft 24s ease-in-out infinite;
 }
@@ -942,11 +989,12 @@ const BOOK_CSS = `
 }
 .hero-back-plate {
   position: absolute;
-  inset-inline-end: -12px;
-  bottom: 12%;
-  width: 38%;
+  inset-inline-end: 8%;
+  bottom: 16%;
+  width: 30%;
+  max-width: 140px;
   aspect-ratio: 1 / 1;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(24,23,21,0.18);
   transform: rotate(4deg);
@@ -960,32 +1008,35 @@ const BOOK_CSS = `
 }
 .hero-stat-chip {
   position: absolute;
-  inset-inline-start: -14px;
-  top: 12%;
+  inset-inline-start: 8%;
+  top: 16%;
   z-index: 4;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   box-shadow: var(--shadow-lg);
   display: grid;
   gap: 2px;
-  min-width: 132px;
+  min-width: 118px;
+  max-width: 150px;
   transform: rotate(-2deg);
 }
 .hero-stat-chip strong {
-  font-size: 18px;
+  font-size: 14px;
   color: var(--accent);
   font-weight: 850;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  line-height: 1.1;
 }
 .hero-stat-chip span {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-muted);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
+  line-height: 1.25;
 }
 :root[data-theme="dark"] .hero-frame { box-shadow: 0 50px 100px rgba(0,0,0,0.65), 0 12px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(73,68,49,0.5); }
 :root[data-theme="dark"] .hero-frame-tape { background: linear-gradient(180deg, rgba(198,146,86,0.55), rgba(140,98,40,0.45)); }
@@ -1314,14 +1365,14 @@ const BOOK_CSS = `
 .mini-tutor-row {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(160px, 1fr);
-  gap: 10px;
-  margin-top: 18px;
+  grid-auto-columns: minmax(150px, 1fr);
+  gap: 8px;
+  margin-top: 14px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
 }
 .mini-tutor-row::-webkit-scrollbar { display: none; }
 .mini-tutor-chip {
@@ -2174,10 +2225,10 @@ function CoverVisual({ stats }: { stats: LandingStats }) {
         <Image
           src="/landing/hero-student.webp"
           alt={heroAlt}
-          width={1376}
-          height={768}
+          width={896}
+          height={1200}
           priority
-          sizes="(max-width: 900px) 80vw, 420px"
+          sizes="(max-width: 900px) 78vw, 340px"
         />
       </div>
       <div className="hero-back-plate" aria-hidden="true">
