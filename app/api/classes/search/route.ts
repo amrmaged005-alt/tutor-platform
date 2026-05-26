@@ -10,10 +10,13 @@ export async function GET(req: Request) {
     const gradeLevel  = searchParams.get("gradeLevel") || "";
     const format      = searchParams.get("format") || "";
     const location    = searchParams.get("location") || "";
-    const search      = searchParams.get("search") || ""; // tutor/center name or class title
+    const search      = searchParams.get("search") || "";
     const minPrice    = searchParams.get("minPrice") || "";
     const maxPrice    = searchParams.get("maxPrice") || "";
     const sortBy      = searchParams.get("sortBy") || "newest";
+    const page        = Math.max(1, Number(searchParams.get("page") ?? 1));
+    const limit       = Math.min(50, Math.max(1, Number(searchParams.get("limit") ?? 12)));
+    const skip        = (page - 1) * limit;
 
     // Build the Prisma filter object dynamically
     const where: any = {};
@@ -96,18 +99,23 @@ export async function GET(req: Request) {
     if (sortBy === "price_desc") orderBy = { priceEgp: "desc" };
     if (sortBy === "popular")    orderBy = { bookings: { _count: "desc" } };
 
-    const classes = await prisma.class.findMany({
-      where,
-      orderBy,
-      include: {
-        tutors: { include: { tutor: true } },
-        center: true,
-        owner: true,
-        _count: { select: { bookings: true } },
-      },
-    });
+    const [items, total] = await Promise.all([
+      prisma.class.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+        include: {
+          tutors: { include: { tutor: true } },
+          center: true,
+          owner: true,
+          _count: { select: { bookings: true } },
+        },
+      }),
+      prisma.class.count({ where }),
+    ]);
 
-    return NextResponse.json({ classes });
+    return NextResponse.json({ items, total, hasMore: skip + items.length < total });
   } catch (error) {
     console.error("Search error:", error);
     return NextResponse.json({ error: "Search failed" }, { status: 500 });

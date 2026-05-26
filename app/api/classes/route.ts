@@ -4,6 +4,31 @@ import { prisma } from "../../../lib/prisma";
 import { ClassCreateSchema } from "@/schemas/class";
 import { isRateLimited, generalLimiter } from "@/lib/ratelimit";
 
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const page  = Math.max(1, Number(searchParams.get("page")  ?? 1));
+  const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit") ?? 12)));
+  const skip  = (page - 1) * limit;
+
+  const [items, total] = await Promise.all([
+    prisma.class.findMany({
+      where: { isActive: true },
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        tutors: { include: { tutor: { select: { id: true, fullName: true, name: true, photoUrl: true } } } },
+        center: { select: { id: true, name: true, logoUrl: true } },
+        owner:  { select: { id: true, fullName: true, name: true, photoUrl: true } },
+        _count: { select: { bookings: true, reviews: true } },
+      },
+    }),
+    prisma.class.count({ where: { isActive: true } }),
+  ]);
+
+  return NextResponse.json({ items, total, hasMore: skip + items.length < total });
+}
+
 function isSameOrigin(req: NextRequest): boolean {
   const origin = req.headers.get("origin");
   const host = req.headers.get("host");
@@ -29,7 +54,7 @@ export async function POST(req: NextRequest) {
     const session = await auth();
 
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+      return NextResponse.json({ error: "Not logged in", code: "UNAUTHORIZED" }, { status: 401 });
     }
 
     const limited = await isRateLimited(generalLimiter, `class:${session.user.id ?? session.user.email}`);
@@ -42,7 +67,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user || (user.role !== "TUTOR" && user.role !== "CENTER_ADMIN" && user.role !== "ADMIN")) {
-      return NextResponse.json({ error: "Only tutors and centers can create classes" }, { status: 403 });
+      return NextResponse.json({ error: "Only tutors and centers can create classes", code: "FORBIDDEN" }, { status: 403 });
     }
 
     const body = await req.json();
@@ -58,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid class details" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid class details", code: "VALIDATION_ERROR" },
         { status: 400 }
       );
     }
@@ -90,6 +115,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, class: newClass });
   } catch (error) {
     console.error("Create class error:", error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong", code: "INTERNAL_ERROR" }, { status: 500 });
   }
 }

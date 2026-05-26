@@ -8,6 +8,7 @@ export async function GET(
   const { id } = await params;
   const reviews = await prisma.review.findMany({
     where: {
+      isApproved: true,
       class: {
         OR: [{ ownerId: id }, { tutors: { some: { tutorId: id } } }],
       },

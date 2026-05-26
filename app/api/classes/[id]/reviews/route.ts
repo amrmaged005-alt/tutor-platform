@@ -8,7 +8,7 @@ export async function GET(
 ) {
   const { id } = await params;
   const reviews = await prisma.review.findMany({
-    where: { classId: id },
+    where: { classId: id, isApproved: true },
     include: {
       student: { select: { fullName: true, name: true, photoUrl: true } },
     },
@@ -31,7 +31,7 @@ export async function POST(
   const comment = typeof body?.comment === "string" ? body.comment.slice(0, 600) : "";
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-    return NextResponse.json({ error: "Choose a rating from 1 to 5." }, { status: 400 });
+    return NextResponse.json({ error: "Choose a rating from 1 to 5.", code: "VALIDATION_ERROR" }, { status: 400 });
   }
 
   const booking = await prisma.booking.findFirst({
@@ -41,15 +41,16 @@ export async function POST(
 
   if (!booking) {
     return NextResponse.json(
-      { error: "You can only review classes you have booked." },
+      { error: "You can only review classes you have booked.", code: "FORBIDDEN" },
       { status: 403 }
     );
   }
 
+  // New reviews default to isApproved: false (moderation required)
   const review = await prisma.review.upsert({
-    where: { classId_studentId: { classId: id, studentId: user.id } },
+    where:  { classId_studentId: { classId: id, studentId: user.id } },
     update: { rating, comment },
-    create: { classId: id, studentId: user.id, rating, comment },
+    create: { classId: id, studentId: user.id, rating, comment, isApproved: false },
   });
 
   return NextResponse.json({ review });
