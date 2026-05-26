@@ -21,6 +21,19 @@ class NotificationService {
     await _plugin.initialize(settings);
   }
 
+  Future<String?> pushToken() async {
+    return null;
+  }
+
+  String get platform {
+    if (kIsWeb) return 'web';
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.iOS || TargetPlatform.macOS => 'ios',
+      TargetPlatform.android => 'android',
+      _ => 'web',
+    };
+  }
+
   Future<void> showForeground({
     required String title,
     required String body,

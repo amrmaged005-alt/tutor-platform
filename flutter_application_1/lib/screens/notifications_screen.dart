@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../app_state.dart';
 import '../core/l10n.dart';
+import '../core/notification_service.dart';
 import '../core/theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -14,12 +16,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    _registerNotificationStub();
+    _registerNotificationToken();
   }
 
-  Future<void> _registerNotificationStub() async {
-    // TODO: Register the FCM/APNs token with the backend after push setup.
-    // This screen is wired so foreground notification handling has a home.
+  Future<void> _registerNotificationToken() async {
+    final app = context.app;
+    if (!app.isSignedIn) return;
+    final token = await NotificationService.instance.pushToken();
+    if (token == null || token.isEmpty) return;
+    await app.auth.registerPushToken(
+      token: token,
+      platform: NotificationService.instance.platform,
+    );
   }
 
   @override

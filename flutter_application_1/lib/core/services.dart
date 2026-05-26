@@ -61,6 +61,23 @@ class AuthRepository {
     await _storage.delete(key: tokenKey);
     await _storage.delete(key: userKey);
   }
+
+  Future<void> registerPushToken({
+    required String token,
+    required String platform,
+    String? appVersion,
+    String? deviceId,
+  }) async {
+    await _api.postMap(
+      '/api/mobile/push-token',
+      data: {
+        'token': token,
+        'platform': platform,
+        'appVersion': ?appVersion,
+        'deviceId': ?deviceId,
+      },
+    );
+  }
 }
 
 class MarketplaceRepository {

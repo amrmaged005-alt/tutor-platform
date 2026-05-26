@@ -139,6 +139,7 @@ model User {
   reviews      Review[]
   payouts      Payout[]
   auditLogs    AuditLog[]   @relation("AuditActor")
+  pushTokens   PushToken[]
 
   @@index([role])
   @@index([centerId])
@@ -289,6 +290,25 @@ model Review {
   student User  @relation(fields: [studentId], references: [id])
 
   @@unique([classId, studentId])
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId     String
+  token      String   @unique
+  platform   String
+  appVersion String?
+  deviceId   String?
+  disabledAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([platform])
+  @@index([disabledAt])
 }
 
 // ─── Payment Models ───────────────────────────────────────────────────────────
