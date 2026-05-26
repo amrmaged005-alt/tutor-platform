@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SearchX } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface EmptyStateProps {
@@ -13,13 +14,7 @@ interface EmptyStateProps {
 }
 
 function DefaultIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  );
+  return <SearchX size={28} strokeWidth={1.7} aria-hidden />;
 }
 
 export default function EmptyState({
@@ -32,6 +27,8 @@ export default function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
+      role="status"
+      aria-live="polite"
       style={{
         backgroundColor: "var(--bg-card)",
         border: "1px solid var(--border-light)",
@@ -58,6 +55,33 @@ export default function EmptyState({
       >
         {icon ?? <DefaultIcon />}
       </div>
+
+      {!compact && (
+        <div
+          aria-hidden="true"
+          style={{
+            width: "min(100%, 320px)",
+            margin: "0 auto 1.25rem",
+            display: "grid",
+            gap: 8,
+          }}
+        >
+          {[78, 58, 68].map((width, index) => (
+            <div
+              key={width}
+              style={{
+                height: 10,
+                width: `${width}%`,
+                marginInlineStart: index === 1 ? "auto" : 0,
+                marginInlineEnd: index === 0 ? "auto" : 0,
+                borderRadius: 999,
+                background: "var(--bg-subtle)",
+                border: "1px solid var(--border-light)",
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       <h3
         style={{
@@ -97,22 +121,22 @@ export default function EmptyState({
         >
           {action && (
             action.href ? (
-              <Link href={action.href} className="btn-primary">
+              <Link href={action.href} className="btn-primary" style={{ minHeight: 44 }}>
                 {action.label}
               </Link>
             ) : (
-              <button type="button" onClick={action.onClick} className="btn-primary">
+              <button type="button" onClick={action.onClick} className="btn-primary" style={{ minHeight: 44 }}>
                 {action.label}
               </button>
             )
           )}
           {secondary && (
             secondary.href ? (
-              <Link href={secondary.href} className="btn-secondary">
+              <Link href={secondary.href} className="btn-secondary" style={{ minHeight: 44 }}>
                 {secondary.label}
               </Link>
             ) : (
-              <button type="button" onClick={secondary.onClick} className="btn-secondary">
+              <button type="button" onClick={secondary.onClick} className="btn-secondary" style={{ minHeight: 44 }}>
                 {secondary.label}
               </button>
             )
