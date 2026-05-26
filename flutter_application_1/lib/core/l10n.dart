@@ -31,6 +31,14 @@ class AppLocalizations {
     'nav.bookings': {AppLang.en: 'Bookings', AppLang.ar: 'الحجوزات'},
     'nav.account': {AppLang.en: 'Account', AppLang.ar: 'الحساب'},
     'nav.saved': {AppLang.en: 'Saved', AppLang.ar: 'المحفوظات'},
+    'nav.browse': {AppLang.en: 'Browse', AppLang.ar: 'تصفح'},
+    'browse.title': {AppLang.en: 'Explore', AppLang.ar: 'استكشف'},
+    'browse.search': {
+      AppLang.en: 'Search tutors, classes, centers',
+      AppLang.ar: 'ابحث عن مدرسين أو فصول أو مراكز',
+    },
+    'browse.centers': {AppLang.en: 'Centers', AppLang.ar: 'المراكز'},
+    'profile.title': {AppLang.en: 'Profile', AppLang.ar: 'الملف الشخصي'},
     'home.kicker': {
       AppLang.en: 'Egypt tutoring marketplace',
       AppLang.ar: 'منصة الدروس في مصر',
@@ -63,6 +71,10 @@ class AppLocalizations {
     },
     'home.viewAll': {AppLang.en: 'View all', AppLang.ar: 'عرض الكل'},
     'home.trending': {AppLang.en: 'Trending now', AppLang.ar: 'الأكثر رواجًا'},
+    'home.nearbyCenters': {
+      AppLang.en: 'Nearby centers',
+      AppLang.ar: 'مراكز قريبة',
+    },
     'home.trendMath': {
       AppLang.en: 'Exam-ready math groups this week',
       AppLang.ar: 'مجموعات رياضيات جاهزة للامتحانات هذا الأسبوع',

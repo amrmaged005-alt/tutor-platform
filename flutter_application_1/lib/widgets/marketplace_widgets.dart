@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../app_state.dart';
+import '../core/formatters.dart';
 import '../core/l10n.dart';
 import '../core/models.dart';
 import '../core/theme.dart';
@@ -204,9 +205,7 @@ class AppClassCard extends StatelessWidget {
     final c = context.c;
     final l = context.l10n;
     final app = context.appWatch;
-    final price = item.priceEgp == 0
-        ? l.t('common.free')
-        : '${item.priceEgp} ${l.t('common.egp')}';
+    final price = item.priceEgp == 0 ? l.t('common.free') : egp(item.priceEgp);
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () => context.push('/classes/${item.id}', extra: item),

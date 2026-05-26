@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'app_state.dart';
 import 'core/l10n.dart';
@@ -24,25 +25,28 @@ class CoursatyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScope(
       state: state,
-      child: AnimatedBuilder(
-        animation: state,
-        builder: (context, _) {
-          return LocalizationsScope(
-            lang: state.lang,
-            child: Directionality(
-              textDirection: state.lang.direction,
-              child: MaterialApp.router(
-                title: 'Coursaty',
-                locale: state.lang.locale,
-                theme: AppTheme.light(),
-                darkTheme: AppTheme.dark(),
-                themeMode: state.themeMode,
-                routerConfig: createRouter(state),
-                debugShowCheckedModeBanner: false,
+      child: ChangeNotifierProvider<AppState>.value(
+        value: state,
+        child: AnimatedBuilder(
+          animation: state,
+          builder: (context, _) {
+            return LocalizationsScope(
+              lang: state.lang,
+              child: Directionality(
+                textDirection: state.lang.direction,
+                child: MaterialApp.router(
+                  title: 'Coursaty',
+                  locale: state.lang.locale,
+                  theme: AppTheme.light(),
+                  darkTheme: AppTheme.dark(),
+                  themeMode: state.themeMode,
+                  routerConfig: createRouter(state),
+                  debugShowCheckedModeBanner: false,
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

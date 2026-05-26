@@ -175,6 +175,42 @@ class _TutorDetailScreenState extends State<TutorDetailScreen> {
                       ],
                     ),
                   ),
+                  SectionHeader(title: l.t('booking.sessions')),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: c.card,
+                      border: Border.all(color: c.border),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${tutor.hourlyRateEgp} ${l.t('common.egp')} / hour',
+                          style: TextStyle(
+                            color: c.accent,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: tutor.availableSlots
+                              .map(
+                                (slot) => FilterChipButton(
+                                  label: slot,
+                                  selected: false,
+                                  onTap: () {},
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ],
+                    ),
+                  ),
                   SectionHeader(title: l.t('nav.classes')),
                   if (tutor.classes.isEmpty)
                     StateView(

@@ -147,6 +147,8 @@ class TutorProfile {
     this.bio,
     this.photoUrl,
     this.centerName,
+    this.hourlyRateEgp = 250,
+    this.availableSlots = const [],
     this.avgRating,
     this.reviewCount = 0,
     this.isVerified = false,
@@ -162,6 +164,8 @@ class TutorProfile {
   final String? bio;
   final String? photoUrl;
   final String? centerName;
+  final int hourlyRateEgp;
+  final List<String> availableSlots;
   final double? avgRating;
   final int reviewCount;
   final bool isVerified;
@@ -182,6 +186,10 @@ class TutorProfile {
       bio: json['bio'] as String?,
       photoUrl: json['photoUrl'] as String?,
       centerName: center?['name'] as String?,
+      hourlyRateEgp: (json['hourlyRateEgp'] as num?)?.toInt() ?? 250,
+      availableSlots: (json['availableSlots'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
       avgRating: (json['avgRating'] as num?)?.toDouble(),
       reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
       isVerified: json['isVerified'] == true,
@@ -191,6 +199,30 @@ class TutorProfile {
           .toList(),
     );
   }
+}
+
+class EducationCenter {
+  const EducationCenter({
+    required this.id,
+    required this.name,
+    required this.city,
+    required this.location,
+    required this.subjects,
+    required this.rating,
+    required this.tutorCount,
+    required this.description,
+    this.logoUrl,
+  });
+
+  final String id;
+  final String name;
+  final String city;
+  final String location;
+  final List<String> subjects;
+  final double rating;
+  final int tutorCount;
+  final String description;
+  final String? logoUrl;
 }
 
 class BookingItem {

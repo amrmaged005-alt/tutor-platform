@@ -19,14 +19,22 @@ class AppState extends ChangeNotifier {
         aOptions: AndroidOptions(encryptedSharedPreferences: true),
       ) {
     api = ApiClient(storage);
-    auth = AuthRepository(api, storage);
+    auth = AuthService(api, storage);
     marketplace = MarketplaceRepository(api);
+    tutors = TutorService(marketplace);
+    classes = ClassService(marketplace);
+    centers = CenterService(marketplace);
+    bookings = BookingService(marketplace);
   }
 
   final FlutterSecureStorage storage;
   late final ApiClient api;
-  late final AuthRepository auth;
+  late final AuthService auth;
   late final MarketplaceRepository marketplace;
+  late final TutorService tutors;
+  late final ClassService classes;
+  late final CenterService centers;
+  late final BookingService bookings;
 
   AppLang lang = AppLang.en;
   ThemeMode themeMode = ThemeMode.system;
@@ -116,8 +124,12 @@ class AppState extends ChangeNotifier {
     required String password,
     required String role,
   }) async {
-    await auth.signup(name: name, email: email, password: password, role: role);
-    user = await auth.login(email, password);
+    user = await auth.signup(
+      name: name,
+      email: email,
+      password: password,
+      role: role,
+    );
     notifyListeners();
   }
 

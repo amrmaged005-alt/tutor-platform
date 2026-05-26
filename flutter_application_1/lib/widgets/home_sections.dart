@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/l10n.dart';
+import '../core/models.dart';
 import '../core/theme.dart';
 import 'marketplace_widgets.dart';
 
@@ -116,6 +117,65 @@ class NearYouHeader extends StatelessWidget {
     action: context.l10n.t('filter.city'),
     onAction: onChange,
   );
+}
+
+class MiniCenterCard extends StatelessWidget {
+  const MiniCenterCard({super.key, required this.center});
+  final EducationCenter center;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => context.push('/centers/${center.id}', extra: center),
+      child: Container(
+        width: 220,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.border),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: c.accent.withValues(alpha: 0.12),
+              child: Icon(Icons.apartment_rounded, color: c.accent),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    center.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: c.text,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    '★ ${center.rating} • ${center.city}',
+                    style: TextStyle(
+                      color: c.secondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _PromoBanner extends StatelessWidget {

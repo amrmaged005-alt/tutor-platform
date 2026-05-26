@@ -9,9 +9,15 @@ class ShellScreen extends StatelessWidget {
   final Widget child;
 
   int _index(String location) {
-    if (location.startsWith('/classes')) return 1;
-    if (location.startsWith('/saved')) return 2;
-    if (location.startsWith('/dashboard')) return 3;
+    if (location.startsWith('/browse') ||
+        location.startsWith('/classes') ||
+        location.startsWith('/tutors') ||
+        location.startsWith('/centers')) {
+      return 1;
+    }
+    if (location.startsWith('/dashboard')) return 2;
+    if (location.startsWith('/saved')) return 3;
+    if (location.startsWith('/profile')) return 4;
     return 0;
   }
 
@@ -27,9 +33,10 @@ class ShellScreen extends StatelessWidget {
         onDestinationSelected: (index) {
           final path = switch (index) {
             0 => '/',
-            1 => '/classes',
-            2 => '/saved',
-            3 => app.isSignedIn ? '/dashboard' : '/login',
+            1 => '/browse',
+            2 => app.isSignedIn ? '/dashboard' : '/login',
+            3 => '/saved',
+            4 => app.isSignedIn ? '/profile' : '/login',
             _ => '/',
           };
           context.go(path);
@@ -43,7 +50,12 @@ class ShellScreen extends StatelessWidget {
           NavigationDestination(
             icon: const Icon(Icons.school_outlined),
             selectedIcon: const Icon(Icons.school_rounded),
-            label: l.t('nav.classes'),
+            label: l.t('nav.browse'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.event_note_outlined),
+            selectedIcon: const Icon(Icons.event_note_rounded),
+            label: l.t('nav.bookings'),
           ),
           NavigationDestination(
             icon: const Icon(Icons.favorite_border_rounded),
@@ -51,9 +63,9 @@ class ShellScreen extends StatelessWidget {
             label: l.t('nav.saved'),
           ),
           NavigationDestination(
-            icon: const Icon(Icons.event_note_outlined),
-            selectedIcon: const Icon(Icons.event_note_rounded),
-            label: l.t('nav.bookings'),
+            icon: const Icon(Icons.account_circle_outlined),
+            selectedIcon: const Icon(Icons.account_circle_rounded),
+            label: l.t('profile.title'),
           ),
         ],
       ),

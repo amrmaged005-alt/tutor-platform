@@ -146,6 +146,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SubjectIconGrid(),
                     SectionHeader(title: l.t('home.trending')),
                     const TrendingBanners(),
+                    SectionHeader(title: l.t('home.nearbyCenters')),
+                    SizedBox(
+                      height: 120,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemBuilder: (_, i) => MiniCenterCard(
+                          center: context.app.centers.search()[i],
+                        ),
+                        separatorBuilder: (_, _) => const SizedBox(width: 10),
+                        itemCount: context.app.centers.search().take(6).length,
+                      ),
+                    ),
                     if (!loading && data != null && data.near.isNotEmpty) ...[
                       NearYouHeader(
                         city: context.app.lastCity,

@@ -51,7 +51,7 @@ class _AuthScreenState extends State<AuthScreen> {
       } else {
         await context.app.login(_email.text, _password.text);
       }
-      if (mounted) context.go('/dashboard');
+      if (mounted) context.go('/browse');
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
