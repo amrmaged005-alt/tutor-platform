@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home, MapPin, MessageCircle, Mail } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
 interface CenterTutor {
@@ -194,6 +195,7 @@ function SectionTitle({ children, count, color = "var(--accent)" }: { children: 
 type Tab = "overview" | "tutors" | "classes";
 
 export default function CenterProfileClient({ center }: { center: CenterData }) {
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const wa = center.phone?.replace(/\D/g, "") ?? "";
 
@@ -208,35 +210,37 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "system-ui, -apple-system, sans-serif", color: "var(--text)", position: "relative" }}>
-      <BackgroundFloaters
+      {!isMobile && <BackgroundFloaters
         floaters={[
           { color: "var(--accent-hover)", size: 500, top: "-10%", left: "-8%",  duration: 12 },
           { color: "var(--accent)", size: 400, top: "65%",  left: "78%",  duration: 15, delay: 3 },
           { color: "var(--accent)", size: 300, top: "35%",  left: "88%",  duration: 10, delay: 6 },
         ]}
-      />
+      />}
 
       {/* ── HERO BANNER ── */}
       <div style={{
         position: "relative", overflow: "hidden",
         background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--accent-bg-soft) 50%, var(--bg-card) 100%)",
-        borderBottom: "1px solid var(--border-light)", padding: "44px 24px 36px", zIndex: 1,
+        borderBottom: "1px solid var(--border-light)",
+        padding: isMobile ? "12px 14px 14px" : "44px 24px 36px",
+        zIndex: 1,
       }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `linear-gradient(rgba(24,23,21,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,21,0.06) 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: -100, right: -80, width: 450, height: 450, borderRadius: "50%", background: "radial-gradient(circle, rgba(13,89,70,0.13) 0%, transparent 70%)", pointerEvents: "none" }} />
+        {!isMobile && <div style={{ position: "absolute", inset: 0, backgroundImage: `linear-gradient(rgba(24,23,21,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(24,23,21,0.06) 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />}
+        {!isMobile && <div style={{ position: "absolute", top: -100, right: -80, width: 450, height: 450, borderRadius: "50%", background: "radial-gradient(circle, rgba(13,89,70,0.13) 0%, transparent 70%)", pointerEvents: "none" }} />}
 
         <div style={{ maxWidth: 920, margin: "0 auto", position: "relative" }}>
-          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 24 }}>
-            <Link href="/centers" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>← Back to Centers</Link>
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: isMobile ? 10 : 24 }}>
+            <Link href="/centers" style={{ color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>← {isMobile ? "Back" : "Back to Centers"}</Link>
           </motion.div>
 
-          <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: isMobile ? 14 : 24, alignItems: "flex-start", flexWrap: "wrap" }}>
             {/* Logo */}
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
               {center.logoUrl ? (
-                <img src={center.logoUrl} alt={center.name} style={{ width: 100, height: 100, borderRadius: 20, objectFit: "cover", border: "3px solid var(--text-secondary)" }} />
+                <img src={center.logoUrl} alt={center.name} style={{ width: isMobile ? 64 : 100, height: isMobile ? 64 : 100, borderRadius: isMobile ? 14 : 20, objectFit: "cover", border: "3px solid var(--text-secondary)" }} />
               ) : (
-                <div style={{ width: 100, height: 100, borderRadius: 20, background: "linear-gradient(135deg, var(--accent), var(--accent-hover))", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 40, color: "var(--accent-fg)", boxShadow: "0 0 0 4px var(--accent-border), 0 0 0 7px rgba(13,89,70,0.19)" }}>
+                <div style={{ width: isMobile ? 64 : 100, height: isMobile ? 64 : 100, borderRadius: isMobile ? 14 : 20, background: "linear-gradient(135deg, var(--accent), var(--accent-hover))", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: isMobile ? 28 : 40, color: "var(--accent-fg)", boxShadow: isMobile ? "0 0 0 3px var(--accent-border)" : "0 0 0 4px var(--accent-border), 0 0 0 7px rgba(13,89,70,0.19)" }}>
                   {center.name[0]?.toUpperCase()}
                 </div>
               )}
@@ -261,19 +265,33 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
                 </div>
               )}
 
-              {/* Stats */}
-              <div style={{ display: "flex", gap: 28, marginBottom: 20, flexWrap: "wrap" }}>
+              {/* Stats — pills on mobile, label-stack on desktop */}
+              <div style={{ display: "flex", gap: isMobile ? 8 : 28, marginBottom: isMobile ? 12 : 20, flexWrap: "wrap" }}>
                 {[
                   { Icon: GraduationCap, value: center.tutors.length, label: "Tutors" },
                   { Icon: BookOpen, value: center.classes.length, label: "Classes" },
                   { Icon: Users, value: center.totalStudents, label: "Students" },
                 ].map(s => (
-                  <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <s.Icon size={16} strokeWidth={2} color="var(--accent)" />
-                    <div>
-                      <div style={{ fontWeight: 800, color: "var(--text)", fontSize: 18, lineHeight: 1 }}>{s.value}</div>
-                      <div style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>{s.label}</div>
-                    </div>
+                  <div key={s.label} style={isMobile ? {
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    background: "var(--bg-card)", border: "1px solid var(--border-light)",
+                    borderRadius: 999, padding: "4px 10px",
+                  } : { display: "flex", alignItems: "center", gap: 6 }}>
+                    {isMobile ? (
+                      <>
+                        <s.Icon size={12} strokeWidth={2.4} color="var(--accent)" />
+                        <span style={{ fontWeight: 800, color: "var(--text)", fontSize: 13 }}>{s.value}</span>
+                        <span style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>{s.label}</span>
+                      </>
+                    ) : (
+                      <>
+                        <s.Icon size={16} strokeWidth={2} color="var(--accent)" />
+                        <div>
+                          <div style={{ fontWeight: 800, color: "var(--text)", fontSize: 18, lineHeight: 1 }}>{s.value}</div>
+                          <div style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>{s.label}</div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -305,11 +323,11 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
 
       {/* ── TAB BAR ── */}
       <div style={{ borderBottom: "1px solid var(--border-light)", backgroundColor: "var(--bg-card)", position: "sticky", top: 60, zIndex: 10 }}>
-        <div style={{ maxWidth: 920, margin: "0 auto", padding: "0 24px", display: "flex", gap: 4 }}>
+        <div style={{ maxWidth: 920, margin: "0 auto", padding: isMobile ? "0 14px" : "0 24px", display: "flex", gap: 4, overflowX: "auto", scrollbarWidth: "none" }}>
           {tabs.map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-              padding: "14px 20px", background: "none", border: "none", cursor: "pointer",
-              fontSize: 14, fontWeight: 600,
+              padding: isMobile ? "10px 14px" : "14px 20px", background: "none", border: "none", cursor: "pointer",
+              fontSize: isMobile ? 13 : 14, fontWeight: 600, whiteSpace: "nowrap",
               color: activeTab === tab.key ? "var(--bg-subtle)" : "var(--text-muted)",
               borderBottom: `2px solid ${activeTab === tab.key ? "var(--accent)" : "transparent"}`,
               transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
