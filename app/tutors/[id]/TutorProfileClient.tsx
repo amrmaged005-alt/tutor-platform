@@ -214,7 +214,7 @@ function ScheduleSection({ classes, isMobile }: { classes: TutorClass[]; isMobil
     return (
       <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
         style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "20px", marginBottom: 20 }}>
-        <SectionTitle>Schedule</SectionTitle>
+        <SectionTitle>Availability</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {scheduled.map((cls) => (
             <div key={cls.id} style={{ border: "1px solid var(--border-light)", borderRadius: 10, padding: "0.75rem", color: "var(--text-secondary)", fontSize: 13 }}>
@@ -230,7 +230,7 @@ function ScheduleSection({ classes, isMobile }: { classes: TutorClass[]; isMobil
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
       style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "24px", marginBottom: 20 }}>
-      <SectionTitle>Schedule</SectionTitle>
+      <SectionTitle>Availability</SectionTitle>
       <div style={{ display: "grid", gridTemplateColumns: "72px repeat(7, 1fr)", border: "1px solid var(--border-light)", borderRadius: 12, overflow: "hidden" }}>
         <div style={{ backgroundColor: "var(--bg-alt)" }} />
         {days.map((day) => <div key={day} style={{ backgroundColor: "var(--bg-alt)", color: "var(--text)", fontSize: 12, fontWeight: 700, padding: 8, textAlign: "center" }}>{day}</div>)}
@@ -473,8 +473,6 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
           </motion.div>
         )}
 
-        <ScheduleSection classes={tutor.classes} isMobile={isMobile} />
-
         {/* About */}
         {(tutor.bio || isOwner) && (
           <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -520,6 +518,8 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
             )}
           </motion.div>
         )}
+
+        <ScheduleSection classes={tutor.classes} isMobile={isMobile} />
 
         {/* Ratings and reviews */}
         {tutor.reviews.length > 0 && (
