@@ -334,14 +334,15 @@ export default function ClassDetailClient({
   const [similarClasses, setSimilarClasses] = useState(cls.relatedClasses);
   const [similarLoading, setSimilarLoading] = useState(true);
   const heroRef = useRef<HTMLDivElement>(null);
+  const bookingCardRef = useRef<HTMLDivElement>(null);
 
-  // Show sticky bottom bar on mobile after scrolling past hero
+  // Show sticky bottom bar on mobile after the main booking card leaves view.
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setStickyVisible(!entry.isIntersecting),
       { threshold: 0 }
     );
-    if (heroRef.current) observer.observe(heroRef.current);
+    if (bookingCardRef.current) observer.observe(bookingCardRef.current);
     return () => observer.disconnect();
   }, []);
 
@@ -1065,6 +1066,7 @@ export default function ClassDetailClient({
         {/* Right sidebar */}
         <div>
           <motion.div
+            ref={bookingCardRef}
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -1303,9 +1305,9 @@ export default function ClassDetailClient({
             transition={{ type: "spring", stiffness: 300, damping: 28 }}
             style={{
               position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
+              insetInlineStart: 0,
+              insetInlineEnd: 0,
+              bottom: "76px",
               backgroundColor: "var(--bg-card)",
               borderTop: "1px solid var(--border-light)",
               padding: "1rem 1.5rem",
