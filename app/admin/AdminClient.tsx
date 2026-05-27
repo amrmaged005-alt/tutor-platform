@@ -6,6 +6,9 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { BarChart3, BookOpen, CheckCircle, CreditCard, Download, GraduationCap, Hourglass, Megaphone, Pencil, RefreshCw, Star, Trash2, User, Users, XCircle } from "lucide-react";
+import PromoCodesTab from "./components/PromoCodesTab";
+import PlatformConfigTab from "./components/PlatformConfigTab";
+import PayoutsTab from "./components/PayoutsTab";
 
 function AdminIcon({ name, size = 16 }: { name: string; size?: number }) {
     const icons = {
@@ -132,7 +135,7 @@ function Pagination({ page, setPage, totalPages }: { page: number, setPage: (p: 
     );
 }
 
-type AdminTabId = "overview" | "users" | "classes" | "bookings" | "reviews" | "refunds";
+type AdminTabId = "overview" | "users" | "classes" | "bookings" | "reviews" | "refunds" | "promos" | "config" | "payouts";
 type RevenuePoint = { name: string; revenue: number; bookings: number };
 
 // --- Main Client Component ---
@@ -219,6 +222,9 @@ export default function AdminClient({ data }: { data: AdminData }) {
         { id: "bookings",  label: "Bookings",      count: data.stats.totalBookings, icon: "bookings" },
         { id: "reviews",   label: "Reviews",       count: "Mod",                    icon: "reviews" },
         { id: "refunds",   label: "Refunds",       count: "Req",                    icon: "refund" },
+        { id: "promos",    label: "Promo Codes",   count: "New",                    icon: "megaphone" },
+        { id: "config",    label: "Config",        count: "⚙",                     icon: "analytics" },
+        { id: "payouts",   label: "Payouts",       count: "$$",                     icon: "card" },
     ] satisfies Array<{ id: AdminTabId; label: string; count: string | number; icon: string }>;
 
     // Colors
@@ -798,6 +804,27 @@ export default function AdminClient({ data }: { data: AdminData }) {
                                     </div>
                                 ))}
                             </div>
+                        </motion.div>
+                    )}
+
+                    {/* PROMO CODES TAB */}
+                    {activeTab === "promos" && (
+                        <motion.div key="promos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <PromoCodesTab />
+                        </motion.div>
+                    )}
+
+                    {/* PLATFORM CONFIG TAB */}
+                    {activeTab === "config" && (
+                        <motion.div key="config" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <PlatformConfigTab />
+                        </motion.div>
+                    )}
+
+                    {/* PAYOUTS TAB */}
+                    {activeTab === "payouts" && (
+                        <motion.div key="payouts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <PayoutsTab />
                         </motion.div>
                     )}
 
