@@ -263,7 +263,18 @@ export default function HeroSection({
   }, [lang, classCards, stats, tutorCards, featuredTutors]);
 
   return (
-    <div className="book-landing">
+    <div
+      className="book-landing"
+      data-section="hero"
+      style={{
+        scrollSnapAlign: "start",
+        scrollSnapStop: "always",
+        minHeight: "100vh",
+        paddingTop: 72,
+        boxSizing: "border-box",
+        overflow: "hidden",
+      }}
+    >
       <style>{BOOK_CSS}</style>
       <div className="book-shell">
         <BookScroller pages={pages} />

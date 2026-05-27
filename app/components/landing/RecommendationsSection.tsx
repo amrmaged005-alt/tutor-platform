@@ -41,7 +41,21 @@ export default function RecommendationsSection() {
   if (!loading && items.length === 0) return null;
 
   return (
-    <section style={{ backgroundColor: "var(--bg)", padding: "2rem 1rem 3rem", borderTop: "1px solid var(--border-light)" }}>
+    <section
+      data-section="recommendations"
+      style={{
+        backgroundColor: "var(--bg)",
+        borderTop: "1px solid var(--border-light)",
+        scrollSnapAlign: "start",
+        scrollSnapStop: "always",
+        minHeight: "100vh",
+        paddingTop: 72,
+        paddingInline: "1rem",
+        paddingBottom: "3rem",
+        boxSizing: "border-box",
+        overflow: "hidden",
+      }}
+    >
       <div style={{ maxWidth: 1120, margin: "0 auto" }}>
         <h2 style={{ color: "var(--text)", fontSize: "clamp(1.35rem, 2.5vw, 1.8rem)", margin: "0 0 1rem", fontWeight: 850 }}>
           {isPersonalized ? "Recommended for You" : "Top Rated Classes"}

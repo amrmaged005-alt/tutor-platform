@@ -406,9 +406,11 @@ export default function NavbarClient({
                     justifyContent: "space-between",
                     alignItems: "center",
                     height: 64,
-                    position: "sticky",
+                    position: "fixed",
                     top: 0,
-                    zIndex: 100,
+                    insetInlineStart: 0,
+                    width: "100%",
+                    zIndex: 1000,
                     transition: "background 0.2s, box-shadow 0.2s, border-color 0.2s",
                 }}
             >
