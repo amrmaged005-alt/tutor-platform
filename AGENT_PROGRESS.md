@@ -38,7 +38,7 @@
 - [x] Target 6 - Post-Class Materials: Tutor Upload UI
 - [x] Target 7 - Post-Class Materials: Student View
 - [x] Target 8 - Receipt Download Button
-- [ ] Target 9 - Refund Request Modal
+- [x] Target 9 - Refund Request Modal
 - [ ] Target 10 - Verified Badge
 - [ ] Target 11 - Similar Classes Row
 - [ ] Target 12 - Recommendations Section on Landing

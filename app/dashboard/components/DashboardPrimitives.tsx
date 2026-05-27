@@ -153,7 +153,8 @@ export function RefundRequestButton({ booking }: { booking: { id: string; title:
       body: JSON.stringify({ reason, notes }),
     });
     if (!res.ok) {
-      showToast({ tone: "error", title: "Refund request failed", description: "Please try again in a moment." });
+      const data = await res.json().catch(() => null);
+      showToast({ tone: "error", title: "Refund request failed", description: data?.error ?? "Please try again in a moment." });
       return;
     }
     setSubmitted(true);
@@ -180,7 +181,7 @@ export function RefundRequestButton({ booking }: { booking: { id: string; title:
             </select>
             <label style={{ color: "var(--text-secondary)", fontSize: 13, display: "block", marginBottom: 8 }}>Notes</label>
             <textarea value={notes} onChange={(event) => setNotes(event.target.value.slice(0, 300))} maxLength={300} style={{ width: "100%", minHeight: 96, backgroundColor: "var(--bg-alt)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "10px 12px", resize: "vertical" }} />
-            <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 6, display: "flex", justifyContent: "space-between" }}><span>Reviewed within 2 business days</span><span>{notes.length}/300</span></div>
+            <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 6, display: "flex", justifyContent: "space-between", gap: 12 }}><span>Refund requests are reviewed within 2 business days</span><span>{notes.length}/300</span></div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: "1rem" }}>
               <button type="button" onClick={() => setOpen(false)} className="btn-secondary">Cancel</button>
               <button type="button" onClick={submit} className="btn-primary">Submit Request</button>
