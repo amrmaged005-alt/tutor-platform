@@ -111,9 +111,9 @@ model User {
   image         String?
   password      String?
 
-  role     Role    @default(STUDENT)
+  role     Role     @default(STUDENT)
   fullName String?
-  phone    String? @unique
+  phone    String?  @unique
   bio      String?
   photoUrl String?
   subjects String[]
@@ -131,24 +131,44 @@ model User {
   centerId String?
   center   LearningCenter? @relation(fields: [centerId], references: [id])
 
-  accounts       Account[]
-  sessions       Session[]
-  classTutors    ClassTutor[]
-  bookings       Booking[]
-  ownedClasses   Class[]         @relation("ClassOwner")
-  reviews        Review[]
-  payouts        Payout[]
-  auditLogs      AuditLog[]      @relation("AuditActor")
-  pushTokens     PushToken[]
-  favorites      Favorite[]
-  studentThreads MessageThread[] @relation("StudentThreads")
-  tutorThreads   MessageThread[] @relation("TutorThreads")
-  sentMessages   Message[]
-  waitlistEntries Waitlist[]
+  // T15: Notification preferences
+  notifyBookingConfirmed Boolean @default(true)
+  notifyBookingCancelled Boolean @default(true)
+  notifyNewMessage       Boolean @default(true)
+  notifyWaitlistOpened   Boolean @default(true)
+  notifyReviewReceived   Boolean @default(true)
+  notifyPayoutProcessed  Boolean @default(true)
+  notifyMarketingEmails  Boolean @default(false)
+
+  // T18: Referral + wallet
+  referralCode     String? @unique
+  walletBalanceEgp Int     @default(0)
+
+  accounts          Account[]
+  sessions          Session[]
+  classTutors       ClassTutor[]
+  bookings          Booking[]
+  ownedClasses      Class[]            @relation("ClassOwner")
+  reviews           Review[]
+  payouts           Payout[]
+  auditLogs         AuditLog[]         @relation("AuditActor")
+  pushTokens        PushToken[]
+  favorites         Favorite[]
+  studentThreads    MessageThread[]    @relation("StudentThreads")
+  tutorThreads      MessageThread[]    @relation("TutorThreads")
+  sentMessages      Message[]
+  waitlistEntries   Waitlist[]
+  promoCodes        PromoCode[]
+  studentAttendance AttendanceRecord[] @relation("StudentAttendance")
+  tutorAttendance   AttendanceRecord[] @relation("TutorAttendance")
+  referralsSent     Referral[]         @relation("ReferralsSent")
+  referralReceived  Referral?          @relation("ReferralReceived")
+  searchLogs        SearchLog[]
 
   @@index([role])
   @@index([centerId])
   @@index([email])
+  @@index([referralCode])
 }
 
 model LearningCenter {
@@ -220,6 +240,7 @@ model Class {
   reviews     Review[]
   favoritedBy Favorite[]
   waitlist    Waitlist[]
+  attendance  AttendanceRecord[]
 
   @@index([subject])
   @@index([city])
@@ -258,12 +279,12 @@ model Booking {
   notes         String?
 
   // Payment tracking
-  amountEgp      Int?
-  platformFeeEgp Int?
-  tutorPayoutEgp Int?
-  paymobOrderId  String? @unique
+  amountEgp        Int?
+  platformFeeEgp   Int?
+  tutorPayoutEgp   Int?
+  paymobOrderId    String? @unique
   paymobPaymentKey String?
-  idempotencyKey String? @unique
+  idempotencyKey   String? @unique
 
   // Seat lock (prevents double-booking during checkout)
   lockedAt    DateTime?
@@ -273,11 +294,16 @@ model Booking {
   refundedAt   DateTime?
   refundReason String?
 
+  // T12: Promo code
+  promoCode        String?
+  promoDiscountEgp Int?
+
   class   Class @relation(fields: [classId], references: [id])
   student User  @relation(fields: [studentId], references: [id])
 
   webhookEvents WebhookEvent[]
   payout        Payout?
+  attendance    AttendanceRecord[]
 
   @@unique([classId, studentId])
   @@index([studentId])
@@ -315,6 +341,10 @@ model Review {
   // A2: Review moderation
   isApproved  Boolean   @default(false)
   moderatedAt DateTime?
+
+  // T13: Tutor response
+  tutorResponse    String?
+  tutorRespondedAt DateTime?
 
   class   Class @relation(fields: [classId], references: [id])
   student User  @relation(fields: [studentId], references: [id])
@@ -380,7 +410,7 @@ model PushToken {
   updatedAt DateTime @updatedAt
 
   userId     String
-  token      String   @unique
+  token      String    @unique
   platform   String
   appVersion String?
   deviceId   String?
@@ -426,7 +456,7 @@ model Payout {
   bookingId String?  @unique
   booking   Booking? @relation(fields: [bookingId], references: [id])
 
-  paymobTransferId String? @unique
+  paymobTransferId String?      @unique
   amountEgp        Int
   status           PayoutStatus @default(PENDING)
   failureReason    String?
@@ -474,4 +504,92 @@ model AuditLog {
   @@index([action])
   @@index([targetType, targetId])
   @@index([createdAt])
+}
+
+// ─── T12: Promo Codes ─────────────────────────────────────────────────────────
+
+model PromoCode {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  code        String    @unique
+  discountPct Int
+  maxUses     Int?
+  usedCount   Int       @default(0)
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdById String?
+  createdBy   User?     @relation(fields: [createdById], references: [id])
+
+  @@index([code])
+  @@index([isActive])
+}
+
+// ─── T14: Attendance ──────────────────────────────────────────────────────────
+
+model AttendanceRecord {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  bookingId   String
+  classId     String
+  studentId   String
+  tutorId     String
+  sessionDate DateTime
+  attended    Boolean  @default(false)
+  notes       String?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student User    @relation("StudentAttendance", fields: [studentId], references: [id], onDelete: Cascade)
+  tutor   User    @relation("TutorAttendance", fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, sessionDate])
+  @@index([classId])
+  @@index([studentId])
+  @@index([tutorId])
+  @@index([sessionDate])
+}
+
+// ─── T18: Referrals ───────────────────────────────────────────────────────────
+
+model Referral {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  referrerId  String
+  referredId  String    @unique
+  completedAt DateTime?
+  creditEgp   Int       @default(0)
+
+  referrer User @relation("ReferralsSent", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred User @relation("ReferralReceived", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId])
+  @@index([completedAt])
+}
+
+// ─── T20: Search Logs ─────────────────────────────────────────────────────────
+
+model SearchLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  query       String
+  userId      String?
+  resultCount Int      @default(0)
+  type        String   @default("all")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([query])
+  @@index([userId])
+}
+
+// ─── T21: Platform Config ─────────────────────────────────────────────────────
+
+model PlatformConfig {
+  id        String   @id @default(cuid())
+  updatedAt DateTime @updatedAt
+  key       String   @unique
+  value     String
+
+  @@index([key])
 }

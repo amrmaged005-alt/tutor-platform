@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
   const note = typeof body?.note === "string" ? body.note.slice(0, 500) : "";
   const packageOption: { sessions: number; discountPct: number } | null =
     body?.packageOption && typeof body.packageOption === "object" ? body.packageOption : null;
+  const promoCodeInput = typeof body?.promoCode === "string" ? body.promoCode.trim().toUpperCase() : "";
 
   if (!classId) {
     return NextResponse.json({ error: "Class is required." }, { status: 400 });
@@ -121,18 +122,47 @@ export async function POST(req: NextRequest) {
     packageDiscount  = matched.discountPct;
   }
 
-  const amountEgp = Math.round(cls.priceEgp * packageSessions * (1 - packageDiscount / 100));
+  const baseAmount = Math.round(cls.priceEgp * packageSessions * (1 - packageDiscount / 100));
+
+  // T12: Apply promo code if provided
+  let promoDiscountEgp = 0;
+  let appliedPromoCode: string | null = null;
+  let promoRecordId: string | null = null;
+  if (promoCodeInput) {
+    const promo = await prisma.promoCode.findUnique({ where: { code: promoCodeInput } });
+    if (!promo || !promo.isActive) {
+      return NextResponse.json({ error: "Invalid promo code" }, { status: 400 });
+    }
+    if (promo.expiresAt && promo.expiresAt < new Date()) {
+      return NextResponse.json({ error: "Promo code has expired" }, { status: 400 });
+    }
+    if (promo.maxUses !== null && promo.usedCount >= promo.maxUses) {
+      return NextResponse.json({ error: "Promo code has reached its usage limit" }, { status: 400 });
+    }
+    promoDiscountEgp = Math.round((baseAmount * promo.discountPct) / 100);
+    appliedPromoCode = promo.code;
+    promoRecordId = promo.id;
+  }
+
+  const { getPlatformFeePct } = await import("@/lib/config");
+  const feePct = await getPlatformFeePct();
+
+  const amountEgp = Math.max(0, baseAmount - promoDiscountEgp);
   const packageNote = packageOption ? `Package: ${packageSessions} sessions, ${packageDiscount}% off` : null;
-  const notes = [note, packageNote, `Sessions: ${packageSessions}`, `Payment: ${paymentType}`].filter(Boolean).join("\n");
+  const promoNote = appliedPromoCode ? `Promo: ${appliedPromoCode} (-${promoDiscountEgp} EGP)` : null;
+  const notes = [note, packageNote, promoNote, `Sessions: ${packageSessions}`, `Payment: ${paymentType}`].filter(Boolean).join("\n");
   const isOnline = paymentType === "ONLINE" && amountEgp > 0;
+  const platformFee = Math.round((amountEgp * feePct) / 100);
   const bookingData = {
     status: isOnline ? "PENDING" as const : "CONFIRMED" as const,
     paymentStatus: isOnline ? "UNPAID" as const : "PAID" as const,
     paidAt: isOnline ? null : new Date(),
     amountEgp,
     notes,
-    platformFeeEgp: Math.round(amountEgp * 0.1),
-    tutorPayoutEgp: amountEgp - Math.round(amountEgp * 0.1),
+    platformFeeEgp: platformFee,
+    tutorPayoutEgp: amountEgp - platformFee,
+    promoCode: appliedPromoCode,
+    promoDiscountEgp: promoDiscountEgp || null,
   };
 
   const booking = existing
@@ -140,6 +170,14 @@ export async function POST(req: NextRequest) {
     : await prisma.booking.create({
         data: { classId, studentId: user.id, ...bookingData },
       });
+
+  // Increment promo code usage count after successful booking creation
+  if (promoRecordId) {
+    await prisma.promoCode.update({
+      where: { id: promoRecordId },
+      data: { usedCount: { increment: 1 } },
+    });
+  }
 
   let paymentUrl: string | null = null;
   if (isOnline) {
