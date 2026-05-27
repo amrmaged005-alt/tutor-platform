@@ -59,7 +59,7 @@
 - [x] Target 14 - Availability Calendar on Tutor Profile
 - [x] Target 15 - Sticky "Book Now" CTA on Mobile
 - [x] Target 16 - Trending This Week Section
-- [ ] Target 17 - Waitlist UI
+- [x] Target 17 - Waitlist UI
 - [ ] Target 18 - Session Package Booking UI
 - [ ] Target 19 - Mobile 2-Column Grids
 - [ ] Target 20 - Mobile Class Detail Stacking

@@ -14,6 +14,7 @@ import {
   BadgeCheck,
   CalendarDays,
   CheckCircle,
+  Clock,
   ClipboardList,
   DollarSign,
   FileText,
@@ -333,8 +334,10 @@ export default function ClassDetailClient({
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [similarClasses, setSimilarClasses] = useState(cls.relatedClasses);
   const [similarLoading, setSimilarLoading] = useState(true);
+  const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const bookingCardRef = useRef<HTMLDivElement>(null);
+  const isFull = cls.capacity !== null && cls.spotsLeft !== null && cls.spotsLeft <= 0;
 
   // Show sticky bottom bar on mobile after the main booking card leaves view.
   useEffect(() => {
@@ -362,6 +365,25 @@ export default function ClassDetailClient({
     };
   }, [cls.id]);
 
+  useEffect(() => {
+    const saved = window.localStorage.getItem(`coursaty.waitlist.${cls.id}`);
+    if (saved) setWaitlistPosition(Number(saved));
+  }, [cls.id]);
+
+  async function joinWaitlist() {
+    if (!session?.user) {
+      setShowSignInModal(true);
+      return;
+    }
+    const res = await fetch(`/api/classes/${cls.id}/waitlist`, { method: "POST" });
+    if (!res.ok) return;
+    const data = await res.json().catch(() => null);
+    if (typeof data?.position === "number") {
+      setWaitlistPosition(data.position);
+      window.localStorage.setItem(`coursaty.waitlist.${cls.id}`, String(data.position));
+    }
+  }
+
   const isTutor =
     currentUserRole === "TUTOR" ||
     currentUserRole === "CENTER_ADMIN" ||
@@ -369,6 +391,37 @@ export default function ClassDetailClient({
   const hasMaterialAccess = isEligibleToReview || isTutor;
 
   const bookingCTA = () => {
+    if (isFull) {
+      return (
+        <div>
+          <button
+            type="button"
+            onClick={joinWaitlist}
+            style={{
+              display: "flex",
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              backgroundColor: waitlistPosition ? "var(--accent-bg)" : "var(--bg-card)",
+              color: waitlistPosition ? "var(--accent)" : "var(--text)",
+              padding: "14px",
+              borderRadius: 12,
+              fontWeight: 800,
+              fontSize: "0.95rem",
+              border: "1px solid var(--accent-border)",
+              cursor: waitlistPosition ? "default" : "pointer",
+            }}
+            disabled={waitlistPosition !== null}
+          >
+            <Clock size={17} strokeWidth={2} aria-hidden />
+            {waitlistPosition ? `You're on the waitlist - Position #${waitlistPosition}` : "Join Waitlist"}
+          </button>
+          <p style={{ color: "var(--text-muted)", fontSize: 12, margin: "0.5rem 0 0", textAlign: "center" }}>We'll email you the moment a spot opens</p>
+        </div>
+      );
+    }
+
     if (!session?.user) {
       return (
         <button
