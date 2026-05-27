@@ -12,6 +12,7 @@ export type AuditAction =
   | "booking.no_show"
   | "booking.attended"
   | "booking.note_added"
+  | "booking.expired"
   // Payments
   | "payment.received"
   | "payment.failed"
@@ -27,7 +28,16 @@ export type AuditAction =
   // Classes
   | "class.created"
   | "class.deactivated"
-  | "class.activated";
+  | "class.activated"
+  // Payouts
+  | "payout.processing"
+  | "payout.paid"
+  | "payout.failed"
+  // Admin / config
+  | "admin.config_updated"
+  | "admin.promo_created"
+  | "admin.promo_toggled"
+  | "admin.promo_deleted";
 
 // ─── Log an action ────────────────────────────────────────────────────────────
 
