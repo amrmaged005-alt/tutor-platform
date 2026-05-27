@@ -86,7 +86,7 @@ export default function ClassCard({
               type="button"
               aria-label={saved ? "Remove class from favorites" : "Save class to favorites"}
               onClick={onFavorite}
-              animate={saved ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+              animate={saved ? { scale: [1, 1.4, 1] } : { scale: 1 }}
               transition={{ duration: 0.25 }}
               style={{
                 position: "absolute",

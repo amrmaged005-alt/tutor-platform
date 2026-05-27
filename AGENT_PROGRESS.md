@@ -33,7 +33,7 @@
 - [x] Target 1 - Split Landing.tsx
 - [x] Target 2 - Split DashboardClient.tsx
 - [x] Target 3 - Split ClassesClient.tsx
-- [ ] Target 4 - Favorites Heart on Every Card
+- [x] Target 4 - Favorites Heart on Every Card
 - [ ] Target 5 - /favorites Page
 - [ ] Target 6 - Post-Class Materials: Tutor Upload UI
 - [ ] Target 7 - Post-Class Materials: Student View

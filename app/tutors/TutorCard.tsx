@@ -83,7 +83,7 @@ export default function TutorCard({
         type="button"
         aria-label={saved ? t("tutor.removeFavorite") : t("tutor.saveFavorite")}
         onClick={onFavorite}
-        animate={saved ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+        animate={saved ? { scale: [1, 1.4, 1] } : { scale: 1 }}
         transition={{ duration: 0.25 }}
         style={{
           position: "absolute",
@@ -95,7 +95,7 @@ export default function TutorCard({
           borderRadius: 999,
           border: "1px solid var(--border-light)",
           backgroundColor: "color-mix(in srgb, var(--bg-card) 88%, transparent)",
-          color: saved ? "var(--error)" : "var(--text-muted)",
+          color: saved ? "#e05252" : "var(--text-muted)",
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
