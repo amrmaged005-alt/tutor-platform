@@ -41,7 +41,7 @@
 - [x] Target 9 - Refund Request Modal
 - [x] Target 10 - Verified Badge
 - [x] Target 11 - Similar Classes Row
-- [ ] Target 12 - Recommendations Section on Landing
+- [x] Target 12 - Recommendations Section on Landing
 - [ ] Target 13 - In-App Messaging UI
 - [ ] Target 14 - Availability Calendar on Tutor Profile
 - [ ] Target 15 - Sticky "Book Now" CTA on Mobile

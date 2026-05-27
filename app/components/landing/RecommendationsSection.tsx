@@ -8,7 +8,7 @@ function SkeletonRow() {
   return (
     <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(220px, 260px)", gap: 14, overflowX: "auto" }}>
       {[0, 1, 2, 3].map((item) => (
-        <div key={item} style={{ height: 190, borderRadius: 16, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} />
+        <div key={item} role="status" aria-label="Loading recommendations" style={{ height: 190, borderRadius: 16, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} />
       ))}
     </div>
   );
@@ -35,21 +35,31 @@ export default function RecommendationsSection() {
     };
   }, []);
 
-  const items = useMemo(() => (recommendations.length > 0 ? recommendations : topClasses).slice(0, 6), [recommendations, topClasses]);
-  const loading = isLoading && topLoading;
+  const isPersonalized = recommendations.length > 0;
+  const items = useMemo(() => (isPersonalized ? recommendations : topClasses).slice(0, 6), [isPersonalized, recommendations, topClasses]);
+  const loading = isLoading || (!isPersonalized && topLoading);
   if (!loading && items.length === 0) return null;
 
   return (
     <section style={{ backgroundColor: "var(--bg)", padding: "2rem 1rem 3rem", borderTop: "1px solid var(--border-light)" }}>
       <div style={{ maxWidth: 1120, margin: "0 auto" }}>
         <h2 style={{ color: "var(--text)", fontSize: "clamp(1.35rem, 2.5vw, 1.8rem)", margin: "0 0 1rem", fontWeight: 850 }}>
-          {recommendations.length > 0 ? "Recommended for you" : "Top Classes"}
+          {isPersonalized ? "Recommended for You" : "Top Rated Classes"}
         </h2>
         {loading ? (
           <SkeletonRow />
         ) : (
           <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(220px, 260px)", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
-            {items.map((cls, index) => <ClassCard key={cls.id} cls={cls} index={index} compact />)}
+            {items.map((cls, index) => (
+              <div key={cls.id} style={{ position: "relative" }}>
+                {isPersonalized && (
+                  <span style={{ position: "absolute", top: 8, insetInlineStart: 8, zIndex: 3, backgroundColor: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)", borderRadius: 999, padding: "3px 8px", fontSize: 11, fontWeight: 800 }}>
+                    Because you like {cls.subject}
+                  </span>
+                )}
+                <ClassCard cls={cls} index={index} compact />
+              </div>
+            ))}
           </div>
         )}
       </div>
