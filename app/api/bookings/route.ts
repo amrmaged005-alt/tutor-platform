@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createPaymobPayment } from "@/lib/paymob";
 import { classSelect, requireMobileUser, serializeClass } from "../mobile/_utils";
+import { isRateLimited, bookingLimiter } from "@/lib/ratelimit";
 
 export async function GET(req: NextRequest) {
   const user = await requireMobileUser(req);
@@ -47,6 +48,15 @@ export async function POST(req: NextRequest) {
 
   if (user.role !== "STUDENT") {
     return NextResponse.json({ error: "Only student accounts can book classes." }, { status: 403 });
+  }
+
+  // Rate limit: max 10 booking attempts per hour per student
+  const limited = await isRateLimited(bookingLimiter, `booking:${user.id}`);
+  if (limited) {
+    return NextResponse.json(
+      { error: "Too many booking attempts. Please wait a while before trying again." },
+      { status: 429 }
+    );
   }
 
   const body = await req.json().catch(() => null);

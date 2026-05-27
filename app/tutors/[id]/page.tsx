@@ -98,6 +98,7 @@ export default async function TutorProfilePage({
     bio: tutor.bio,
     phone: tutor.phone,
     photoUrl: tutor.photoUrl,
+    isVerified: tutor.isVerified,
     subjects: tutor.subjects,
     center: tutor.center,
     avgRating,
@@ -114,6 +115,7 @@ export default async function TutorProfilePage({
         format: c.format,
         gradeLevel: c.gradeLevel,
         curriculum: c.curriculum,
+        schedule: c.schedule,
         bookingsCount: c._count.bookings,
         avgRating: classRatings.length > 0
           ? Math.round((classRatings.reduce((a, b) => a + b, 0) / classRatings.length) * 10) / 10
@@ -129,5 +131,5 @@ export default async function TutorProfilePage({
     })),
   };
 
-  return <TutorProfileClient tutor={tutorData} isOwner={isOwner} />;
+  return <TutorProfileClient tutor={tutorData} isOwner={isOwner} isSignedIn={!!session?.user} />;
 }

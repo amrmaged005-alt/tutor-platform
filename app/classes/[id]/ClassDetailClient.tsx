@@ -235,6 +235,8 @@ export default function ClassDetailClient({
 
   const [stickyVisible, setStickyVisible] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [similarClasses, setSimilarClasses] = useState(cls.relatedClasses);
+  const [similarLoading, setSimilarLoading] = useState(true);
   const heroRef = useRef<HTMLDivElement>(null);
 
   // Show sticky bottom bar on mobile after scrolling past hero
@@ -247,10 +249,27 @@ export default function ClassDetailClient({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/classes/${cls.id}/similar`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setSimilarClasses(data.slice(0, 6));
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setSimilarLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [cls.id]);
+
   const isTutor =
     currentUserRole === "TUTOR" ||
     currentUserRole === "CENTER_ADMIN" ||
     currentUserRole === "ADMIN";
+  const hasMaterialAccess = isEligibleToReview || isTutor;
 
   const bookingCTA = () => {
     if (!session?.user) {
@@ -974,7 +993,14 @@ export default function ClassDetailClient({
                 />
                 Class Materials
               </h2>
-              {cls.materials.map((m, i) => (
+              {!hasMaterialAccess ? (
+                <div style={{ border: "1px solid var(--border-light)", borderRadius: 12, padding: "1rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 10 }}>
+                  <Lock size={18} strokeWidth={1.8} aria-hidden />
+                  Enroll to access materials
+                </div>
+              ) : cls.materials.filter((m) => !m.isLocked).length === 0 ? (
+                <div style={{ color: "var(--text-muted)", fontSize: 14 }}>No unlocked materials yet.</div>
+              ) : cls.materials.filter((m) => !m.isLocked).map((m, i) => (
                 <motion.div
                   key={m.id}
                   initial={{ opacity: 0, x: -8 }}
@@ -1221,7 +1247,7 @@ export default function ClassDetailClient({
       </div>
 
       {/* Related classes */}
-      {cls.relatedClasses.length > 0 && (
+      {(similarLoading || similarClasses.length > 0) && (
         <div
           style={{
             maxWidth: 1200,
@@ -1254,16 +1280,22 @@ export default function ClassDetailClient({
                   display: "inline-block",
                 }}
               />
-              More {cls.subject} Classes
+              You Might Also Like
             </h2>
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                gridAutoFlow: "column",
+                gridAutoColumns: "minmax(240px, 280px)",
                 gap: 16,
+                overflowX: "auto",
+                paddingBottom: 8,
               }}
             >
-              {cls.relatedClasses.map((r, i) => (
+              {similarLoading && [0, 1, 2].map((item) => (
+                <div key={item} style={{ height: 180, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16 }} />
+              ))}
+              {!similarLoading && similarClasses.map((r, i) => (
                 <motion.div
                   key={r.id}
                   initial={{ opacity: 0, y: 12 }}

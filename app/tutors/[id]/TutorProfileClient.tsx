@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen } from "lucide-react";
+import { BadgeCheck, BookOpen, MessageCircle } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
+import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
 // Types
@@ -19,6 +20,7 @@ interface TutorClass {
   format: string;
   gradeLevel: string | null;
   curriculum: string;
+  schedule?: string | null;
   bookingsCount: number;
   avgRating: number | null;
 }
@@ -40,6 +42,7 @@ interface TutorData {
   bio: string | null;
   phone: string | null;
   photoUrl: string | null;
+  isVerified?: boolean;
   subjects: string[];
   center: { id: string; name: string; city: string | null } | null;
   classes: TutorClass[];
@@ -201,8 +204,60 @@ function SectionTitle({ children, count }: { children: React.ReactNode; count?: 
   );
 }
 
+function ScheduleSection({ classes, isMobile }: { classes: TutorClass[]; isMobile: boolean }) {
+  const scheduled = classes.filter((cls) => cls.schedule);
+  if (scheduled.length === 0) return null;
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const times = Array.from({ length: 14 }, (_, i) => `${i + 8}:00`);
+
+  if (isMobile) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+        style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "20px", marginBottom: 20 }}>
+        <SectionTitle>Schedule</SectionTitle>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {scheduled.map((cls) => (
+            <div key={cls.id} style={{ border: "1px solid var(--border-light)", borderRadius: 10, padding: "0.75rem", color: "var(--text-secondary)", fontSize: 13 }}>
+              <strong style={{ color: "var(--text)" }}>{cls.title}</strong>
+              <div>{cls.schedule}</div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "24px", marginBottom: 20 }}>
+      <SectionTitle>Schedule</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "72px repeat(7, 1fr)", border: "1px solid var(--border-light)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ backgroundColor: "var(--bg-alt)" }} />
+        {days.map((day) => <div key={day} style={{ backgroundColor: "var(--bg-alt)", color: "var(--text)", fontSize: 12, fontWeight: 700, padding: 8, textAlign: "center" }}>{day}</div>)}
+        {times.map((time) => (
+          <>
+            <div key={`${time}-label`} style={{ color: "var(--text-muted)", fontSize: 11, padding: 8, borderTop: "1px solid var(--border-light)" }}>{time}</div>
+            {days.map((day) => {
+              const match = scheduled.find((cls) => cls.schedule?.toLowerCase().includes(day.toLowerCase()));
+              return (
+                <div key={`${time}-${day}`} style={{ minHeight: 42, borderTop: "1px solid var(--border-light)", borderInlineStart: "1px solid var(--border-light)", backgroundColor: "var(--bg-alt)", padding: 4 }}>
+                  {match && time === "17:00" && (
+                    <div title={match.schedule ?? ""} style={{ backgroundColor: "var(--accent)", color: "var(--accent-fg)", borderRadius: 8, padding: "5px 6px", fontSize: 11, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {match.title}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 // Main component
-export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorData; isOwner: boolean }) {
+export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tutor: TutorData; isOwner: boolean; isSignedIn?: boolean }) {
   const isMobile = useIsMobile();
   const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
   const whatsappNumber = tutor.phone?.replace(/\D/g, "") ?? "";
@@ -210,6 +265,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
   const [activeFilter, setActiveFilter] = useState("All");
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [bioExpanded, setBioExpanded] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
 
   const profilePct = Math.round(
     ([!!tutor.bio, !!tutor.phone, tutor.subjects.length > 0, !!tutor.fullName].filter(Boolean).length / 4) * 100
@@ -267,9 +323,11 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                 <h1 style={{ color: "var(--text)", fontSize: "clamp(1.4rem, 3vw, 2rem)", fontWeight: 800, margin: 0, letterSpacing: -0.5 }}>
                   {displayName}
                 </h1>
-                <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: "var(--bg-card)", color: "#1c6e7a", border: "1px solid #1c6e7a20", letterSpacing: 0.5 }}>
-                  Verified
-                </span>
+                {tutor.isVerified && (
+                  <span title="Verified tutor" style={{ color: "var(--accent)", display: "inline-flex", alignItems: "center" }}>
+                    <BadgeCheck size={18} strokeWidth={2} aria-hidden />
+                  </span>
+                )}
                 <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: tutor.role === "CENTER_ADMIN" ? "var(--success-bg)" : "rgba(93,58,95,0.10)", color: tutor.role === "CENTER_ADMIN" ? "var(--success)" : "#5d3a5f", border: "1px solid currentColor", letterSpacing: 0.5 }}>
                   {tutor.role === "CENTER_ADMIN" ? "CENTER ADMIN" : "TUTOR"}
                 </span>
@@ -355,6 +413,19 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
                     View Classes
                   </a>
                 )}
+                {!isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isSignedIn) setShowSignInModal(true);
+                      else window.location.href = `/messages/new?tutorId=${tutor.id}`;
+                    }}
+                    style={{ backgroundColor: "var(--bg-card)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 14, display: "inline-flex", alignItems: "center", gap: 7, cursor: "pointer" }}
+                  >
+                    <MessageCircle size={16} strokeWidth={1.8} aria-hidden />
+                    Message Tutor
+                  </button>
+                )}
                 {isOwner && (
                   <Link href="/create-class" style={{ background: "linear-gradient(135deg,var(--accent),var(--accent-hover))", color: "var(--accent-fg)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 600, fontSize: 14 }}>
                     + New Class
@@ -388,6 +459,8 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
             </Link>
           </motion.div>
         )}
+
+        <ScheduleSection classes={tutor.classes} isMobile={isMobile} />
 
         {/* About */}
         {(tutor.bio || isOwner) && (
@@ -529,6 +602,7 @@ export default function TutorProfileClient({ tutor, isOwner }: { tutor: TutorDat
           )}
         </motion.div>
       </div>
+      <SignInRequiredModal open={showSignInModal} onClose={() => setShowSignInModal(false)} callbackUrl={`/tutors/${tutor.id}`} />
     </div>
   );
 }

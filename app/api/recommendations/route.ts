@@ -33,7 +33,9 @@ export async function GET() {
           _count: { select: { bookings: true, reviews: true } },
         },
       });
-      return NextResponse.json(recs);
+      return NextResponse.json(recs, {
+        headers: { "Cache-Control": "private, s-maxage=60, stale-while-revalidate=300" },
+      });
     }
   }
 
@@ -50,5 +52,7 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json(top);
+  return NextResponse.json(top, {
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+  });
 }

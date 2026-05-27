@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useSyncExternalStore } from "react";
 import { signOut } from "next-auth/react";
-import { Sun, Moon, Menu, X, Plus } from "lucide-react";
+import { Heart, Sun, Moon, Menu, X, Plus } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
 import { useTheme } from "@/app/components/Theme";
 
@@ -226,6 +226,24 @@ function MobileDrawer({
                         </Link>
                     )}
 
+                    {session && (
+                        <Link
+                            href="/favorites"
+                            onClick={onClose}
+                            style={{
+                                color: "var(--text)", fontSize: 15, fontWeight: 500,
+                                textDecoration: "none", padding: "0.65rem 0.875rem",
+                                borderRadius: 8,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 8,
+                            }}
+                        >
+                            <Heart size={16} strokeWidth={1.8} aria-hidden />
+                            Favorites
+                        </Link>
+                    )}
+
                     {session && isAdmin && (
                         <Link
                             href="/admin"
@@ -391,6 +409,25 @@ export default function NavbarClient({
                                     {t("nav.bookings")}
                                 </Link>
                             )}
+
+                            <Link
+                                href="/favorites"
+                                aria-label="Favorites"
+                                title="Favorites"
+                                style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 999,
+                                    border: "1px solid var(--border-light)",
+                                    color: "var(--text-secondary)",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    textDecoration: "none",
+                                }}
+                            >
+                                <Heart size={16} strokeWidth={1.8} />
+                            </Link>
 
                             {canCreateClass && (
                                 <Link href="/create-class"

@@ -33,5 +33,7 @@ export async function GET(
     },
   });
 
-  return NextResponse.json(similar);
+  return NextResponse.json(similar, {
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+  });
 }

@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRecentSearches } from "../hooks/useRecentSearches";
 
 type Tutor = {
   id: string;
@@ -32,6 +33,17 @@ export default function TutorSearch({ tutors, centers }: Props) {
   const [subject, setSubject] = useState("");
   const [location, setLocation] = useState("");
   const [tab, setTab] = useState<"tutors" | "centers">("tutors");
+  const [draftQuery, setDraftQuery] = useState("");
+  const [showRecent, setShowRecent] = useState(false);
+  const { recent, add, remove } = useRecentSearches();
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setNameQuery(draftQuery);
+      if (draftQuery.trim()) add(draftQuery);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [add, draftQuery]);
 
   const filteredTutors = tutors.filter((t) => {
     const displayName = t.fullName || t.name || "";
@@ -71,7 +83,53 @@ export default function TutorSearch({ tutors, centers }: Props) {
   return (
     <div style={{ fontFamily: "system-ui, sans-serif" }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "32px" }}>
-        <input style={inputStyle} placeholder="Search by name..." value={nameQuery} onChange={(e) => setNameQuery(e.target.value)} />
+        <div style={{ position: "relative" }}>
+          <input
+            style={inputStyle}
+            placeholder="Search by name..."
+            value={draftQuery}
+            onFocus={() => setShowRecent(draftQuery.trim() === "")}
+            onBlur={() => window.setTimeout(() => setShowRecent(false), 120)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setShowRecent(false);
+            }}
+            onChange={(e) => {
+              setDraftQuery(e.target.value);
+              setShowRecent(e.target.value.trim() === "");
+            }}
+          />
+          {showRecent && recent.length > 0 && (
+            <div style={{ position: "absolute", top: "calc(100% + 6px)", insetInlineStart: 0, insetInlineEnd: 0, zIndex: 10, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 10, boxShadow: "var(--shadow-md)", overflow: "hidden" }}>
+              {recent.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setDraftQuery(item);
+                    setNameQuery(item);
+                    add(item);
+                    setShowRecent(false);
+                  }}
+                  style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, border: "none", background: "transparent", color: "var(--text)", padding: "9px 12px", cursor: "pointer", textAlign: "start" }}
+                >
+                  <span>{item}</span>
+                  <span
+                    role="button"
+                    aria-label={`Remove ${item} from recent searches`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      remove(item);
+                    }}
+                    style={{ color: "var(--text-muted)", fontSize: 16 }}
+                  >
+                    ×
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <select style={inputStyle} value={subject} onChange={(e) => setSubject(e.target.value)}>
           <option value="">All Subjects</option>
           {ALL_SUBJECTS.map((s) => (<option key={s} value={s}>{s}</option>))}

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Heart, User, Building2, MapPin, SlidersHorizontal } from "lucide-react";
+import { useRecentSearches } from "./hooks/useRecentSearches";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 type Tutor = { id: string; fullName: string | null };
@@ -312,6 +313,8 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
   const [maxPrice,    setMaxPrice]    = useState("");
   const [location,    setLocation]    = useState("");
   const [sortBy,      setSortBy]      = useState("newest");
+  const [showRecent, setShowRecent] = useState(false);
+  const { recent, add, remove } = useRecentSearches();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const fetchClasses = useCallback(async () => {
@@ -329,8 +332,9 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
     const res  = await fetch("/api/classes/search?" + params.toString());
     const data = await res.json();
     setClasses(data.classes ?? []);
+    if (search.trim()) add(search);
     setLoading(false);
-  }, [search, subject, curriculum, gradeLevel, format, minPrice, maxPrice, location, sortBy]);
+  }, [add, search, subject, curriculum, gradeLevel, format, minPrice, maxPrice, location, sortBy]);
 
   useEffect(() => {
     const t = setTimeout(fetchClasses, 300);
@@ -370,7 +374,10 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             type="text"
             placeholder="Search by class name, tutor, subject…"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => {
+              setSearch(e.target.value);
+              setShowRecent(e.target.value.trim() === "");
+            }}
             style={{
               width: "100%",
               backgroundColor: "var(--bg-card)",
@@ -383,8 +390,17 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
               boxSizing: "border-box",
               transition: "border-color 0.2s",
             }}
-            onFocus={e => e.currentTarget.style.borderColor = "var(--accent)"}
-            onBlur={e => e.currentTarget.style.borderColor = "var(--border-light)"}
+            onFocus={e => {
+              e.currentTarget.style.borderColor = "var(--accent)";
+              if (!search.trim()) setShowRecent(true);
+            }}
+            onBlur={e => {
+              e.currentTarget.style.borderColor = "var(--border-light)";
+              window.setTimeout(() => setShowRecent(false), 120);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setShowRecent(false);
+            }}
           />
           {search && (
             <button

@@ -16,6 +16,7 @@ import {
   Flame,
   Globe2,
   GraduationCap,
+  Heart,
   Languages,
   Laptop,
   MapPin,
@@ -29,6 +30,8 @@ import SectionHeader from "../../components/ui/SectionHeader";
 import EmptyState from "../../components/ui/EmptyState";
 import { useI18n } from "../components/i18n";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useFavorites } from "../hooks/useFavorites";
+import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
 export interface ClassCardData {
@@ -240,8 +243,22 @@ function ClassCard({ cls, index = 0, copy, isMobile }: { cls: ClassCardData; ind
   const isUrgent = cls.spotsLeft !== null && cls.spotsLeft > 0 && cls.spotsLeft <= 5;
   const displayName = cls.center?.name ?? cls.owner?.fullName ?? cls.owner?.name ?? "Coursaty Tutor";
   const isCenter = !!cls.center;
+  const { isFavorited, toggle } = useFavorites();
+  const [modalOpen, setModalOpen] = useState(false);
+  const saved = isFavorited("class", cls.id);
+
+  async function onFavorite(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await toggle("class", cls.id);
+    } catch {
+      setModalOpen(true);
+    }
+  }
 
   return (
+    <>
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -269,6 +286,32 @@ function ClassCard({ cls, index = 0, copy, isMobile }: { cls: ClassCardData; ind
         aria-label={`View ${cls.title}`}
         style={{ position: "absolute", inset: 0, zIndex: 3 }}
       />
+      <motion.button
+        type="button"
+        aria-label={saved ? "Remove class from favorites" : "Save class to favorites"}
+        onClick={onFavorite}
+        animate={saved ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+        transition={{ duration: 0.25 }}
+        style={{
+          position: "absolute",
+          top: 10,
+          insetInlineEnd: 10,
+          zIndex: 4,
+          width: 34,
+          height: 34,
+          borderRadius: 999,
+          border: "1px solid var(--border-light)",
+          backgroundColor: "color-mix(in srgb, var(--bg-card) 88%, transparent)",
+          color: saved ? "#e05252" : "var(--text-muted)",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <Heart size={17} strokeWidth={2} fill={saved ? "currentColor" : "none"} />
+      </motion.button>
       {/* Urgency top bar */}
       {isUrgent && (
         <motion.div
@@ -425,6 +468,8 @@ function ClassCard({ cls, index = 0, copy, isMobile }: { cls: ClassCardData; ind
         </div>
       </div>
     </motion.div>
+    <SignInRequiredModal open={modalOpen} onClose={() => setModalOpen(false)} callbackUrl="/favorites" />
+    </>
   );
 }
 

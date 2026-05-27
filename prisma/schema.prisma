@@ -228,6 +228,9 @@ model Class {
   @@index([ownerId])
   @@index([centerId])
   @@index([priceEgp])
+  @@index([isActive])
+  @@index([title])
+  @@index([createdAt])
 }
 
 model ClassTutor {
@@ -281,6 +284,8 @@ model Booking {
   @@index([classId])
   @@index([status])
   @@index([lockedUntil])
+  @@index([createdAt])
+  @@index([paymentStatus])
 }
 
 model Material {
@@ -315,6 +320,8 @@ model Review {
   student User  @relation(fields: [studentId], references: [id])
 
   @@unique([classId, studentId])
+  @@index([classId, isApproved])
+  @@index([studentId])
 }
 
 // A3: Favorites
