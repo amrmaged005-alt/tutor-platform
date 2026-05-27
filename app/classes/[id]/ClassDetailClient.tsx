@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import ReviewSection from "../../components/ReviewSection";
 import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import BrowseClassCard from "../components/ClassCard";
 import {
   ArrowLeft,
   ArrowRight,
@@ -1253,6 +1254,8 @@ export default function ClassDetailClient({
                 fontWeight: 700,
                 fontSize: "1.1rem",
                 margin: "0 0 1.25rem",
+                paddingTop: "1rem",
+                borderTop: "1px solid var(--border-light)",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
@@ -1280,76 +1283,10 @@ export default function ClassDetailClient({
               }}
             >
               {similarLoading && [0, 1, 2].map((item) => (
-                <div key={item} style={{ height: 180, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16 }} />
+                <div key={item} role="status" aria-label="Loading similar classes" style={{ height: 180, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16 }} />
               ))}
               {!similarLoading && similarClasses.map((r, i) => (
-                <motion.div
-                  key={r.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.65 + i * 0.07 }}
-                  whileHover={{ y: -3, boxShadow: `0 12px 32px ${subjectColor.glow}20` }}
-                  style={{
-                    backgroundColor: "var(--bg-card)",
-                    border: "1px solid var(--border-light)",
-                    borderRadius: 16,
-                    padding: "1.25rem",
-                    cursor: "pointer",
-                    transition: "border-color 0.2s",
-                  }}
-                >
-                  <Link
-                    href={"/classes/" + r.id}
-                    style={{ textDecoration: "none" }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: subjectColor.badge,
-                        textTransform: "uppercase" as const,
-                        letterSpacing: 0.8,
-                        marginBottom: 6,
-                      }}
-                    >
-                      {r.subject}
-                    </div>
-                    <div
-                      style={{
-                        fontWeight: 700,
-                        color: "var(--text)",
-                        fontSize: 15,
-                        marginBottom: 8,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {r.title}
-                    </div>
-                    {r.description && (
-                      <div
-                        style={{
-                          color: "var(--text-muted)",
-                          fontSize: 13,
-                          lineHeight: 1.5,
-                          marginBottom: 12,
-                        }}
-                      >
-                        {r.description.length > 80
-                          ? r.description.slice(0, 80) + "..."
-                          : r.description}
-                      </div>
-                    )}
-                    <div
-                      style={{
-                        fontWeight: 700,
-                        color: r.priceEgp === 0 ? "var(--success)" : "var(--bg-subtle)",
-                        fontSize: 15,
-                      }}
-                    >
-                      {r.priceEgp === 0 ? "Free" : r.priceEgp + " EGP"}
-                    </div>
-                  </Link>
-                </motion.div>
+                <BrowseClassCard key={r.id} cls={r} index={i} compact />
               ))}
             </div>
           </motion.div>
