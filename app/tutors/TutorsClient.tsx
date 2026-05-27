@@ -188,12 +188,16 @@ function MobileTutorFilterDrawer({
   selectedCity, setSelectedCity,
   minRating, setMinRating,
   onClear,
+  resultCount,
+  totalCount,
 }: {
   open: boolean; onClose: () => void;
   selectedSubjects: string[]; setSelectedSubjects: (s: string[]) => void;
   selectedCity: string; setSelectedCity: (c: string) => void;
   minRating: number; setMinRating: (r: number) => void;
   onClear: () => void;
+  resultCount: number;
+  totalCount: number;
 }) {
   const { t } = useI18n();
   const dragStartY = useRef<number | null>(null);
@@ -329,6 +333,10 @@ function MobileTutorFilterDrawer({
             </div>
           </div>
 
+          <div style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", paddingTop: 4 }}>
+            {resultCount} of {totalCount} results
+          </div>
+
           <div style={{ display: "flex", gap: 10, paddingTop: 8 }}>
             {hasFilters && (
               <button onClick={() => { onClear(); onClose(); }} style={{
@@ -419,6 +427,8 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
         selectedCity={selectedCity} setSelectedCity={setSelectedCity}
         minRating={minRating} setMinRating={setMinRating}
         onClear={clearFilters}
+        resultCount={filtered.length}
+        totalCount={tutors.length}
       />
 
       {/* Page header */}

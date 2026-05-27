@@ -1,66 +1,59 @@
 "use client";
 
-import { useMemo } from "react";
-import { Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import PageShell from "../../components/ui/PageShell";
 import EmptyState from "../../components/ui/EmptyState";
 import { useFilterParams } from "../hooks/useFilterParams";
 import { useIsMobile } from "../hooks/useIsMobile";
 import ClassFilters, { type ClassFilterState } from "./components/ClassFilters";
+import ClassFilterBottomSheet from "./components/ClassFilterBottomSheet";
 import ClassGrid from "./components/ClassGrid";
 import TrendingClassesRow from "./components/TrendingClassesRow";
 import type { ClassCardData } from "./components/ClassCard";
+import { DEFAULT_CLASS_FILTERS, filterClasses, getActiveClassFilterCount } from "./components/classFiltering";
 
-const DEFAULT_FILTERS: ClassFilterState = {
-  search: "",
-  subject: "",
-  curriculum: "",
-  format: "",
-  maxPrice: "",
-  city: "",
-  minRating: "",
-  sort: "newest",
-};
-function matchesText(cls: ClassCardData, query: string) {
-  const haystack = [cls.title, cls.subject, cls.description, cls.city, cls.location, cls.owner?.fullName, cls.owner?.name, cls.center?.name]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-  return haystack.includes(query.toLowerCase());
-}
 export default function ClassesClient({ classes }: { classes: ClassCardData[] }) {
   const isMobile = useIsMobile();
-  const { filters, setFilter, resetFilters } = useFilterParams(DEFAULT_FILTERS);
+  const { filters, setFilter, resetFilters } = useFilterParams(DEFAULT_CLASS_FILTERS);
   const typedFilters = filters as ClassFilterState;
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [draftFilters, setDraftFilters] = useState<ClassFilterState>(typedFilters);
 
-  const filtered = useMemo(() => {
-    let result = classes.filter((cls) => {
-      const price = cls.priceEgp ?? 0;
-      const rating = cls.avgRating ?? 0;
-      if (typedFilters.search && !matchesText(cls, typedFilters.search)) return false;
-      if (typedFilters.subject && cls.subject !== typedFilters.subject) return false;
-      if (typedFilters.curriculum && cls.curriculum !== typedFilters.curriculum) return false;
-      if (typedFilters.format && cls.format !== typedFilters.format) return false;
-      if (typedFilters.city && !(cls.city ?? "").toLowerCase().includes(typedFilters.city.toLowerCase())) return false;
-      if (typedFilters.maxPrice && price > Number(typedFilters.maxPrice)) return false;
-      if (typedFilters.minRating && rating < Number(typedFilters.minRating)) return false;
-      return true;
-    });
+  const filtered = useMemo(() => filterClasses(classes, typedFilters), [classes, typedFilters]);
+  const draftResultCount = useMemo(() => filterClasses(classes, draftFilters).length, [classes, draftFilters]);
+  const currentActiveFilterCount = getActiveClassFilterCount(typedFilters);
+  const draftActiveFilterCount = getActiveClassFilterCount(draftFilters);
 
-    result = [...result].sort((a, b) => {
-      if (typedFilters.sort === "price_asc") return (a.priceEgp ?? 0) - (b.priceEgp ?? 0);
-      if (typedFilters.sort === "price_desc") return (b.priceEgp ?? 0) - (a.priceEgp ?? 0);
-      if (typedFilters.sort === "popular") return (b.bookingsCount ?? 0) - (a.bookingsCount ?? 0);
-      if (typedFilters.sort === "rating") return (b.avgRating ?? 0) - (a.avgRating ?? 0);
-      return 0;
-    });
+  function openMobileFilters() {
+    setDraftFilters(typedFilters);
+    setMobileFiltersOpen(true);
+  }
 
-    return result;
-  }, [classes, typedFilters]);
+  function applyMobileFilters() {
+    (Object.entries(draftFilters) as [keyof ClassFilterState, string][]).forEach(([key, value]) => setFilter(key, value));
+    setMobileFiltersOpen(false);
+  }
 
-  const activeFilterCount = Object.entries(typedFilters).filter(([key, value]) => key !== "sort" && Boolean(value)).length;
+  function clearMobileFilters() {
+    setDraftFilters(DEFAULT_CLASS_FILTERS);
+    resetFilters();
+  }
+
   return (
     <PageShell>
+      <ClassFilterBottomSheet
+        open={mobileFiltersOpen}
+        filters={draftFilters}
+        onChange={(key, value) => setDraftFilters((current) => ({ ...current, [key]: value }))}
+        onApply={applyMobileFilters}
+        onClear={clearMobileFilters}
+        onClose={() => setMobileFiltersOpen(false)}
+        activeCount={draftActiveFilterCount}
+        resultCount={draftResultCount}
+        totalCount={classes.length}
+      />
+
       <section style={{ marginBottom: isMobile ? "1rem" : "1.5rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
           <div>
@@ -68,19 +61,34 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
             <h1 style={{ color: "var(--text)", fontSize: "clamp(1.5rem, 4vw, 2.25rem)", margin: "0.25rem 0 0.35rem", fontWeight: 900 }}>Classes</h1>
             <p style={{ color: "var(--text-muted)", margin: 0, fontSize: 14 }}>{classes.length} classes across subjects, curricula, cities, and formats.</p>
           </div>
-          <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{filtered.length} results{activeFilterCount > 0 ? `, ${activeFilterCount} filters active` : ""}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            {isMobile && (
+              <button type="button" onClick={openMobileFilters} style={{ display: "inline-flex", alignItems: "center", gap: 7, backgroundColor: currentActiveFilterCount > 0 ? "var(--accent-bg)" : "var(--bg-card)", border: `1px solid ${currentActiveFilterCount > 0 ? "var(--accent-border)" : "var(--border-light)"}`, color: currentActiveFilterCount > 0 ? "var(--accent)" : "var(--text)", borderRadius: 10, padding: "9px 12px", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                <SlidersHorizontal size={15} strokeWidth={2} aria-hidden />
+                Filters
+                {currentActiveFilterCount > 0 && (
+                  <span style={{ minWidth: 18, height: 18, borderRadius: 999, backgroundColor: "var(--accent)", color: "var(--accent-fg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 850 }}>
+                    {currentActiveFilterCount}
+                  </span>
+                )}
+              </button>
+            )}
+            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{filtered.length} results{currentActiveFilterCount > 0 ? `, ${currentActiveFilterCount} filters active` : ""}</span>
+          </div>
         </div>
       </section>
 
       <TrendingClassesRow isMobile={isMobile} />
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "260px minmax(0, 1fr)", gap: isMobile ? 14 : 24, alignItems: "start" }}>
-        <ClassFilters
-          filters={typedFilters}
-          onChange={(key, value) => setFilter(key, value)}
-          onReset={resetFilters}
-          activeCount={activeFilterCount}
-        />
+        {!isMobile && (
+          <ClassFilters
+            filters={typedFilters}
+            onChange={(key, value) => setFilter(key, value)}
+            onReset={resetFilters}
+            activeCount={currentActiveFilterCount}
+          />
+        )}
 
         <main>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
