@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react";
 import { Heart, Sun, Moon, Menu, X, Plus } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
 import { useTheme } from "@/app/components/Theme";
+import { useFavorites } from "@/app/hooks/useFavorites";
 
 const subscribeClient = () => () => {};
 const getClientSnapshot = () => true;
@@ -114,7 +115,7 @@ function LangToggle({ compact = false }: { compact?: boolean }) {
 }
 
 function MobileDrawer({
-    open, onClose, links, session, canCreateClass, isAdmin,
+    open, onClose, links, session, canCreateClass, isAdmin, favoriteCount,
 }: {
     open: boolean;
     onClose: () => void;
@@ -122,6 +123,7 @@ function MobileDrawer({
     session: boolean;
     canCreateClass: boolean;
     isAdmin: boolean;
+    favoriteCount: number;
 }) {
     const { t, dir } = useI18n();
     const closedTransform = dir === "rtl" ? "translateX(-100%)" : "translateX(100%)";
@@ -241,6 +243,11 @@ function MobileDrawer({
                         >
                             <Heart size={16} strokeWidth={1.8} aria-hidden />
                             Favorites
+                            {favoriteCount > 0 && (
+                                <span style={{ marginInlineStart: "auto", minWidth: 20, height: 20, borderRadius: 999, backgroundColor: "var(--accent)", color: "var(--accent-fg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>
+                                    {favoriteCount}
+                                </span>
+                            )}
                         </Link>
                     )}
 
@@ -305,6 +312,7 @@ export default function NavbarClient({
     role: string;
 }) {
     const { t } = useI18n();
+    const { favorites } = useFavorites();
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -316,6 +324,7 @@ export default function NavbarClient({
 
     const canCreateClass = role === "TUTOR" || role === "CENTER_ADMIN" || role === "ADMIN";
     const isAdmin = role === "ADMIN";
+    const favoriteCount = session ? favorites.classIds.length + favorites.tutorIds.length : 0;
 
     const linkStyle = {
         color: "var(--text-secondary)",
@@ -424,9 +433,15 @@ export default function NavbarClient({
                                     alignItems: "center",
                                     justifyContent: "center",
                                     textDecoration: "none",
+                                    position: "relative",
                                 }}
                             >
                                 <Heart size={16} strokeWidth={1.8} />
+                                {favoriteCount > 0 && (
+                                    <span style={{ position: "absolute", insetBlockStart: -5, insetInlineEnd: -5, minWidth: 18, height: 18, borderRadius: 999, backgroundColor: "var(--accent)", color: "var(--accent-fg)", border: "1px solid var(--bg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 850 }}>
+                                        {favoriteCount}
+                                    </span>
+                                )}
                             </Link>
 
                             {canCreateClass && (
@@ -518,6 +533,7 @@ export default function NavbarClient({
                 session={session}
                 canCreateClass={canCreateClass}
                 isAdmin={isAdmin}
+                favoriteCount={favoriteCount}
             />
         </>
     );
