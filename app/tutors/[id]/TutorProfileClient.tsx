@@ -325,7 +325,7 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
                 </h1>
                 {tutor.isVerified && (
                   <span title="Verified tutor" style={{ color: "var(--accent)", display: "inline-flex", alignItems: "center" }}>
-                    <BadgeCheck size={18} strokeWidth={2} aria-hidden />
+                    <BadgeCheck size={20} strokeWidth={2} aria-hidden />
                   </span>
                 )}
                 <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: tutor.role === "CENTER_ADMIN" ? "var(--success-bg)" : "rgba(93,58,95,0.10)", color: tutor.role === "CENTER_ADMIN" ? "var(--success)" : "#5d3a5f", border: "1px solid currentColor", letterSpacing: 0.5 }}>

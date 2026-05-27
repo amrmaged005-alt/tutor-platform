@@ -18,7 +18,7 @@ export default async function CenterProfilePage({
       tutors: {
         select: {
           id: true, fullName: true, name: true,
-          bio: true, subjects: true, photoUrl: true, phone: true,
+          bio: true, subjects: true, photoUrl: true, phone: true, isVerified: true,
           ownedClasses: {
             select: {
               id: true,
@@ -74,6 +74,7 @@ export default async function CenterProfilePage({
         subjects: t.subjects,
         photoUrl: t.photoUrl,
         phone: t.phone,
+        isVerified: t.isVerified,
         classCount: t.ownedClasses.length,
         studentCount: t.ownedClasses.reduce((s, c) => s + c._count.bookings, 0),
         avgRating: tutorRating,

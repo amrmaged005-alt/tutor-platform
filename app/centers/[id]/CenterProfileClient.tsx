@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home, MapPin, MessageCircle, Mail } from "lucide-react";
+import { BadgeCheck, BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home, MapPin, MessageCircle, Mail } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
@@ -18,6 +18,7 @@ interface CenterTutor {
   subjects: string[];
   photoUrl: string | null;
   phone: string | null;
+  isVerified: boolean;
   classCount: number;
   studentCount: number;
   avgRating: number | null;
@@ -112,7 +113,14 @@ function TutorCard({ tutor }: { tutor: CenterTutor }) {
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
         <TutorAvatar name={displayName} photoUrl={tutor.photoUrl} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 15, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
+          <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 15, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</span>
+            {tutor.isVerified && (
+              <span title="Verified tutor" style={{ color: "var(--accent)", display: "inline-flex", flexShrink: 0 }}>
+                <BadgeCheck size={14} strokeWidth={2} aria-hidden />
+              </span>
+            )}
+          </div>
           {tutor.avgRating !== null && (
             <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
               <Stars rating={tutor.avgRating} />

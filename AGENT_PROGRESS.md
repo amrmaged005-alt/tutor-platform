@@ -39,7 +39,7 @@
 - [x] Target 7 - Post-Class Materials: Student View
 - [x] Target 8 - Receipt Download Button
 - [x] Target 9 - Refund Request Modal
-- [ ] Target 10 - Verified Badge
+- [x] Target 10 - Verified Badge
 - [ ] Target 11 - Similar Classes Row
 - [ ] Target 12 - Recommendations Section on Landing
 - [ ] Target 13 - In-App Messaging UI

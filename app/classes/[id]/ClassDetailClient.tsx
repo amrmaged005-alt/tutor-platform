@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Armchair,
+  BadgeCheck,
   CalendarDays,
   CheckCircle,
   ClipboardList,
@@ -837,19 +838,8 @@ export default function ClassDetailClient({
                   >
                     {tutor.fullName || tutor.name || "Tutor"}
                     {tutor.isVerified && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          padding: "2px 8px",
-                          borderRadius: 99,
-                          backgroundColor: "var(--bg-card)",
-                          color: "#1c6e7a",
-                          border: "1px solid #1c6e7a20",
-                        }}
-                      >
-                        <CheckCircle size={11} strokeWidth={2.4} aria-hidden />
-                        Verified
+                      <span title="Verified tutor" style={{ color: "var(--accent)", display: "inline-flex" }}>
+                        <BadgeCheck size={14} strokeWidth={2} aria-hidden />
                       </span>
                     )}
                   </div>
