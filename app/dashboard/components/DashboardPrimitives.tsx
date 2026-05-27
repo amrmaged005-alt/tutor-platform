@@ -11,13 +11,13 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock3,
-  Download,
   GraduationCap,
   Inbox,
   Mail,
   MapPin,
   Phone,
   RotateCcw,
+  Receipt,
   Search,
   TrendingUp,
   User,
@@ -125,7 +125,7 @@ export function ReceiptButton({ bookingId }: { bookingId: string }) {
       onClick={() => window.open(`/api/bookings/${bookingId}/receipt`, "_blank")}
       style={{ border: "1px solid var(--border-light)", backgroundColor: "var(--bg-card)", color: "var(--text-muted)", borderRadius: 8, width: 36, height: 36, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
     >
-      <Download size={15} strokeWidth={1.8} />
+      <Receipt size={15} strokeWidth={1.8} />
     </button>
   );
 }

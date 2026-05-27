@@ -14,7 +14,7 @@ import {
   LayoutDashboard,
   ArrowRight,
   Calendar,
-  Download,
+  Receipt,
 } from "lucide-react";
 import { useI18n } from "../components/i18n";
 import { useIsMobile } from "../hooks/useIsMobile";
@@ -158,6 +158,32 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
             {subheading}
           </p>
         </div>
+
+        {!isFailed && (
+          <button
+            type="button"
+            onClick={() => window.open(`/api/bookings/${data.bookingId}/receipt`, "_blank")}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              backgroundColor: "var(--bg-card)",
+              color: "var(--text)",
+              border: "1px solid var(--border)",
+              borderRadius: 10,
+              padding: isMobile ? "0.65rem 1rem" : "0.875rem 1.25rem",
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: "pointer",
+              marginBottom: isMobile ? "0.875rem" : "1.25rem",
+            }}
+          >
+            <Receipt size={16} strokeWidth={1.8} aria-hidden />
+            Download Receipt
+          </button>
+        )}
 
         {/* Booking details card */}
         <div
@@ -352,28 +378,6 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
               <LayoutDashboard size={16} strokeWidth={1.8} />
               {t("booking.viewBookings")}
             </Link>
-
-            <button
-              type="button"
-              onClick={() => window.open(`/api/bookings/${data.bookingId}/receipt`, "_blank")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                backgroundColor: "var(--bg-card)",
-                color: "var(--text)",
-                border: "1px solid var(--border)",
-                borderRadius: 10,
-                padding: isMobile ? "0.65rem 1rem" : "0.875rem 1.25rem",
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: "pointer",
-              }}
-            >
-              <Download size={16} strokeWidth={1.8} aria-hidden />
-              Download Receipt
-            </button>
 
             <Link
               href="/classes"
