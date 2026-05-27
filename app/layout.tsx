@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/app/components/Theme";
 import FooterContent from "@/app/components/FooterContent";
 import SkipLink from "@/components/SkipLink";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import PageTransition from "@/components/ui/PageTransition";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 
 // Runs before React hydration to prevent flash-of-wrong-theme / wrong-lang.
@@ -78,7 +79,9 @@ export default function RootLayout({
             <ToastProvider>
               <SkipLink />
               <Navbar />
-              <main id="main-content" className="app-main" tabIndex={-1}>{children}</main>
+              <main id="main-content" className="app-main" tabIndex={-1}>
+                <PageTransition>{children}</PageTransition>
+              </main>
               <FooterContent />
               <MobileBottomNav />
             </ToastProvider>
