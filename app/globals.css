@@ -483,6 +483,10 @@ select.input:focus {
   .desktop-only { display: none !important; }
   .mobile-only  { display: flex !important; }
   .footer-grid  { grid-template-columns: 1fr 1fr !important; gap: 2rem !important; }
+
+  .app-main {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
 }
 
 @media (max-width: 480px) {
