@@ -8,18 +8,12 @@ export const metadata = { title: "Learning Centers | Coursaty" };
 export const revalidate = 60;
 
 export default async function CentersPage() {
-  const centers = await prisma.learningCenter.findMany({
-    include: {
-      tutors: { select: { id: true } },
-      classes: {
-        include: {
-          _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
-          reviews: { select: { rating: true } },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  let centers: Awaited<ReturnType<typeof fetchCenters>> = [];
+  try {
+    centers = await fetchCenters();
+  } catch (err) {
+    console.error("[CentersPage] fetch failed:", err);
+  }
 
   const centerCards = centers.map((c) => {
     const allReviews = c.classes.flatMap((cls) => cls.reviews);
@@ -49,4 +43,20 @@ export default async function CentersPage() {
   });
 
   return <CentersClient centers={centerCards} />;
+}
+
+function fetchCenters() {
+  return prisma.learningCenter.findMany({
+    include: {
+      tutors: { select: { id: true } },
+      classes: {
+        include: {
+          _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
+          reviews: { select: { rating: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 12,
+  });
 }

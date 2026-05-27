@@ -1,21 +1,18 @@
 "use client";
 
-import { useState, useCallback, useTransition } from "react";
-import { Bell, Mail, MessageSquare, BookOpen, Clock, Star, DollarSign, Megaphone } from "lucide-react";
+import { useState, useCallback, useEffect, useTransition } from "react";
+import { Bell, Mail, MessageSquare, BookOpen, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface NotifPrefs {
   notifyBookingConfirmed: boolean;
-  notifyBookingCancelled: boolean;
   notifyNewMessage: boolean;
-  notifyWaitlistOpened: boolean;
   notifyReviewReceived: boolean;
-  notifyPayoutProcessed: boolean;
-  notifyMarketingEmails: boolean;
+  pushOnBooking: boolean;
 }
 
 interface SettingsClientProps {
-  initialPrefs: NotifPrefs;
+  initialPrefs: Partial<NotifPrefs>;
 }
 
 const PREFS: Array<{
@@ -26,45 +23,27 @@ const PREFS: Array<{
 }> = [
   {
     key: "notifyBookingConfirmed",
-    label: "Booking confirmed",
-    description: "When your booking is confirmed or a student books your class",
-    icon: BookOpen,
-  },
-  {
-    key: "notifyBookingCancelled",
-    label: "Booking cancelled",
-    description: "When a booking is cancelled by you or the instructor",
+    label: "Email when someone books a session",
+    description: "Get an email for new or confirmed bookings",
     icon: BookOpen,
   },
   {
     key: "notifyNewMessage",
-    label: "New messages",
+    label: "Email when you receive a message",
     description: "When you receive a new message in your inbox",
     icon: MessageSquare,
   },
   {
-    key: "notifyWaitlistOpened",
-    label: "Waitlist spot available",
-    description: "When a seat opens up in a class you're waiting for",
-    icon: Clock,
-  },
-  {
     key: "notifyReviewReceived",
-    label: "New review",
+    label: "Email when you receive a review",
     description: "When a student leaves a review on your class",
     icon: Star,
   },
   {
-    key: "notifyPayoutProcessed",
-    label: "Payout processed",
-    description: "When a payout has been sent to your account",
-    icon: DollarSign,
-  },
-  {
-    key: "notifyMarketingEmails",
-    label: "Marketing & promotions",
-    description: "News, promotions, and tips from Coursaty",
-    icon: Megaphone,
+    key: "pushOnBooking",
+    label: "Push notifications for bookings",
+    description: "Receive booking alerts on your device",
+    icon: Bell,
   },
 ];
 
@@ -111,7 +90,7 @@ function Toggle({
           width: 18,
           height: 18,
           borderRadius: "50%",
-          backgroundColor: "#fff",
+          backgroundColor: "var(--bg-card)",
           boxShadow: "0 1px 4px rgba(0,0,0,0.22)",
           transition: "inset-inline-start 0.2s",
         }}
@@ -121,7 +100,13 @@ function Toggle({
 }
 
 export default function SettingsClient({ initialPrefs }: SettingsClientProps) {
-  const [prefs, setPrefs] = useState<NotifPrefs>(initialPrefs);
+  const [prefs, setPrefs] = useState<NotifPrefs>({
+    notifyBookingConfirmed: initialPrefs.notifyBookingConfirmed ?? true,
+    notifyNewMessage: initialPrefs.notifyNewMessage ?? true,
+    notifyReviewReceived: initialPrefs.notifyReviewReceived ?? true,
+    pushOnBooking: initialPrefs.pushOnBooking ?? false,
+  });
+  const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -156,6 +141,22 @@ export default function SettingsClient({ initialPrefs }: SettingsClientProps) {
     },
     [prefs]
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/me/notifications", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.preferences) setPrefs({ ...data.preferences, pushOnBooking: data.preferences.pushOnBooking ?? false });
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div
@@ -202,6 +203,7 @@ export default function SettingsClient({ initialPrefs }: SettingsClientProps) {
       </div>
 
       {/* Save feedback */}
+      {loading && <div className="skeleton" style={{ height: 220, marginBottom: "1rem" }} />}
       {saved && (
         <div
           role="status"
@@ -237,7 +239,7 @@ export default function SettingsClient({ initialPrefs }: SettingsClientProps) {
       )}
 
       {/* Email section */}
-      <div
+      {!loading && <div
         style={{
           backgroundColor: "var(--bg-card)",
           border: "1px solid var(--border-light)",
@@ -309,13 +311,14 @@ export default function SettingsClient({ initialPrefs }: SettingsClientProps) {
 
             <Toggle
               id={`pref-${key}`}
-              checked={prefs[key]}
+              checked={Boolean(prefs[key])}
               onChange={(v) => handleToggle(key, v)}
               disabled={isPending}
             />
           </label>
         ))}
-      </div>
+      </div>}
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .skeleton { background: var(--color-border, var(--border-light)); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }`}</style>
     </div>
   );
 }

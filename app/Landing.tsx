@@ -1,8 +1,14 @@
 "use client";
 
 import HeroSection from "./components/landing/HeroSection";
-import RecommendationsSection from "./components/landing/RecommendationsSection";
 import TrendingSection from "./components/landing/TrendingSection";
+import FeaturedTutorsSection from "./components/landing/FeaturedTutorsSection";
+import FeaturedClassesSection from "./components/landing/FeaturedClassesSection";
+import RecommendationsSection from "./components/landing/RecommendationsSection";
+import HowItWorksSection from "./components/landing/HowItWorksSection";
+import StatsSection from "./components/landing/StatsSection";
+import TestimonialsSection from "./components/landing/TestimonialsSection";
+import CTASection from "./components/landing/CTASection";
 import type { FeaturedClass, FeaturedTutor, LandingStats } from "./components/landing/LandingData";
 
 export default function Landing({
@@ -18,7 +24,13 @@ export default function Landing({
     <>
       <HeroSection stats={stats} featuredTutors={featuredTutors} featuredClasses={featuredClasses} />
       <TrendingSection />
+      <FeaturedTutorsSection />
+      <FeaturedClassesSection />
       <RecommendationsSection />
+      <HowItWorksSection />
+      <StatsSection />
+      <TestimonialsSection />
+      <CTASection />
     </>
   );
 }

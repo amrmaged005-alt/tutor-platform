@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
         city: true,
         location: true,
         _count: { select: { tutors: true, classes: true } },
+        classes: { select: { subject: true } },
       },
     }),
     prisma.learningCenter.count({ where }),
@@ -68,7 +69,12 @@ export async function GET(req: NextRequest) {
       location: c.location,
       tutorCount: c._count.tutors,
       classCount: c._count.classes,
+      subjects: Array.from(new Set(c.classes.map((cls) => cls.subject))),
       avgRating: r && r.count > 0 ? Math.round((r.sum / r.count) * 10) / 10 : null,
+      reviewCount: r?.count ?? 0,
+      totalStudents: 0,
+      phone: null,
+      email: null,
     };
   });
 

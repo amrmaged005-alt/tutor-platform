@@ -21,17 +21,12 @@ export const metadata: Metadata = {
 export const revalidate = 30;
 
 export default async function ClassesPage() {
-  const classes = await prisma.class.findMany({
-    include: {
-      center: { select: { id: true, name: true, city: true } },
-      owner: { select: { id: true, fullName: true, name: true, photoUrl: true, isVerified: true } },
-      _count: {
-        select: { bookings: { where: { status: { not: "CANCELLED" } } } },
-      },
-      reviews: { select: { rating: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  let classes: Awaited<ReturnType<typeof fetchClasses>> = [];
+  try {
+    classes = await fetchClasses();
+  } catch (err) {
+    console.error("[ClassesPage] fetch failed:", err);
+  }
 
   const classCards = classes.map((c) => {
     const avgRating =
@@ -73,4 +68,19 @@ export default async function ClassesPage() {
   });
 
   return <ClassesClient classes={classCards} />;
+}
+
+function fetchClasses() {
+  return prisma.class.findMany({
+    include: {
+      center: { select: { id: true, name: true, city: true } },
+      owner: { select: { id: true, fullName: true, name: true, photoUrl: true, isVerified: true } },
+      _count: {
+        select: { bookings: { where: { status: { not: "CANCELLED" } } } },
+      },
+      reviews: { select: { rating: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 12,
+  });
 }

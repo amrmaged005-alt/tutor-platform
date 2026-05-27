@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 
 // ─── TYPES ─────────────────────────────────────────────────────────────────────
 export interface CenterCardData {
@@ -290,15 +291,20 @@ function SectionTitle({ title, subtitle }: { title: string; subtitle?: string })
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function CentersClient({ centers }: { centers: CenterCardData[] }) {
   const isMobile = useIsMobile();
+  const [items, setItems] = useState(centers);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(centers.length >= 12);
   const [search, setSearch] = useState("");
   const [selectedCity, setSelectedCity] = useState("All Cities");
+  const [selectedSubject, setSelectedSubject] = useState("All Subjects");
   const [minRating, setMinRating] = useState(0);
 
-  function clearFilters() { setSearch(""); setSelectedCity("All Cities"); setMinRating(0); }
-  const hasFilters = !!search || selectedCity !== "All Cities" || minRating > 0;
+  function clearFilters() { setSearch(""); setSelectedCity("All Cities"); setSelectedSubject("All Subjects"); setMinRating(0); }
+  const hasFilters = !!search || selectedCity !== "All Cities" || selectedSubject !== "All Subjects" || minRating > 0;
+  const subjects = useMemo(() => ["All Subjects", ...Array.from(new Set(items.flatMap((c) => c.subjects)))], [items]);
 
   const filtered = useMemo(() => {
-    return centers.filter((c) => {
+    return items.filter((c) => {
       if (search) {
         const q = search.toLowerCase();
         const match = c.name.toLowerCase().includes(q)
@@ -307,15 +313,27 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
         if (!match) return false;
       }
       if (selectedCity !== "All Cities" && c.city !== selectedCity) return false;
+      if (selectedSubject !== "All Subjects" && !c.subjects.includes(selectedSubject)) return false;
       if (minRating > 0 && (c.avgRating === null || c.avgRating < minRating)) return false;
       return true;
     });
-  }, [centers, search, selectedCity, minRating]);
+  }, [items, search, selectedCity, selectedSubject, minRating]);
 
   const topRated = filtered.filter((c) => c.avgRating !== null && c.avgRating >= 4.5);
   const established = filtered.filter((c) => c.classCount >= 5);
   const newCenters = filtered.filter((c) => c.classCount < 5);
   const isFiltering = hasFilters;
+  const loadMore = useCallback(async () => {
+    const nextPage = page + 1;
+    const res = await fetch(`/api/centers?page=${nextPage}&limit=12`, { cache: "no-store" });
+    if (!res.ok) return;
+    const data = await res.json();
+    const nextItems = Array.isArray(data.centers) ? data.centers : [];
+    setItems((current) => [...current, ...nextItems]);
+    setPage(nextPage);
+    setHasMore(data.meta ? nextPage < data.meta.pages : nextItems.length === 12);
+  }, [page]);
+  const { sentinelRef, isLoading } = useInfiniteScroll(loadMore, hasMore);
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-alt)", color: "var(--text)" }}>
@@ -375,11 +393,11 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
                 fontSize: 12, fontWeight: 700, color: "var(--text-muted)",
                 background: "var(--bg-alt)", border: "1px solid var(--border-light)",
                 borderRadius: 999, padding: "2px 8px", letterSpacing: 0,
-              }}>{centers.length}</span>
+              }}>{items.length}</span>
             )}
           </h1>
           {!isMobile && <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
-            {centers.length} verified centers across Egypt — find the right institution for you.
+            {items.length} verified centers across Egypt — find the right institution for you.
           </p>}
 
           {/* Search bar */}
@@ -428,6 +446,9 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
               <span style={{ color: "var(--text)", fontWeight: 700 }}>{filtered.length}</span> center{filtered.length !== 1 ? "s" : ""}
               {hasFilters && " match your filters"}
             </span>
+            <select value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value)} style={{ backgroundColor: "var(--bg-card)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "8px 12px", fontSize: 13 }}>
+              {subjects.map((subject) => <option key={subject} value={subject}>{subject}</option>)}
+            </select>
             {hasFilters && (
               <button onClick={clearFilters} style={{ background: "var(--accent-bg)", border: "1px solid var(--accent-border)", color: "var(--accent)", borderRadius: 999, padding: "5px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                 ✕ Clear filters
@@ -489,6 +510,10 @@ export default function CentersClient({ centers }: { centers: CenterCardData[] }
               </motion.div>
             )}
           </AnimatePresence>
+          <div ref={sentinelRef} style={{ minHeight: 56, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: 13, marginTop: 18 }}>
+            {isLoading ? <span style={{ width: 20, height: 20, border: "2px solid var(--border-light)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> : !hasMore && items.length > 0 ? "You've seen all centers" : null}
+          </div>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
     </div>

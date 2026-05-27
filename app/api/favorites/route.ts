@@ -10,12 +10,87 @@ export async function GET() {
 
   const favorites = await prisma.favorite.findMany({
     where: { userId: session.user.id },
-    select: { classId: true, tutorId: true },
+    include: {
+      class: {
+        include: {
+          center: { select: { id: true, name: true, city: true } },
+          owner: { select: { id: true, fullName: true, name: true, photoUrl: true, isVerified: true } },
+          _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
+          reviews: { select: { rating: true }, where: { isApproved: true } },
+        },
+      },
+    },
+  });
+  const tutorIds = favorites.map((f) => f.tutorId).filter(Boolean) as string[];
+  const tutors = tutorIds.length
+    ? await prisma.user.findMany({
+        where: { id: { in: tutorIds } },
+        select: {
+          id: true,
+          fullName: true,
+          name: true,
+          bio: true,
+          subjects: true,
+          photoUrl: true,
+          isVerified: true,
+          center: { select: { id: true, name: true, city: true } },
+          ownedClasses: { select: { bookings: { select: { id: true, createdAt: true, studentId: true } }, reviews: { select: { rating: true }, where: { isApproved: true } } } },
+        },
+      })
+    : [];
+  const classes = favorites.flatMap((f) => {
+    if (!f.class) return [];
+    const avgRating = f.class.reviews.length ? f.class.reviews.reduce((sum, r) => sum + r.rating, 0) / f.class.reviews.length : null;
+    return [{
+      id: f.class.id,
+      title: f.class.title,
+      subject: f.class.subject,
+      description: f.class.description,
+      city: f.class.city,
+      location: f.class.location,
+      priceEgp: f.class.priceEgp,
+      capacity: f.class.capacity,
+      schedule: f.class.schedule,
+      format: f.class.format,
+      curriculum: f.class.curriculum,
+      gradeLevel: f.class.gradeLevel,
+      language: f.class.language,
+      bookingsCount: f.class._count.bookings,
+      spotsLeft: f.class.capacity ? f.class.capacity - f.class._count.bookings : null,
+      avgRating: avgRating ? Math.round(avgRating * 10) / 10 : null,
+      reviewCount: f.class.reviews.length,
+      center: f.class.center,
+      owner: f.class.owner,
+    }];
   });
 
   return NextResponse.json({
     classIds: favorites.map((f) => f.classId).filter(Boolean) as string[],
-    tutorIds: favorites.map((f) => f.tutorId).filter(Boolean) as string[],
+    tutorIds,
+    classes,
+    tutors: tutors.map((t) => {
+      const reviews = t.ownedClasses.flatMap((cls) => cls.reviews);
+      const bookings = t.ownedClasses.flatMap((cls) => cls.bookings);
+      const avgRating = reviews.length ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10 : null;
+      return {
+        id: t.id,
+        fullName: t.fullName,
+        name: t.name,
+        bio: t.bio,
+        subjects: t.subjects,
+        photoUrl: t.photoUrl,
+        city: t.center?.city ?? "Cairo",
+        center: t.center ? { id: t.center.id, name: t.center.name } : null,
+        classCount: t.ownedClasses.length,
+        studentCount: bookings.length,
+        avgRating,
+        reviewCount: reviews.length,
+        isVerified: t.isVerified,
+        studentsThisWeek: 0,
+        repeatStudentCount: 0,
+        lastBookedAt: null,
+      };
+    }),
   });
 }
 

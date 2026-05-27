@@ -24,29 +24,12 @@ export default async function TutorsPage() {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const tutors = await prisma.user.findMany({
-    where: { role: { in: ["TUTOR", "CENTER_ADMIN"] } },
-    select: {
-      id: true,
-      fullName: true,
-      name: true,
-      bio: true,
-      subjects: true,
-      photoUrl: true,
-      isVerified: true,
-      center: {
-        select: { id: true, name: true, city: true },
-      },
-      ownedClasses: {
-        select: {
-          id: true,
-          bookings: { select: { id: true, createdAt: true, studentId: true } },
-          reviews: { select: { rating: true } },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  let tutors: Awaited<ReturnType<typeof fetchTutors>> = [];
+  try {
+    tutors = await fetchTutors();
+  } catch (err) {
+    console.error("[TutorsPage] fetch failed:", err);
+  }
 
   const tutorCards = tutors.map((t) => {
     const allReviews = t.ownedClasses.flatMap((c) => c.reviews);
@@ -85,4 +68,31 @@ export default async function TutorsPage() {
   });
 
   return <TutorsClient tutors={tutorCards} />;
+}
+
+function fetchTutors() {
+  return prisma.user.findMany({
+    where: { role: { in: ["TUTOR", "CENTER_ADMIN"] } },
+    select: {
+      id: true,
+      fullName: true,
+      name: true,
+      bio: true,
+      subjects: true,
+      photoUrl: true,
+      isVerified: true,
+      center: {
+        select: { id: true, name: true, city: true },
+      },
+      ownedClasses: {
+        select: {
+          id: true,
+          bookings: { select: { id: true, createdAt: true, studentId: true } },
+          reviews: { select: { rating: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 12,
+  });
 }

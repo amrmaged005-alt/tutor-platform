@@ -24,6 +24,7 @@ export function useMessages(threadId: string): {
     if (!res.ok) throw new Error("Unable to load messages");
     const data = await res.json();
     setMessages(Array.isArray(data.messages) ? data.messages : []);
+    fetch(`/api/messages/${threadId}/read`, { method: "PATCH" }).catch(() => undefined);
   }, [threadId]);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export function useMessages(threadId: string): {
       });
     const timer = window.setInterval(() => {
       load().catch(() => undefined);
-    }, 10000);
+    }, 5000);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
@@ -48,10 +49,10 @@ export function useMessages(threadId: string): {
   const send = useCallback(async (content: string) => {
     const trimmed = content.trim();
     if (!trimmed) return;
-    const res = await fetch(`/api/messages/${threadId}`, {
+    const res = await fetch("/api/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: trimmed }),
+      body: JSON.stringify({ threadId, content: trimmed }),
     });
     if (!res.ok) throw new Error("Unable to send message");
     const data = await res.json();

@@ -38,16 +38,10 @@ export default function FavoritesClient() {
           classIds: Array.isArray(favData.classIds) ? favData.classIds : [],
           tutorIds: Array.isArray(favData.tutorIds) ? favData.tutorIds : [],
         };
-        const [classRes, tutorRes] = await Promise.all([
-          fetch("/api/classes?limit=50", { cache: "no-store" }).catch(() => null),
-          fetch("/api/tutors?limit=50", { cache: "no-store" }).catch(() => null),
-        ]);
-        const classData = classRes?.ok ? await classRes.json() : { items: [] };
-        const tutorData = tutorRes?.ok ? await tutorRes.json() : { items: [] };
         if (!cancelled) {
           setFavorites(nextFavs);
-          setClasses((Array.isArray(classData.items) ? classData.items : classData).filter((item: ClassCardData) => nextFavs.classIds.includes(item.id)));
-          setTutors((Array.isArray(tutorData.items) ? tutorData.items : tutorData).filter((item: TutorCardData) => nextFavs.tutorIds.includes(item.id)));
+          setClasses(Array.isArray(favData.classes) ? favData.classes : []);
+          setTutors(Array.isArray(favData.tutors) ? favData.tutors : []);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -99,12 +93,12 @@ export default function FavoritesClient() {
         ))}
       </div>
 
-      {loading && <div role="status" aria-label="Loading favorites" style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading saved items...</div>}
+      {loading && <FavoritesSkeleton />}
 
       {!loading && activeItems.length === 0 && (
         <div style={{ textAlign: "center", padding: "4rem 1rem", border: "1px solid var(--border-light)", borderRadius: 18, backgroundColor: "var(--bg-card)" }}>
           <Heart size={48} strokeWidth={1.5} color="var(--text-muted)" aria-hidden />
-          <h2 style={{ color: "var(--text)", fontSize: 20, margin: "1rem 0 0.35rem" }}>Your saved list is empty</h2>
+          <h2 style={{ color: "var(--text)", fontSize: 20, margin: "1rem 0 0.35rem" }}>{tab === "classes" ? "No favorite classes yet. Browse to add some." : "No favorite tutors yet. Browse to add some."}</h2>
           <p style={{ color: "var(--text-muted)", margin: "0 0 1.5rem", fontSize: 14 }}>Tap a heart on any class or tutor to add it here.</p>
           <Link href="/classes" className="btn-primary" style={{ textDecoration: "none" }}>Browse Classes</Link>
         </div>
@@ -112,19 +106,43 @@ export default function FavoritesClient() {
 
       {!loading && tab === "classes" && sortedClasses.length > 0 && (
         <div className="card-grid-mobile-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 18 }}>
-          {sortedClasses.map((cls, index) => <div key={cls.id}><SavedMeta id={cls.id} /><ClassCard cls={cls} index={index} /></div>)}
+          {sortedClasses.map((cls, index) => <div key={cls.id}><SavedMeta id={cls.id} type="class" onRemove={() => removeFavorite("class", cls.id)} /><ClassCard cls={cls} index={index} /></div>)}
         </div>
       )}
 
       {!loading && tab === "tutors" && sortedTutors.length > 0 && (
         <div className="card-grid-mobile-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
-          {sortedTutors.map((tutor, index) => <div key={tutor.id}><SavedMeta id={tutor.id} /><TutorCard tutor={tutor} index={index} /></div>)}
+          {sortedTutors.map((tutor, index) => <div key={tutor.id}><SavedMeta id={tutor.id} type="tutor" onRemove={() => removeFavorite("tutor", tutor.id)} /><TutorCard tutor={tutor} index={index} /></div>)}
         </div>
       )}
     </PageShell>
   );
+
+  function removeFavorite(type: "class" | "tutor", id: string) {
+    if (type === "class") {
+      setClasses((current) => current.filter((item) => item.id !== id));
+      setFavorites((current) => ({ ...current, classIds: current.classIds.filter((item) => item !== id) }));
+    } else {
+      setTutors((current) => current.filter((item) => item.id !== id));
+      setFavorites((current) => ({ ...current, tutorIds: current.tutorIds.filter((item) => item !== id) }));
+    }
+    fetch("/api/favorites", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, id }),
+    }).catch(() => undefined);
+  }
 }
 
-function SavedMeta({ id }: { id: string }) {
-  return <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 6 }}>Added to Wishlist: {savedLabel(id)}</div>;
+function SavedMeta({ id, type, onRemove }: { id: string; type: "class" | "tutor"; onRemove: () => void }) {
+  return <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", color: "var(--text-muted)", fontSize: 12, marginBottom: 6 }}>Added to Wishlist: {savedLabel(id)}<button type="button" onClick={onRemove} style={{ border: "1px solid var(--border-light)", background: "var(--bg-card)", color: "var(--text-muted)", borderRadius: 999, padding: "3px 9px", cursor: "pointer", fontSize: 12 }}>Unfavorite {type}</button></div>;
+}
+
+function FavoritesSkeleton() {
+  return (
+    <div role="status" aria-label="Loading favorites" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
+      {[0, 1, 2, 3, 4, 5].map((item) => <div key={item} className="skeleton" style={{ height: 220 }} />)}
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .skeleton { background: var(--color-border, var(--border-light)); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }`}</style>
+    </div>
+  );
 }

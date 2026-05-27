@@ -13,6 +13,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useRecentSearches } from "../hooks/useRecentSearches";
 
 interface ClassResult {
   id: string;
@@ -63,6 +64,7 @@ export default function SearchClient({ initialQuery }: { initialQuery: string })
   const [results, setResults] = useState<SearchResults>(EMPTY);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(!!initialQuery);
+  const { recent, add } = useRecentSearches();
 
   const debouncedQuery = useDebounce(query, 300);
 
@@ -87,7 +89,8 @@ export default function SearchClient({ initialQuery }: { initialQuery: string })
     params.set("q", q);
     router.replace(`/search?${params.toString()}`, { scroll: false });
 
-    fetch(`/api/search?q=${encodeURIComponent(q)}&limit=10`)
+    add(q);
+    fetch(`/api/search?q=${encodeURIComponent(q)}&type=all`)
       .then((res) => (res.ok ? res.json() : EMPTY))
       .then((data: SearchResults) => {
         if (!cancelled) setResults(data ?? EMPTY);
@@ -102,7 +105,7 @@ export default function SearchClient({ initialQuery }: { initialQuery: string })
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, router, searchParams]);
+  }, [add, debouncedQuery, router, searchParams]);
 
   const handleClear = useCallback(() => {
     setQuery("");
@@ -206,18 +209,9 @@ export default function SearchClient({ initialQuery }: { initialQuery: string })
       {/* Results */}
       {hasResults && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
-          {/* Classes */}
-          {results.classes.length > 0 && (
-            <Section
-              title="Classes"
-              icon={<BookOpen size={15} strokeWidth={1.8} aria-hidden />}
-            >
-              {results.classes.map((cls) => (
-                <ClassRow key={cls.id} cls={cls} />
-              ))}
-            </Section>
-          )}
-
+          <div style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 700 }}>
+            {results.tutors.length} tutors • {results.classes.length} classes
+          </div>
           {/* Tutors */}
           {results.tutors.length > 0 && (
             <Section
@@ -230,14 +224,14 @@ export default function SearchClient({ initialQuery }: { initialQuery: string })
             </Section>
           )}
 
-          {/* Centers */}
-          {results.centers.length > 0 && (
+          {/* Classes */}
+          {results.classes.length > 0 && (
             <Section
-              title="Centers"
-              icon={<Building2 size={15} strokeWidth={1.8} aria-hidden />}
+              title="Classes"
+              icon={<BookOpen size={15} strokeWidth={1.8} aria-hidden />}
             >
-              {results.centers.map((center) => (
-                <CenterRow key={center.id} center={center} />
+              {results.classes.map((cls) => (
+                <ClassRow key={cls.id} cls={cls} />
               ))}
             </Section>
           )}
@@ -266,8 +260,17 @@ export default function SearchClient({ initialQuery }: { initialQuery: string })
         <div style={{ color: "var(--text-muted)", textAlign: "center" as const, marginTop: "3rem" }}>
           <Search size={40} strokeWidth={1.2} style={{ opacity: 0.2, marginBottom: 12 }} aria-hidden />
           <p style={{ fontSize: 15 }}>
-            Search for classes by subject, tutors by name, or centers by city.
+            Type to search
           </p>
+          {recent.length > 0 && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginTop: 16 }}>
+              {recent.map((item) => (
+                <button key={item} type="button" onClick={() => setQuery(item)} style={{ border: "1px solid var(--border-light)", background: "var(--bg-card)", color: "var(--text)", borderRadius: 999, padding: "6px 12px", cursor: "pointer", fontSize: 13 }}>
+                  {item}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

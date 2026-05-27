@@ -11,6 +11,12 @@ const NOTIFICATION_KEYS = [
   "notifyPayoutProcessed",
   "notifyMarketingEmails",
 ] as const;
+const ALIASES = {
+  emailOnBooking: "notifyBookingConfirmed",
+  emailOnMessage: "notifyNewMessage",
+  emailOnReview: "notifyReviewReceived",
+  pushOnBooking: "notifyBookingConfirmed",
+} as const;
 
 type NotificationKey = typeof NOTIFICATION_KEYS[number];
 
@@ -26,7 +32,15 @@ export async function GET() {
   });
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  return NextResponse.json({ preferences: user });
+  return NextResponse.json({
+    preferences: {
+      ...user,
+      emailOnBooking: user.notifyBookingConfirmed,
+      emailOnMessage: user.notifyNewMessage,
+      emailOnReview: user.notifyReviewReceived,
+      pushOnBooking: user.notifyBookingConfirmed,
+    },
+  });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -47,6 +61,14 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: `${key} must be a boolean` }, { status: 400 });
       }
       updates[key] = body[key];
+    }
+  }
+  for (const [alias, key] of Object.entries(ALIASES)) {
+    if (alias in body) {
+      if (typeof body[alias] !== "boolean") {
+        return NextResponse.json({ error: `${alias} must be a boolean` }, { status: 400 });
+      }
+      updates[key] = body[alias];
     }
   }
 

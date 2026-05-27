@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { signOut } from "next-auth/react";
-import { Heart, MessageSquare, Sun, Moon, Menu, X, Plus } from "lucide-react";
+import { Gift, Heart, MessageSquare, Search, Settings, Sun, Moon, Menu, X, Plus } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
 import { useTheme } from "@/app/components/Theme";
 import { useFavorites } from "@/app/hooks/useFavorites";
@@ -116,7 +116,7 @@ function LangToggle({ compact = false }: { compact?: boolean }) {
 }
 
 function MobileDrawer({
-    open, onClose, links, session, canCreateClass, isAdmin, favoriteCount,
+    open, onClose, links, session, canCreateClass, isAdmin, favoriteCount, unreadMessages,
 }: {
     open: boolean;
     onClose: () => void;
@@ -125,6 +125,7 @@ function MobileDrawer({
     canCreateClass: boolean;
     isAdmin: boolean;
     favoriteCount: number;
+    unreadMessages: number;
 }) {
     const { t, dir } = useI18n();
     const closedTransform = dir === "rtl" ? "translateX(-100%)" : "translateX(100%)";
@@ -233,6 +234,18 @@ function MobileDrawer({
                     )}
 
                     {session && (
+                        <Link href="/messages" onClick={onClose} style={{ color: "var(--text)", fontSize: 15, fontWeight: 500, textDecoration: "none", padding: "0.65rem 0.875rem", borderRadius: 8, display: "inline-flex", alignItems: "center", gap: 8 }}>
+                            <MessageSquare size={16} strokeWidth={1.8} aria-hidden />
+                            Messages
+                            {unreadMessages > 0 && (
+                                <span style={{ marginInlineStart: "auto", minWidth: 20, height: 20, borderRadius: 999, backgroundColor: "var(--error)", color: "var(--accent-fg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>
+                                    {unreadMessages}
+                                </span>
+                            )}
+                        </Link>
+                    )}
+
+                    {session && (
                         <Link
                             href="/favorites"
                             onClick={onClose}
@@ -253,6 +266,17 @@ function MobileDrawer({
                                 </span>
                             )}
                         </Link>
+                    )}
+
+                    {session && (
+                        <>
+                            <Link href="/referral" onClick={onClose} style={{ color: "var(--text)", fontSize: 15, fontWeight: 500, textDecoration: "none", padding: "0.65rem 0.875rem", borderRadius: 8, display: "inline-flex", alignItems: "center", gap: 8 }}>
+                                <Gift size={16} strokeWidth={1.8} aria-hidden /> Referral
+                            </Link>
+                            <Link href="/settings" onClick={onClose} style={{ color: "var(--text)", fontSize: 15, fontWeight: 500, textDecoration: "none", padding: "0.65rem 0.875rem", borderRadius: 8, display: "inline-flex", alignItems: "center", gap: 8 }}>
+                                <Settings size={16} strokeWidth={1.8} aria-hidden /> Settings
+                            </Link>
+                        </>
                     )}
 
                     {session && isAdmin && (
@@ -334,11 +358,11 @@ export default function NavbarClient({
     useEffect(() => {
         if (!session) return;
         let cancelled = false;
-        fetch("/api/messages", { cache: "no-store" })
-            .then((res) => (res.ok ? res.json() : []))
+        fetch("/api/messages/unread-count", { cache: "no-store" })
+            .then((res) => (res.ok ? res.json() : { count: 0 }))
             .then((data) => {
-                if (!cancelled && Array.isArray(data)) {
-                    setUnreadMessages(data.reduce((sum, thread) => sum + (thread.unreadCount ?? 0), 0));
+                if (!cancelled) {
+                    setUnreadMessages(typeof data.count === "number" ? data.count : 0);
                 }
             })
             .catch(() => undefined);
@@ -363,7 +387,7 @@ export default function NavbarClient({
         { href: "/signup?role=tutor", label: t("nav.forTutors") },
     ];
 
-    const dashboardLink = session ? [{ href: "/dashboard", label: t("nav.dashboard") }, { href: "/messages", label: t("nav.messages") }] : [];
+    const dashboardLink = session ? [{ href: "/dashboard", label: t("nav.dashboard") }] : [];
     const bookingsLink = session && canCreateClass ? [{ href: "/dashboard/bookings", label: t("nav.bookings") }] : [];
     const mobileLinks = [{ href: "/", label: t("nav.home") }, ...publicLinks, ...dashboardLink, ...bookingsLink];
 
@@ -441,6 +465,25 @@ export default function NavbarClient({
                             )}
 
                             <Link
+                                href="/search"
+                                aria-label="Search"
+                                title="Search"
+                                style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 999,
+                                    border: "1px solid var(--border-light)",
+                                    color: "var(--text-secondary)",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    textDecoration: "none",
+                                }}
+                            >
+                                <Search size={16} strokeWidth={1.8} />
+                            </Link>
+
+                            <Link
                                 href="/messages"
                                 aria-label={t("nav.messages")}
                                 title={t("nav.messages")}
@@ -463,6 +506,13 @@ export default function NavbarClient({
                                         {unreadMessages}
                                     </span>
                                 )}
+                            </Link>
+
+                            <Link href="/referral" aria-label="Referral" title="Referral" style={{ width: 36, height: 36, borderRadius: 999, border: "1px solid var(--border-light)", color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>
+                                <Gift size={16} strokeWidth={1.8} />
+                            </Link>
+                            <Link href="/settings" aria-label="Settings" title="Settings" style={{ width: 36, height: 36, borderRadius: 999, border: "1px solid var(--border-light)", color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>
+                                <Settings size={16} strokeWidth={1.8} />
                             </Link>
 
                             <Link
@@ -531,6 +581,9 @@ export default function NavbarClient({
                         </div>
                     ) : (
                         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                            <Link href="/search" aria-label="Search" title="Search" style={{ width: 36, height: 36, borderRadius: 999, border: "1px solid var(--border-light)", color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>
+                                <Search size={16} strokeWidth={1.8} />
+                            </Link>
                             <ThemeToggle />
                             <LangToggle />
                             <Link href="/login"
@@ -580,6 +633,7 @@ export default function NavbarClient({
                 canCreateClass={canCreateClass}
                 isAdmin={isAdmin}
                 favoriteCount={favoriteCount}
+                unreadMessages={unreadMessages}
             />
         </>
     );

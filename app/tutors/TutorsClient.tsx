@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { ChevronRight, Search, X, SlidersHorizontal } from "lucide-react";
 import TutorCard, { TutorCardData } from "./TutorCard";
 import { useI18n } from "../components/i18n";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useFocusTrap } from "@/components/ui/useFocusTrap";
 
 // ─── CONSTANTS ─────────────────────────────────────────────────────────────────
@@ -384,6 +385,9 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
   const [minRating, setMinRating] = useState(0);
   const [search, setSearch] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [items, setItems] = useState(tutors);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(tutors.length >= 12);
 
   function toggleSubject(s: string) {
     setSelectedSubjects((prev) =>
@@ -399,7 +403,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
   }
 
   const filtered = useMemo(() => {
-    return tutors.filter((t) => {
+    return items.filter((t) => {
       if (search) {
         const q = search.toLowerCase();
         const nameMatch = (t.fullName ?? t.name ?? "").toLowerCase().includes(q);
@@ -414,14 +418,25 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
       if (minRating > 0 && (t.avgRating === null || t.avgRating < minRating)) return false;
       return true;
     });
-  }, [tutors, search, selectedSubjects, selectedCity, minRating]);
+  }, [items, search, selectedSubjects, selectedCity, minRating]);
 
-  const featured = filtered.filter((t) => t.avgRating !== null && t.avgRating >= 4.5).slice(0, 4);
-  const topRated = filtered.filter((t) => t.avgRating !== null && t.avgRating >= 4 && t.avgRating < 4.5).slice(0, 8);
-  const newTutors = filtered.filter((t) => t.avgRating === null).slice(0, 8);
+  const featured = filtered.filter((t) => t.avgRating !== null && t.avgRating >= 4.5);
+  const topRated = filtered.filter((t) => t.avgRating !== null && t.avgRating >= 4 && t.avgRating < 4.5);
+  const newTutors = filtered.filter((t) => t.avgRating === null);
   const isFiltering = selectedSubjects.length > 0 || selectedCity !== "All Cities" || minRating > 0 || search;
 
   const activeFilterCount = [selectedSubjects.length > 0, selectedCity !== "All Cities", minRating > 0].filter(Boolean).length;
+  const loadMore = useCallback(async () => {
+    const nextPage = page + 1;
+    const res = await fetch(`/api/tutors?page=${nextPage}&limit=12`, { cache: "no-store" });
+    if (!res.ok) return;
+    const data = await res.json();
+    const nextItems = Array.isArray(data.items) ? data.items : [];
+    setItems((current) => [...current, ...nextItems]);
+    setPage(nextPage);
+    setHasMore(Boolean(data.hasMore));
+  }, [page]);
+  const { sentinelRef, isLoading } = useInfiniteScroll(loadMore, hasMore);
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-alt)", color: "var(--text)" }}>
@@ -432,7 +447,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
         minRating={minRating} setMinRating={setMinRating}
         onClear={clearFilters}
         resultCount={filtered.length}
-        totalCount={tutors.length}
+        totalCount={items.length}
       />
 
       {/* Page header */}
@@ -494,11 +509,11 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
                 fontSize: 12, fontWeight: 700, color: "var(--text-muted)",
                 background: "var(--bg-alt)", border: "1px solid var(--border-light)",
                 borderRadius: 999, padding: "2px 8px", letterSpacing: 0,
-              }}>{tutors.length}</span>
+              }}>{items.length}</span>
             )}
           </h1>
           {!isMobile && <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
-            {t("tutors.pageSubtitle", { count: tutors.length })}
+            {t("tutors.pageSubtitle", { count: items.length })}
           </p>}
 
           {/* Search bar */}
@@ -756,6 +771,10 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
               </motion.div>
             )}
           </AnimatePresence>
+          <div ref={sentinelRef} style={{ minHeight: 56, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: 13, marginTop: 18 }}>
+            {isLoading ? <span style={{ width: 20, height: 20, border: "2px solid var(--border-light)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> : !hasMore && items.length > 0 ? "You've seen all tutors" : null}
+          </div>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
     </div>

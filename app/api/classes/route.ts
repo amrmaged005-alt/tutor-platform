@@ -22,16 +22,44 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       include: {
         tutors: { include: { tutor: { select: { id: true, fullName: true, name: true, photoUrl: true } } } },
-        center: { select: { id: true, name: true, logoUrl: true } },
-        owner:  { select: { id: true, fullName: true, name: true, photoUrl: true } },
-        _count: { select: { bookings: true, reviews: true } },
+        center: { select: { id: true, name: true, city: true } },
+        owner:  { select: { id: true, fullName: true, name: true, photoUrl: true, isVerified: true } },
+        _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
+        reviews: { select: { rating: true }, where: { isApproved: true } },
       },
     }),
     prisma.class.count({ where: { isActive: true } }),
   ]);
 
+  const classCards = items.map((c) => {
+    const avgRating = c.reviews.length
+      ? c.reviews.reduce((sum, r) => sum + r.rating, 0) / c.reviews.length
+      : null;
+    return {
+      id: c.id,
+      title: c.title,
+      subject: c.subject,
+      description: c.description,
+      city: c.city,
+      location: c.location,
+      priceEgp: c.priceEgp,
+      capacity: c.capacity,
+      schedule: c.schedule,
+      format: c.format,
+      curriculum: c.curriculum,
+      gradeLevel: c.gradeLevel,
+      language: c.language,
+      bookingsCount: c._count.bookings,
+      spotsLeft: c.capacity ? c.capacity - c._count.bookings : null,
+      avgRating: avgRating ? Math.round(avgRating * 10) / 10 : null,
+      reviewCount: c.reviews.length,
+      center: c.center,
+      owner: c.owner,
+    };
+  });
+
   return NextResponse.json(
-    { items, total, hasMore: skip + items.length < total },
+    { items: classCards, total, hasMore: skip + items.length < total },
     { headers: PUBLIC_CLASSES_CACHE }
   );
 }

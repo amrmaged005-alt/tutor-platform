@@ -4,10 +4,12 @@ import { useMemo } from "react";
 import PageShell from "../../components/ui/PageShell";
 import { useIsMobile } from "../hooks/useIsMobile";
 import DashboardBookings from "./components/DashboardBookings";
+import DashboardChecklist from "./components/DashboardChecklist";
 import DashboardClasses from "./components/DashboardClasses";
 import DashboardMaterials from "./components/DashboardMaterials";
 import DashboardMessages from "./components/DashboardMessages";
 import DashboardRevenue from "./components/DashboardRevenue";
+import DashboardPayouts from "./components/DashboardPayouts";
 import DashboardStats from "./components/DashboardStats";
 import type { DashData } from "./components/DashboardTypes";
 
@@ -36,6 +38,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
   return (
     <PageShell>
       <DashboardStats data={data} stats={stats} isMobile={isMobile} />
+      {role === "TUTOR" && <DashboardChecklist tutorId={user.id} />}
 
       <div
         style={{
@@ -70,6 +73,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
             totalRevenue={stats.totalRevenue}
             isMobile={isMobile}
           />
+          <DashboardPayouts />
         </>
       )}
 
