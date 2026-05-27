@@ -13,7 +13,15 @@ export async function GET(
         OR: [{ ownerId: id }, { tutors: { some: { tutorId: id } } }],
       },
     },
-    include: {
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      createdAt: true,
+      tutorResponse: true,
+      tutorRespondedAt: true,
+      classId: true,
+      class: { select: { title: true } },
       student: { select: { fullName: true, name: true, photoUrl: true } },
     },
     orderBy: { createdAt: "desc" },
