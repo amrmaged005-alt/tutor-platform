@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, X } from "lucide-react";
+import { useFocusTrap } from "@/components/ui/useFocusTrap";
 import { ClassFilterControls, type ClassFilterState } from "./ClassFilters";
 
 export default function ClassFilterBottomSheet({
@@ -28,7 +29,9 @@ export default function ClassFilterBottomSheet({
 }) {
   const dragStartY = useRef<number | null>(null);
   const dragDelta = useRef(0);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const [dragY, setDragY] = useState(0);
+  useFocusTrap(dialogRef, open, onClose);
 
   useEffect(() => {
     if (!open) {
@@ -73,6 +76,7 @@ export default function ClassFilterBottomSheet({
             }}
           />
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label="Class filters"

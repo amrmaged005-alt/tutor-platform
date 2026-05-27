@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Lock, X } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
+import { useFocusTrap } from "@/components/ui/useFocusTrap";
 
 interface Props {
   open: boolean;
@@ -18,6 +19,8 @@ interface Props {
 
 export default function SignInRequiredModal({ open, onClose, callbackUrl, title, body }: Props) {
   const { t } = useI18n();
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  useFocusTrap(dialogRef, open, onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -38,8 +41,9 @@ export default function SignInRequiredModal({ open, onClose, callbackUrl, title,
 
   return (
     <>
-      <div className="modal-backdrop" onClick={onClose} />
+      <button type="button" className="modal-backdrop" aria-label="Close sign in dialog" onClick={onClose} />
       <div
+        ref={dialogRef}
         className="modal"
         role="dialog"
         aria-modal="true"

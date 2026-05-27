@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Bell, BookOpen, FileText, Lock, Plus, Trash2, Video, X } from "lucide-react";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useFocusTrap } from "@/components/ui/useFocusTrap";
 
 type OwnedClass = { id: string; title: string; subject: string };
 type Material = { id: string; title: string; url?: string | null; fileUrl?: string | null; type?: string | null; isLocked?: boolean };
@@ -112,6 +113,8 @@ function MaterialModal({
   const [type, setType] = useState("Notes");
   const [visible, setVisible] = useState(false);
   const firstRef = useRef<HTMLInputElement | null>(null);
+  const dialogRef = useRef<HTMLFormElement | null>(null);
+  useFocusTrap(dialogRef, true, onClose);
 
   useEffect(() => {
     firstRef.current?.focus();
@@ -147,7 +150,7 @@ function MaterialModal({
   return (
     <>
       <button type="button" aria-label="Close material modal" onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(24,23,21,0.45)", zIndex: 998, border: 0, cursor: "pointer" }} />
-      <form role="dialog" aria-modal="true" aria-labelledby="material-modal-title" onSubmit={onSubmit} style={{ position: "fixed", insetInlineStart: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 999, width: "min(460px, calc(100vw - 32px))", backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "1.25rem", boxShadow: "var(--shadow-lg)" }}>
+      <form ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="material-modal-title" onSubmit={onSubmit} style={{ position: "fixed", insetInlineStart: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 999, width: "min(460px, calc(100vw - 32px))", backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "1.25rem", boxShadow: "var(--shadow-lg)" }}>
         <button type="button" onClick={onClose} aria-label="Close material modal" style={{ position: "absolute", top: 12, insetInlineEnd: 12, border: "none", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "inline-flex" }}>
           <X size={18} strokeWidth={1.8} />
         </button>

@@ -20,7 +20,7 @@
   --text:           #181715;
   --text-primary:   #181715;
   --text-secondary: #4a4843;
-  --text-muted:     #85827a;
+  --text-muted:     #6f6b61;
   --text-dim:       #b8b4a8;
   --text-inverse:   #fbfaf6;
 
@@ -95,7 +95,7 @@
   --text:           #f0eee5;
   --text-primary:   #f0eee5;
   --text-secondary: #b9b5a4;
-  --text-muted:     #837e6b;
+  --text-muted:     #aaa38f;
   --text-dim:       #4f4c40;
   --text-inverse:   #181715;
 
@@ -441,6 +441,7 @@ select.input:focus {
 /* ═══ Modal / Dialog ═════════════════════════════════════════════════════════ */
 .modal-backdrop {
   position: fixed; inset: 0;
+  border: 0;
   background: rgba(24,23,21,0.42);
   backdrop-filter: blur(3px);
   z-index: 998;

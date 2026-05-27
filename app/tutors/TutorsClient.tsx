@@ -8,6 +8,7 @@ import { ChevronRight, Search, X, SlidersHorizontal } from "lucide-react";
 import TutorCard, { TutorCardData } from "./TutorCard";
 import { useI18n } from "../components/i18n";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useFocusTrap } from "@/components/ui/useFocusTrap";
 
 // ─── CONSTANTS ─────────────────────────────────────────────────────────────────
 
@@ -202,7 +203,9 @@ function MobileTutorFilterDrawer({
   const { t } = useI18n();
   const dragStartY = useRef<number | null>(null);
   const dragDelta = useRef(0);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const [dragY, setDragY] = useState(0);
+  useFocusTrap(dialogRef, open, onClose);
 
   useEffect(() => {
     if (!open) {
@@ -237,6 +240,7 @@ function MobileTutorFilterDrawer({
         }}
       />
       <div
+        ref={dialogRef}
         role="dialog" aria-modal="true" aria-label={t("common.filters")}
         style={{
           position: "fixed", bottom: 0, left: 0, right: 0,

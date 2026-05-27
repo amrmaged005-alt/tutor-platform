@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { signOut } from "next-auth/react";
 import { Heart, MessageSquare, Sun, Moon, Menu, X, Plus } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
 import { useTheme } from "@/app/components/Theme";
 import { useFavorites } from "@/app/hooks/useFavorites";
+import { useFocusTrap } from "@/components/ui/useFocusTrap";
 
 const subscribeClient = () => () => {};
 const getClientSnapshot = () => true;
@@ -127,6 +128,8 @@ function MobileDrawer({
 }) {
     const { t, dir } = useI18n();
     const closedTransform = dir === "rtl" ? "translateX(-100%)" : "translateX(100%)";
+    const dialogRef = useRef<HTMLElement | null>(null);
+    useFocusTrap(dialogRef, open, onClose);
 
     useEffect(() => {
         if (!open) {
@@ -159,6 +162,7 @@ function MobileDrawer({
                 }}
             />
             <nav
+                ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
                 aria-label="Mobile navigation"

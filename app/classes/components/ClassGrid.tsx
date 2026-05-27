@@ -28,7 +28,7 @@ export default function ClassGrid({
       </div>
       <div ref={sentinelRef} style={{ height: 1 }} />
       {isLoading && (
-        <div style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", padding: "1rem" }}>
+        <div role="status" aria-label="Loading more classes" style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", padding: "1rem" }}>
           Loading more...
         </div>
       )}
