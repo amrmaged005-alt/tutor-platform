@@ -169,6 +169,8 @@ type ClassMaterial = {
   isLocked?: boolean;
 };
 
+type PackageOption = { sessions: number; discountPct: number };
+
 function ClassMaterials({
   classId,
   hasAccess,
@@ -335,6 +337,9 @@ export default function ClassDetailClient({
   const [similarClasses, setSimilarClasses] = useState(cls.relatedClasses);
   const [similarLoading, setSimilarLoading] = useState(true);
   const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null);
+  const [bookingMode, setBookingMode] = useState<"single" | "package">("single");
+  const [packageOptions, setPackageOptions] = useState<PackageOption[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<PackageOption | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const bookingCardRef = useRef<HTMLDivElement>(null);
   const isFull = cls.capacity !== null && cls.spotsLeft !== null && cls.spotsLeft <= 0;
@@ -360,6 +365,23 @@ export default function ClassDetailClient({
       .finally(() => {
         if (!cancelled) setSimilarLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
+  }, [cls.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/classes/${cls.id}/packages`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.packagesEnabled && Array.isArray(data.packageOptions)) {
+          const options = data.packageOptions.length > 0 ? data.packageOptions : [{ sessions: 4, discountPct: 10 }, { sessions: 8, discountPct: 15 }];
+          setPackageOptions(options);
+          setSelectedPackage(options[0] ?? null);
+        }
+      })
+      .catch(() => undefined);
     return () => {
       cancelled = true;
     };
@@ -527,7 +549,9 @@ export default function ClassDetailClient({
             (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 24px rgba(13,89,70,0.31)";
           }}
         >
-          {cls.priceEgp === 0 ? "Book free - get started" : `Book now - ${cls.priceEgp} EGP`}
+          {bookingMode === "package" && selectedPackage
+            ? "Book Package"
+            : cls.priceEgp === 0 ? "Book free - get started" : `Book now - ${cls.priceEgp} EGP`}
         </button>
       </form>
     );
@@ -1246,6 +1270,40 @@ export default function ClassDetailClient({
                 }}
               >
                 We could not complete this booking. Please try again or choose another class.
+              </div>
+            )}
+            {packageOptions.length > 0 && !isFull && (
+              <div style={{ marginBottom: "1rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 10 }}>
+                  {[
+                    { id: "single" as const, label: "Single Session" },
+                    { id: "package" as const, label: "Package Deal" },
+                  ].map((mode) => (
+                    <button key={mode.id} type="button" onClick={() => setBookingMode(mode.id)} style={{ border: `1px solid ${bookingMode === mode.id ? "var(--accent)" : "var(--border-light)"}`, backgroundColor: bookingMode === mode.id ? "var(--accent-bg)" : "var(--bg-card)", color: bookingMode === mode.id ? "var(--accent)" : "var(--text-muted)", borderRadius: 10, padding: "8px 10px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+                {bookingMode === "package" && (
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {packageOptions.map((option) => {
+                      const original = option.sessions * cls.priceEgp;
+                      const discounted = Math.round(original * (1 - option.discountPct / 100));
+                      const selected = selectedPackage?.sessions === option.sessions;
+                      return (
+                        <button key={option.sessions} type="button" onClick={() => setSelectedPackage(option)} style={{ textAlign: "start", border: `1px solid ${selected ? "var(--accent)" : "var(--border-light)"}`, backgroundColor: selected ? "var(--accent-bg)" : "var(--bg-card)", borderRadius: 12, padding: "10px 12px", color: "var(--text)", cursor: "pointer" }}>
+                          <strong style={{ display: "block", fontSize: 13 }}>{option.sessions} sessions at {option.discountPct}% off</strong>
+                          <span style={{ color: "var(--text-muted)", fontSize: 12 }}><s>{original} EGP</s> {discounted} EGP - save {original - discounted} EGP</span>
+                        </button>
+                      );
+                    })}
+                    {selectedPackage && (
+                      <div style={{ color: "var(--accent)", fontSize: 13, fontWeight: 800 }}>
+                        {selectedPackage.sessions} x {cls.priceEgp} EGP = {Math.round(selectedPackage.sessions * cls.priceEgp * (1 - selectedPackage.discountPct / 100))} EGP
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
             {bookingCTA()}
