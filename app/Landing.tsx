@@ -2,6 +2,7 @@
 
 import HeroSection from "./components/landing/HeroSection";
 import RecommendationsSection from "./components/landing/RecommendationsSection";
+import TrendingSection from "./components/landing/TrendingSection";
 import type { FeaturedClass, FeaturedTutor, LandingStats } from "./components/landing/LandingData";
 
 export default function Landing({
@@ -16,6 +17,7 @@ export default function Landing({
   return (
     <>
       <HeroSection stats={stats} featuredTutors={featuredTutors} featuredClasses={featuredClasses} />
+      <TrendingSection />
       <RecommendationsSection />
     </>
   );

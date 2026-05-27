@@ -4,12 +4,11 @@ import { useMemo } from "react";
 import { Search } from "lucide-react";
 import PageShell from "../../components/ui/PageShell";
 import EmptyState from "../../components/ui/EmptyState";
-import SectionHeader from "../../components/ui/SectionHeader";
 import { useFilterParams } from "../hooks/useFilterParams";
 import { useIsMobile } from "../hooks/useIsMobile";
 import ClassFilters, { type ClassFilterState } from "./components/ClassFilters";
-import ClassCard from "./components/ClassCard";
 import ClassGrid from "./components/ClassGrid";
+import TrendingClassesRow from "./components/TrendingClassesRow";
 import type { ClassCardData } from "./components/ClassCard";
 
 const DEFAULT_FILTERS: ClassFilterState = {
@@ -60,7 +59,6 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
   }, [classes, typedFilters]);
 
   const activeFilterCount = Object.entries(typedFilters).filter(([key, value]) => key !== "sort" && Boolean(value)).length;
-  const trending = useMemo(() => [...classes].sort((a, b) => (b.bookingsCount ?? 0) - (a.bookingsCount ?? 0)).slice(0, 6), [classes]);
   return (
     <PageShell>
       <section style={{ marginBottom: isMobile ? "1rem" : "1.5rem" }}>
@@ -74,18 +72,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
         </div>
       </section>
 
-      {trending.length > 0 && (
-        <section style={{ marginBottom: isMobile ? "1.25rem" : "1.75rem" }}>
-          <SectionHeader title="Trending This Week" subtitle="Popular with students right now" badge="Trending" badgeColor="var(--rating)" />
-          <div style={{ display: "flex", overflowX: "auto", gap: 12, paddingBottom: 4 }}>
-            {trending.map((cls, index) => (
-              <div key={cls.id} style={{ minWidth: isMobile ? 156 : 240, maxWidth: isMobile ? 180 : 260 }}>
-                <ClassCard cls={cls} index={index} compact />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      <TrendingClassesRow isMobile={isMobile} />
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "260px minmax(0, 1fr)", gap: isMobile ? 14 : 24, alignItems: "start" }}>
         <ClassFilters
