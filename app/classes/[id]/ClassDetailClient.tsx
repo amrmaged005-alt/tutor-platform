@@ -13,7 +13,6 @@ import {
   CalendarDays,
   CheckCircle,
   ClipboardList,
-  Download,
   DollarSign,
   FileText,
   Flame,
@@ -158,6 +157,101 @@ function StatTile({ label, value, icon: Icon }: { label: string; value: string; 
   );
 }
 
+type ClassMaterial = {
+  id: string;
+  title: string;
+  type?: string | null;
+  url?: string | null;
+  fileUrl?: string | null;
+  isLocked?: boolean;
+};
+
+function ClassMaterials({
+  classId,
+  hasAccess,
+  materialCount,
+}: {
+  classId: string;
+  hasAccess: boolean;
+  materialCount: number;
+}) {
+  const [materials, setMaterials] = useState<ClassMaterial[]>([]);
+  const [loading, setLoading] = useState(hasAccess && materialCount > 0);
+
+  useEffect(() => {
+    if (!hasAccess || materialCount === 0) return;
+    let cancelled = false;
+    setLoading(true);
+    fetch(`/api/classes/${classId}/materials`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (!cancelled) setMaterials(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setMaterials([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [classId, hasAccess, materialCount]);
+
+  if (materialCount === 0) return null;
+
+  return (
+    <motion.details
+      open
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.18 }}
+      style={{
+        backgroundColor: "var(--bg-card)",
+        border: "1px solid var(--border-light)",
+        borderRadius: 18,
+        padding: "1.5rem",
+        marginBottom: "1.5rem",
+      }}
+    >
+      <summary style={{ color: "var(--text)", fontWeight: 800, fontSize: "1.05rem", cursor: "pointer", listStyle: "none", display: "flex", alignItems: "center", gap: 8 }}>
+        <Lock size={17} strokeWidth={1.8} aria-hidden />
+        Class Materials
+      </summary>
+
+      {!hasAccess ? (
+        <div style={{ marginTop: "1rem", border: "1px solid var(--accent-border)", borderRadius: 14, padding: "1rem", backgroundColor: "var(--accent-bg)", color: "var(--accent)", display: "flex", alignItems: "center", gap: 10 }}>
+          <Lock size={20} strokeWidth={1.8} aria-hidden />
+          <span>
+            <strong style={{ display: "block", color: "var(--text)", fontSize: 14 }}>Enroll to access class materials after each session</strong>
+            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Notes, recordings, homework, and announcements unlock after confirmed enrollment.</span>
+          </span>
+        </div>
+      ) : loading ? (
+        <div role="status" aria-label="Loading class materials" style={{ display: "grid", gap: 8, marginTop: "1rem" }}>
+          {[0, 1, 2].map((item) => <div key={item} style={{ height: 52, borderRadius: 12, backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)" }} />)}
+        </div>
+      ) : materials.length === 0 ? null : (
+        <div style={{ display: "grid", gap: 8, marginTop: "1rem" }}>
+          {materials.map((material) => {
+            const href = material.url ?? material.fileUrl ?? "";
+            return (
+              <div key={material.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "0.875rem 1rem", backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)", borderRadius: 12, flexWrap: "wrap" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 10, color: "var(--text)", fontSize: 14, fontWeight: 700 }}>
+                  <FileText size={18} strokeWidth={1.8} aria-hidden />
+                  {material.title}
+                  <small style={{ color: "var(--accent)", border: "1px solid var(--accent-border)", borderRadius: 999, padding: "2px 8px" }}>{material.type ?? "Material"}</small>
+                </span>
+                {href && <a href={href} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ textDecoration: "none", padding: "7px 12px", fontSize: 13 }}>Open</a>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </motion.details>
+  );
+}
+
 // Types
 interface ClassData {
   id: string;
@@ -176,7 +270,7 @@ interface ClassData {
   isOnline: boolean;
   bookingsCount: number;
   spotsLeft: number | null;
-  materials: Array<{ id: string; title: string; isLocked: boolean; fileUrl: string | null }>;
+  materials: ClassMaterial[];
   owner: {
     id: string;
     fullName: string | null;
@@ -594,6 +688,12 @@ export default function ClassDetailClient({
             </motion.div>
           )}
 
+          <ClassMaterials
+            classId={cls.id}
+            hasAccess={hasMaterialAccess}
+            materialCount={cls.materials.length}
+          />
+
           {/* Stats grid */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -954,109 +1054,6 @@ export default function ClassDetailClient({
                   </div>
                 </div>
               </div>
-            </motion.div>
-          )}
-
-          {/* Materials */}
-          {cls.materials.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                borderRadius: 18,
-                padding: "1.75rem",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <h2
-                style={{
-                  color: "var(--text)",
-                  fontWeight: 700,
-                  fontSize: "1.05rem",
-                  margin: "0 0 1.25rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <span
-                  style={{
-                    width: 4,
-                    height: 18,
-                    background: "linear-gradient(180deg, var(--rating), transparent)",
-                    borderRadius: 2,
-                    display: "inline-block",
-                  }}
-                />
-                Class Materials
-              </h2>
-              {!hasMaterialAccess ? (
-                <div style={{ border: "1px solid var(--border-light)", borderRadius: 12, padding: "1rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 10 }}>
-                  <Lock size={18} strokeWidth={1.8} aria-hidden />
-                  Enroll to access materials
-                </div>
-              ) : cls.materials.filter((m) => !m.isLocked).length === 0 ? (
-                <div style={{ color: "var(--text-muted)", fontSize: 14 }}>No unlocked materials yet.</div>
-              ) : cls.materials.filter((m) => !m.isLocked).map((m, i) => (
-                <motion.div
-                  key={m.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.45 + i * 0.05 }}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "0.875rem 1rem",
-                    backgroundColor: "var(--bg-card)",
-                    borderRadius: 10,
-                    marginBottom: 8,
-                    border: "1px solid var(--border-light)",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ color: "var(--accent)", display: "inline-flex" }}>
-                      {m.isLocked ? <Lock size={18} strokeWidth={1.8} aria-hidden /> : <FileText size={18} strokeWidth={1.8} aria-hidden />}
-                    </span>
-                    <span style={{ color: "var(--text-secondary)", fontSize: 14, fontWeight: 500 }}>
-                      {m.title}
-                    </span>
-                  </div>
-                  {m.isLocked ? (
-                    <span
-                      style={{
-                        color: "var(--text-muted)",
-                        fontSize: 12,
-                        backgroundColor: "var(--bg-card)",
-                        padding: "4px 10px",
-                        borderRadius: 6,
-                      }}
-                    >
-                      Book to unlock
-                    </span>
-                  ) : (
-                    <a
-                      href={m.fileUrl ?? "#"}
-                      style={{
-                        color: "#1c6e7a",
-                        fontSize: 13,
-                        textDecoration: "none",
-                        fontWeight: 600,
-                        padding: "4px 12px",
-                        background: "rgba(28,110,122,0.10)",
-                        borderRadius: 6,
-                        border: "1px solid rgba(28,110,122,0.25)",
-                      }}
-                    >
-                      <Download size={13} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
-                      Download
-                    </a>
-                  )}
-                </motion.div>
-              ))}
             </motion.div>
           )}
 
