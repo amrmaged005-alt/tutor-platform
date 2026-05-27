@@ -13,6 +13,19 @@
 | 9 | Performance audit + cache headers | ✅ |
 | 10 | Security audit of all API routes | ✅ |
 | 11 | Waitlist email notification template | ✅ |
+| 12 | Promo Code / Discount System | ✅ |
+| 13 | Tutor Review Response API | ✅ |
+| 14 | Student Attendance Tracking API | ✅ |
+| 15 | Notification Preferences API | ✅ |
+| 16 | Center Management APIs (list/tutors/stats) | ✅ |
+| 17 | Data Export API (CSV) | ✅ |
+| 18 | Referral System (codes + wallet credit) | ✅ |
+| 19 | Tutor Onboarding Checklist API | ✅ |
+| 20 | Advanced Search API (unified) | ✅ |
+| 21 | Platform Fee Configuration API | ✅ |
+| 22 | Payout System (dashboard + admin status mgmt) | ✅ |
+| 23 | Webhook hardening + seat-lock cleanup cron | ✅ |
+| 24 | Mobile API completeness (classes/search/favs/notifs/me) | ✅ |
 
 ## Pre-flight verification
 - Schema migrations (schedule, moderation, favorites, messaging): ✅
