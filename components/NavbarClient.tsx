@@ -363,7 +363,7 @@ export default function NavbarClient({
         { href: "/signup?role=tutor", label: t("nav.forTutors") },
     ];
 
-    const dashboardLink = session ? [{ href: "/dashboard", label: t("nav.dashboard") }, { href: "/messages", label: "Messages" }] : [];
+    const dashboardLink = session ? [{ href: "/dashboard", label: t("nav.dashboard") }, { href: "/messages", label: t("nav.messages") }] : [];
     const bookingsLink = session && canCreateClass ? [{ href: "/dashboard/bookings", label: t("nav.bookings") }] : [];
     const mobileLinks = [{ href: "/", label: t("nav.home") }, ...publicLinks, ...dashboardLink, ...bookingsLink];
 
@@ -442,8 +442,8 @@ export default function NavbarClient({
 
                             <Link
                                 href="/messages"
-                                aria-label="Messages"
-                                title="Messages"
+                                aria-label={t("nav.messages")}
+                                title={t("nav.messages")}
                                 style={{
                                     width: 36,
                                     height: 36,

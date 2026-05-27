@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, X } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 import { useFocusTrap } from "@/components/ui/useFocusTrap";
 import { ClassFilterControls, type ClassFilterState } from "./ClassFilters";
 
@@ -27,6 +28,7 @@ export default function ClassFilterBottomSheet({
   resultCount: number;
   totalCount: number;
 }) {
+  const { t } = useI18n();
   const dragStartY = useRef<number | null>(null);
   const dragDelta = useRef(0);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -58,7 +60,7 @@ export default function ClassFilterBottomSheet({
         <>
           <motion.button
             type="button"
-            aria-label="Close filters"
+            aria-label={t("classes.filter.close")}
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -79,7 +81,7 @@ export default function ClassFilterBottomSheet({
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Class filters"
+            aria-label={t("classes.filter.dialog")}
             initial={{ y: "100%" }}
             animate={{ y: dragY }}
             exit={{ y: "100%" }}
@@ -128,14 +130,14 @@ export default function ClassFilterBottomSheet({
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 18px 14px", borderBottom: "1px solid var(--border-light)" }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--text)", fontSize: 16, fontWeight: 850 }}>
                 <SlidersHorizontal size={18} strokeWidth={2} aria-hidden />
-                Filters
+                {t("classes.filters")}
                 {activeCount > 0 && (
                   <span style={{ minWidth: 20, height: 20, borderRadius: 999, backgroundColor: "var(--accent)", color: "var(--accent-fg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>
                     {activeCount}
                   </span>
                 )}
               </span>
-              <button type="button" onClick={onClose} aria-label="Close filters" style={{ background: "transparent", border: 0, color: "var(--text-muted)", display: "inline-flex", cursor: "pointer", padding: 4 }}>
+              <button type="button" onClick={onClose} aria-label={t("classes.filter.close")} style={{ background: "transparent", border: 0, color: "var(--text-muted)", display: "inline-flex", cursor: "pointer", padding: 4 }}>
                 <X size={20} strokeWidth={1.8} aria-hidden />
               </button>
             </div>
@@ -146,14 +148,14 @@ export default function ClassFilterBottomSheet({
 
             <div style={{ padding: "14px 18px calc(14px + env(safe-area-inset-bottom))", borderTop: "1px solid var(--border-light)", backgroundColor: "var(--bg-elevated)", display: "grid", gap: 10 }}>
               <span style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center" }}>
-                {resultCount} of {totalCount} results
+                {t("classes.filter.resultCount", { count: resultCount, total: totalCount })}
               </span>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 10 }}>
                 <button type="button" onClick={onClear} style={{ border: "1px solid var(--border-light)", backgroundColor: "var(--bg-card)", color: "var(--text)", borderRadius: 10, padding: "12px", fontSize: 14, fontWeight: 750, cursor: "pointer" }}>
-                  Clear All
+                  {t("common.clearAll")}
                 </button>
                 <button type="button" onClick={onApply} style={{ border: 0, backgroundColor: "var(--accent)", color: "var(--accent-fg)", borderRadius: 10, padding: "12px", fontSize: 14, fontWeight: 850, cursor: "pointer" }}>
-                  Apply Filters
+                  {t("common.applyFilters")}
                 </button>
               </div>
             </div>

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useInfiniteScroll } from "@/app/hooks/useInfiniteScroll";
+import { useI18n } from "@/app/components/i18n";
 import ClassCard, { type ClassCardData } from "./ClassCard";
 
 export default function ClassGrid({
@@ -12,6 +13,7 @@ export default function ClassGrid({
   compact?: boolean;
 }) {
   const [visible, setVisible] = useState(12);
+  const { t } = useI18n();
   const hasMore = visible < classes.length;
   const loadMore = useCallback(() => setVisible((count) => Math.min(count + 12, classes.length)), [classes.length]);
   const { sentinelRef, isLoading } = useInfiniteScroll(loadMore, hasMore);
@@ -28,8 +30,8 @@ export default function ClassGrid({
       </div>
       <div ref={sentinelRef} style={{ height: 1 }} />
       {isLoading && (
-        <div role="status" aria-label="Loading more classes" style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", padding: "1rem" }}>
-          Loading more...
+        <div role="status" aria-label={t("classes.loadingMore")} style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", padding: "1rem" }}>
+          {t("classes.loadingMore")}
         </div>
       )}
     </>

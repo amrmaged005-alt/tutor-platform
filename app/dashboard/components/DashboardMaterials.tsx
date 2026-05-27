@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { Bell, BookOpen, FileText, Lock, Plus, Trash2, Video, X } from "lucide-react";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useFocusTrap } from "@/components/ui/useFocusTrap";
+import { useI18n } from "@/app/components/i18n";
 
 type OwnedClass = { id: string; title: string; subject: string };
 type Material = { id: string; title: string; url?: string | null; fileUrl?: string | null; type?: string | null; isLocked?: boolean };
@@ -108,6 +109,7 @@ function MaterialModal({
   onSaved: (material: Material) => void;
   onError: (message: string) => void;
 }) {
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [type, setType] = useState("Notes");
@@ -154,11 +156,11 @@ function MaterialModal({
         <button type="button" onClick={onClose} aria-label="Close material modal" style={{ position: "absolute", top: 12, insetInlineEnd: 12, border: "none", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "inline-flex" }}>
           <X size={18} strokeWidth={1.8} />
         </button>
-        <h2 id="material-modal-title" style={{ color: "var(--text)", margin: "0 0 0.25rem", fontSize: 18 }}>Add Material</h2>
+        <h2 id="material-modal-title" style={{ color: "var(--text)", margin: "0 0 0.25rem", fontSize: 18 }}>{t("materials.add")}</h2>
         <p style={{ color: "var(--text-muted)", margin: "0 0 1rem", fontSize: 13 }}>{cls.title}</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <input ref={firstRef} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" required style={input} />
-          <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL" style={input} />
+          <input ref={firstRef} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("materials.title")} required style={input} />
+          <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder={t("materials.url")} style={input} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
             {["Notes", "Recording", "Homework", "Announcement"].map((item) => (
               <button key={item} type="button" onClick={() => setType(item)} style={{ border: `1px solid ${type === item ? "var(--accent)" : "var(--border-light)"}`, backgroundColor: type === item ? "var(--accent-bg)" : "var(--bg-alt)", color: type === item ? "var(--accent)" : "var(--text-secondary)", borderRadius: 10, padding: "10px 12px", display: "inline-flex", alignItems: "center", gap: 8, justifyContent: "center", cursor: "pointer", fontWeight: 700 }}>
@@ -168,12 +170,12 @@ function MaterialModal({
           </div>
           <label style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-secondary)", fontSize: 14 }}>
             <input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} />
-            Visible to students
+            {t("materials.visible")}
           </label>
         </div>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: "1rem" }}>
           <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-          <button type="submit" className="btn-primary">Submit</button>
+          <button type="submit" className="btn-primary">{t("materials.submit")}</button>
         </div>
       </form>
     </>

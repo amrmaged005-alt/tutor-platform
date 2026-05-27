@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import PageShell from "../../components/ui/PageShell";
 import EmptyState from "../../components/ui/EmptyState";
+import { useI18n } from "../components/i18n";
 import { useFilterParams } from "../hooks/useFilterParams";
 import { useIsMobile } from "../hooks/useIsMobile";
 import ClassFilters, { type ClassFilterState } from "./components/ClassFilters";
@@ -15,6 +16,7 @@ import { DEFAULT_CLASS_FILTERS, filterClasses, getActiveClassFilterCount } from 
 
 export default function ClassesClient({ classes }: { classes: ClassCardData[] }) {
   const isMobile = useIsMobile();
+  const { t } = useI18n();
   const { filters, setFilter, resetFilters } = useFilterParams(DEFAULT_CLASS_FILTERS);
   const typedFilters = filters as ClassFilterState;
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -57,15 +59,15 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
       <section style={{ marginBottom: isMobile ? "1rem" : "1.5rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
           <div>
-            <span style={{ color: "var(--accent)", fontSize: 12, fontWeight: 800, textTransform: "uppercase" }}>Browse</span>
-            <h1 style={{ color: "var(--text)", fontSize: "clamp(1.5rem, 4vw, 2.25rem)", margin: "0.25rem 0 0.35rem", fontWeight: 900 }}>Classes</h1>
-            <p style={{ color: "var(--text-muted)", margin: 0, fontSize: 14 }}>{classes.length} classes across subjects, curricula, cities, and formats.</p>
+            <span style={{ color: "var(--accent)", fontSize: 12, fontWeight: 800, textTransform: "uppercase" }}>{t("classes.kicker")}</span>
+            <h1 style={{ color: "var(--text)", fontSize: "clamp(1.5rem, 4vw, 2.25rem)", margin: "0.25rem 0 0.35rem", fontWeight: 900 }}>{t("classes.title")}</h1>
+            <p style={{ color: "var(--text-muted)", margin: 0, fontSize: 14 }}>{t("classes.summary", { count: classes.length })}</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             {isMobile && (
               <button type="button" onClick={openMobileFilters} style={{ display: "inline-flex", alignItems: "center", gap: 7, backgroundColor: currentActiveFilterCount > 0 ? "var(--accent-bg)" : "var(--bg-card)", border: `1px solid ${currentActiveFilterCount > 0 ? "var(--accent-border)" : "var(--border-light)"}`, color: currentActiveFilterCount > 0 ? "var(--accent)" : "var(--text)", borderRadius: 10, padding: "9px 12px", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
                 <SlidersHorizontal size={15} strokeWidth={2} aria-hidden />
-                Filters
+                {t("classes.filters")}
                 {currentActiveFilterCount > 0 && (
                   <span style={{ minWidth: 18, height: 18, borderRadius: 999, backgroundColor: "var(--accent)", color: "var(--accent-fg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 850 }}>
                     {currentActiveFilterCount}
@@ -73,7 +75,9 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 )}
               </button>
             )}
-            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{filtered.length} results{currentActiveFilterCount > 0 ? `, ${currentActiveFilterCount} filters active` : ""}</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
+              {currentActiveFilterCount > 0 ? t("classes.resultsWithFilters", { count: filtered.length, filters: currentActiveFilterCount }) : t("classes.results", { count: filtered.length })}
+            </span>
           </div>
         </div>
       </section>
@@ -92,18 +96,18 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
 
         <main>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
-            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{filtered.length} matching classes</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("classes.matching", { count: filtered.length })}</span>
             <select value={typedFilters.sort} onChange={(event) => setFilter("sort", event.target.value)} style={{ backgroundColor: "var(--bg-card)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "9px 12px", fontSize: 13 }}>
-              <option value="newest">Newest first</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="popular">Most popular</option>
-              <option value="rating">Top rated</option>
+              <option value="newest">{t("classes.sort.newest")}</option>
+              <option value="price_asc">{t("classes.sort.priceAsc")}</option>
+              <option value="price_desc">{t("classes.sort.priceDesc")}</option>
+              <option value="popular">{t("classes.sort.popular")}</option>
+              <option value="rating">{t("classes.sort.rating")}</option>
             </select>
           </div>
 
           {filtered.length === 0 ? (
-            <EmptyState title="No classes found" description="Try changing your filters or search query." icon={<Search size={26} strokeWidth={1.8} />} action={{ label: "Clear filters", onClick: resetFilters }} />
+            <EmptyState title={t("classes.empty.title")} description={t("classes.empty.desc")} icon={<Search size={26} strokeWidth={1.8} />} action={{ label: t("common.clearFilters"), onClick: resetFilters }} />
           ) : (
             <ClassGrid classes={filtered} />
           )}

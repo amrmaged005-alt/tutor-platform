@@ -132,6 +132,7 @@ export function ReceiptButton({ bookingId }: { bookingId: string }) {
 }
 
 export function RefundRequestButton({ booking }: { booking: { id: string; title: string; amountEgp: number | null } }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("Changed my mind");
   const [notes, setNotes] = useState("");
@@ -170,15 +171,15 @@ export function RefundRequestButton({ booking }: { booking: { id: string; title:
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} style={{ background: "transparent", border: "none", color: "var(--text-muted)", fontSize: 12, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}>
-        <RotateCcw size={13} strokeWidth={1.8} aria-hidden /> Request Refund
+        <RotateCcw size={13} strokeWidth={1.8} aria-hidden /> {t("refund.request")}
       </button>
       {open && (
         <>
           <button type="button" aria-label="Close refund dialog" onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(24,23,21,0.45)", zIndex: 998, border: 0, cursor: "pointer" }} />
           <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={`refund-title-${booking.id}`} style={{ position: "fixed", insetInlineStart: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 999, width: "min(420px, calc(100vw - 32px))", backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "1.25rem", boxShadow: "var(--shadow-lg)" }}>
-            <h2 id={`refund-title-${booking.id}`} style={{ color: "var(--text)", margin: "0 0 0.5rem", fontSize: 18 }}>Request Refund</h2>
+            <h2 id={`refund-title-${booking.id}`} style={{ color: "var(--text)", margin: "0 0 0.5rem", fontSize: 18 }}>{t("refund.request")}</h2>
             <p style={{ margin: "0 0 1rem", color: "var(--text-muted)", fontSize: 13 }}>{booking.title} - {booking.amountEgp ? `${booking.amountEgp} EGP` : "Free"}</p>
-            <label style={{ color: "var(--text-secondary)", fontSize: 13, display: "block", marginBottom: 8 }}>Reason</label>
+            <label style={{ color: "var(--text-secondary)", fontSize: 13, display: "block", marginBottom: 8 }}>{t("refund.reason")}</label>
             <select value={reason} onChange={(event) => setReason(event.target.value)} style={{ width: "100%", backgroundColor: "var(--bg-alt)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
               {["Changed my mind", "Tutor cancelled session", "Class quality issue", "Technical issue", "Other"].map((item) => <option key={item}>{item}</option>)}
             </select>
@@ -187,7 +188,7 @@ export function RefundRequestButton({ booking }: { booking: { id: string; title:
             <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 6, display: "flex", justifyContent: "space-between", gap: 12 }}><span>Refund requests are reviewed within 2 business days</span><span>{notes.length}/300</span></div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: "1rem" }}>
               <button type="button" onClick={() => setOpen(false)} className="btn-secondary">Cancel</button>
-              <button type="button" onClick={submit} className="btn-primary">Submit Request</button>
+              <button type="button" onClick={submit} className="btn-primary">{t("refund.submit")}</button>
             </div>
           </div>
         </>

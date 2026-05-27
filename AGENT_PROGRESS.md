@@ -68,4 +68,4 @@
 - [x] Target 23 - Mobile Filter Bottom Sheet
 - [x] Target 24 - Page Transition Animations
 - [x] Target 25 - Accessibility Pass
-- [ ] Target 26 - i18n Completion
+- [x] Target 26 - i18n Completion

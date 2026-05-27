@@ -338,7 +338,7 @@ function MobileTutorFilterDrawer({
           </div>
 
           <div style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", paddingTop: 4 }}>
-            {resultCount} of {totalCount} results
+            {t("classes.filter.resultCount", { count: resultCount, total: totalCount })}
           </div>
 
           <div style={{ display: "flex", gap: 10, paddingTop: 8 }}>

@@ -53,7 +53,7 @@ export default function MobileBottomNav() {
     },
     {
       href: "/classes",
-      label: "Browse",
+      label: t("mobileNav.browse"),
       ariaLabel: t("nav.browseClasses"),
       icon: BookOpen,
       active: (path) => path.startsWith("/classes"),
@@ -67,15 +67,15 @@ export default function MobileBottomNav() {
     },
     {
       href: "/messages",
-      label: "Messages",
-      ariaLabel: "Messages",
+      label: t("nav.messages"),
+      ariaLabel: t("nav.messages"),
       icon: MessageSquare,
       active: (path) => path.startsWith("/messages"),
       badge: unreadMessages,
     },
     {
       href: "/dashboard",
-      label: "Profile",
+      label: t("mobileNav.profile"),
       ariaLabel: t("nav.dashboard"),
       icon: User,
       active: (path) => path.startsWith("/dashboard") && !path.startsWith("/dashboard/bookings"),
@@ -84,7 +84,7 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      aria-label="Mobile primary navigation"
+      aria-label={t("mobileNav.aria")}
       style={{
         position: "fixed",
         insetInlineStart: 0,
