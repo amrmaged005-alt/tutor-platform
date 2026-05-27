@@ -181,10 +181,10 @@ function ClassMaterials({
   materialCount: number;
 }) {
   const [materials, setMaterials] = useState<ClassMaterial[]>([]);
-  const [loading, setLoading] = useState(hasAccess && materialCount > 0);
+  const [loading, setLoading] = useState(hasAccess);
 
   useEffect(() => {
-    if (!hasAccess || materialCount === 0) return;
+    if (!hasAccess) return;
     let cancelled = false;
     setLoading(true);
     fetch(`/api/classes/${classId}/materials`, { cache: "no-store" })
@@ -201,9 +201,7 @@ function ClassMaterials({
     return () => {
       cancelled = true;
     };
-  }, [classId, hasAccess, materialCount]);
-
-  if (materialCount === 0) return null;
+  }, [classId, hasAccess]);
 
   return (
     <motion.details
@@ -220,7 +218,7 @@ function ClassMaterials({
       }}
     >
       <summary style={{ color: "var(--text)", fontWeight: 800, fontSize: "1.05rem", cursor: "pointer", listStyle: "none", display: "flex", alignItems: "center", gap: 8 }}>
-        <Lock size={17} strokeWidth={1.8} aria-hidden />
+        <FileText size={17} strokeWidth={1.8} aria-hidden />
         Class Materials
       </summary>
 
@@ -228,7 +226,7 @@ function ClassMaterials({
         <div style={{ marginTop: "1rem", border: "1px solid var(--accent-border)", borderRadius: 14, padding: "1rem", backgroundColor: "var(--accent-bg)", color: "var(--accent)", display: "flex", alignItems: "center", gap: 10 }}>
           <Lock size={20} strokeWidth={1.8} aria-hidden />
           <span>
-            <strong style={{ display: "block", color: "var(--text)", fontSize: 14 }}>Enroll to access class materials after each session</strong>
+            <strong style={{ display: "block", color: "var(--text)", fontSize: 14 }}>Enroll to access materials</strong>
             <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Notes, recordings, homework, and announcements unlock after confirmed enrollment.</span>
           </span>
         </div>
@@ -236,7 +234,9 @@ function ClassMaterials({
         <div role="status" aria-label="Loading class materials" style={{ display: "grid", gap: 8, marginTop: "1rem" }}>
           {[0, 1, 2].map((item) => <div key={item} style={{ height: 52, borderRadius: 12, backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)" }} />)}
         </div>
-      ) : materials.length === 0 ? null : (
+      ) : materials.length === 0 ? (
+        <p style={{ color: "var(--text-muted)", fontSize: 14, margin: "1rem 0 0" }}>No materials uploaded yet</p>
+      ) : (
         <div style={{ display: "grid", gap: 8, marginTop: "1rem" }}>
           {materials.map((material) => {
             const href = material.url ?? material.fileUrl ?? "";
@@ -247,7 +247,7 @@ function ClassMaterials({
                   {material.title}
                   <small style={{ color: "var(--accent)", border: "1px solid var(--accent-border)", borderRadius: 999, padding: "2px 8px" }}>{material.type ?? "Material"}</small>
                 </span>
-                {href && <a href={href} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ textDecoration: "none", padding: "7px 12px", fontSize: 13 }}>Open</a>}
+                {href && <a href={href} download target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ textDecoration: "none", padding: "7px 12px", fontSize: 13 }}>Download</a>}
               </div>
             );
           })}
