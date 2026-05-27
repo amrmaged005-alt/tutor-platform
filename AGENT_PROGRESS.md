@@ -62,7 +62,7 @@
 - [x] Target 17 - Waitlist UI
 - [x] Target 18 - Session Package Booking UI
 - [x] Target 19 - Mobile 2-Column Grids
-- [ ] Target 20 - Mobile Class Detail Stacking
+- [x] Target 20 - Mobile Class Detail Stacking
 - [ ] Target 21 - Mobile Tutor Profile Tightening
 - [ ] Target 22 - Mobile Bottom Navigation Bar
 - [ ] Target 23 - Mobile Filter Bottom Sheet
