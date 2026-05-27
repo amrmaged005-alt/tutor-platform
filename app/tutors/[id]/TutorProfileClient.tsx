@@ -266,6 +266,7 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [bioExpanded, setBioExpanded] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const [startingMessage, setStartingMessage] = useState(false);
 
   const profilePct = Math.round(
     ([!!tutor.bio, !!tutor.phone, tutor.subjects.length > 0, !!tutor.fullName].filter(Boolean).length / 4) * 100
@@ -416,14 +417,26 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
                 {!isOwner && (
                   <button
                     type="button"
-                    onClick={() => {
-                      if (!isSignedIn) setShowSignInModal(true);
-                      else window.location.href = `/messages/new?tutorId=${tutor.id}`;
+                    disabled={startingMessage}
+                    onClick={async () => {
+                      if (!isSignedIn) {
+                        setShowSignInModal(true);
+                        return;
+                      }
+                      setStartingMessage(true);
+                      const res = await fetch("/api/messages/new", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ tutorId: tutor.id }),
+                      });
+                      const data = await res.json().catch(() => null);
+                      if (res.ok && data?.threadId) window.location.href = `/messages/${data.threadId}`;
+                      else setStartingMessage(false);
                     }}
-                    style={{ backgroundColor: "var(--bg-card)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 14, display: "inline-flex", alignItems: "center", gap: 7, cursor: "pointer" }}
+                    style={{ backgroundColor: "var(--bg-card)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 14, display: "inline-flex", alignItems: "center", gap: 7, cursor: startingMessage ? "wait" : "pointer", opacity: startingMessage ? 0.7 : 1 }}
                   >
                     <MessageCircle size={16} strokeWidth={1.8} aria-hidden />
-                    Message Tutor
+                    {startingMessage ? "Opening..." : "Message Tutor"}
                   </button>
                 )}
                 {isOwner && (

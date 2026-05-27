@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useSyncExternalStore } from "react";
 import { signOut } from "next-auth/react";
-import { Heart, Sun, Moon, Menu, X, Plus } from "lucide-react";
+import { Heart, MessageSquare, Sun, Moon, Menu, X, Plus } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
 import { useTheme } from "@/app/components/Theme";
 import { useFavorites } from "@/app/hooks/useFavorites";
@@ -315,6 +315,7 @@ export default function NavbarClient({
     const { favorites } = useFavorites();
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [unreadMessages, setUnreadMessages] = useState(0);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 4);
@@ -325,6 +326,22 @@ export default function NavbarClient({
     const canCreateClass = role === "TUTOR" || role === "CENTER_ADMIN" || role === "ADMIN";
     const isAdmin = role === "ADMIN";
     const favoriteCount = session ? favorites.classIds.length + favorites.tutorIds.length : 0;
+
+    useEffect(() => {
+        if (!session) return;
+        let cancelled = false;
+        fetch("/api/messages", { cache: "no-store" })
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data) => {
+                if (!cancelled && Array.isArray(data)) {
+                    setUnreadMessages(data.reduce((sum, thread) => sum + (thread.unreadCount ?? 0), 0));
+                }
+            })
+            .catch(() => undefined);
+        return () => {
+            cancelled = true;
+        };
+    }, [session]);
 
     const linkStyle = {
         color: "var(--text-secondary)",
@@ -342,7 +359,7 @@ export default function NavbarClient({
         { href: "/signup?role=tutor", label: t("nav.forTutors") },
     ];
 
-    const dashboardLink = session ? [{ href: "/dashboard", label: t("nav.dashboard") }] : [];
+    const dashboardLink = session ? [{ href: "/dashboard", label: t("nav.dashboard") }, { href: "/messages", label: "Messages" }] : [];
     const bookingsLink = session && canCreateClass ? [{ href: "/dashboard/bookings", label: t("nav.bookings") }] : [];
     const mobileLinks = [{ href: "/", label: t("nav.home") }, ...publicLinks, ...dashboardLink, ...bookingsLink];
 
@@ -418,6 +435,31 @@ export default function NavbarClient({
                                     {t("nav.bookings")}
                                 </Link>
                             )}
+
+                            <Link
+                                href="/messages"
+                                aria-label="Messages"
+                                title="Messages"
+                                style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 999,
+                                    border: "1px solid var(--border-light)",
+                                    color: "var(--text-secondary)",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    textDecoration: "none",
+                                    position: "relative",
+                                }}
+                            >
+                                <MessageSquare size={16} strokeWidth={1.8} />
+                                {unreadMessages > 0 && (
+                                    <span style={{ position: "absolute", insetBlockStart: -5, insetInlineEnd: -5, minWidth: 18, height: 18, borderRadius: 999, backgroundColor: "var(--accent)", color: "var(--accent-fg)", border: "1px solid var(--bg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 850 }}>
+                                        {unreadMessages}
+                                    </span>
+                                )}
+                            </Link>
 
                             <Link
                                 href="/favorites"

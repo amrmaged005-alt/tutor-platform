@@ -21,7 +21,7 @@ export default function DashboardMessages() {
     };
   }, []);
 
-  const unread = threads.filter((thread) => (thread.unreadCount ?? 0) > 0).slice(0, 3);
+  const recent = threads.slice(0, 3);
 
   return (
     <section style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "1.25rem" }}>
@@ -29,13 +29,13 @@ export default function DashboardMessages() {
         <h2 style={{ color: "var(--text)", fontSize: 16, margin: 0 }}>Messages</h2>
         <Link href="/messages" style={{ color: "var(--accent)", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>View all messages</Link>
       </div>
-      {unread.length === 0 ? (
+      {recent.length === 0 ? (
         <div style={{ color: "var(--text-muted)", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
-          <MessageCircle size={16} strokeWidth={1.8} aria-hidden /> No unread conversations.
+          <MessageCircle size={16} strokeWidth={1.8} aria-hidden /> No conversations yet.
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {unread.map((thread) => (
+          {recent.map((thread) => (
             <Link key={thread.id} href={`/messages/${thread.id}`} style={{ color: "var(--text)", textDecoration: "none", border: "1px solid var(--border-light)", borderRadius: 10, padding: "0.7rem 0.8rem" }}>
               <strong style={{ fontSize: 13 }}>{thread.otherUser?.fullName ?? thread.otherUser?.name ?? "Conversation"}</strong>
               <p style={{ color: "var(--text-muted)", fontSize: 12, margin: "3px 0 0" }}>{thread.lastMessage?.content ?? "Unread message"}</p>

@@ -55,7 +55,7 @@
 - [x] Target 10 - Verified Badge
 - [x] Target 11 - Similar Classes Row
 - [x] Target 12 - Recommendations Section on Landing
-- [ ] Target 13 - In-App Messaging UI
+- [x] Target 13 - In-App Messaging UI
 - [ ] Target 14 - Availability Calendar on Tutor Profile
 - [ ] Target 15 - Sticky "Book Now" CTA on Mobile
 - [ ] Target 16 - Trending This Week Section

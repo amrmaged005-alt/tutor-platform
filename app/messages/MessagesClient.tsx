@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import PageShell from "@/components/ui/PageShell";
+import { useIsMobile } from "@/app/hooks/useIsMobile";
 
 export type Thread = {
   id: string;
@@ -18,6 +19,7 @@ function initials(name: string) {
 }
 
 export default function MessagesClient({ currentUserId }: { currentUserId: string }) {
+  const isMobile = useIsMobile();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +48,7 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
         <p style={{ color: "var(--text-muted)", margin: "0.35rem 0 0", fontSize: 14 }}>Keep class questions and tutor updates together.</p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 360px) 1fr", gap: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(280px, 360px) 1fr", gap: 18 }}>
         <aside style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, overflow: "hidden" }}>
           {loading && <p style={{ color: "var(--text-muted)", padding: "1rem", margin: 0 }}>Loading conversations...</p>}
           {!loading && threads.length === 0 && (
@@ -77,7 +79,10 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                     <strong style={{ color: "var(--text)", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</strong>
-                    {thread.unreadCount ? <span aria-label={`${thread.unreadCount} unread`} style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "var(--accent)", flexShrink: 0 }} /> : null}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                      {thread.updatedAt && <small style={{ color: "var(--text-muted)", fontSize: 11 }}>{new Date(thread.updatedAt).toLocaleTimeString("en-EG", { hour: "numeric", minute: "2-digit" })}</small>}
+                      {thread.unreadCount ? <span aria-label={`${thread.unreadCount} unread`} style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "var(--accent)", flexShrink: 0 }} /> : null}
+                    </span>
                   </div>
                   <p style={{ color: "var(--text-muted)", fontSize: 12, margin: "3px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {thread.lastMessage?.content ?? "Open conversation"}
@@ -87,13 +92,13 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
             );
           })}
         </aside>
-        <section style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, minHeight: 420, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", textAlign: "center", padding: "1.5rem" }}>
+        {!isMobile && <section style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, minHeight: 420, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", textAlign: "center", padding: "1.5rem" }}>
           <div>
             <MessageCircle size={42} strokeWidth={1.5} aria-hidden />
             <p style={{ margin: "0.75rem 0 0" }}>Select a conversation</p>
             <span style={{ display: "none" }}>{currentUserId}</span>
           </div>
-        </section>
+        </section>}
       </div>
     </PageShell>
   );
