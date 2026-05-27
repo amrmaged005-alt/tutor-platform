@@ -63,7 +63,7 @@
 - [x] Target 18 - Session Package Booking UI
 - [x] Target 19 - Mobile 2-Column Grids
 - [x] Target 20 - Mobile Class Detail Stacking
-- [ ] Target 21 - Mobile Tutor Profile Tightening
+- [x] Target 21 - Mobile Tutor Profile Tightening
 - [ ] Target 22 - Mobile Bottom Navigation Bar
 - [ ] Target 23 - Mobile Filter Bottom Sheet
 - [ ] Target 24 - Page Transition Animations

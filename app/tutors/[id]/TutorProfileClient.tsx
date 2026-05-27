@@ -213,7 +213,7 @@ function ScheduleSection({ classes, isMobile }: { classes: TutorClass[]; isMobil
   if (isMobile) {
     return (
       <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-        style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "20px", marginBottom: 20 }}>
+        style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "16px", marginBottom: 16 }}>
         <SectionTitle>Availability</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {scheduled.map((cls) => (
@@ -313,17 +313,23 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
           </motion.div>
 
           {/* Profile header */}
-          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 14 : 24, alignItems: isMobile ? "stretch" : "flex-start", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", flexDirection: "row", gap: isMobile ? 12 : 24, alignItems: "flex-start", flexWrap: isMobile ? "nowrap" : "wrap" }}>
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
-              <Avatar name={displayName} photoUrl={tutor.photoUrl} size={isMobile ? 72 : 100} />
+              <Avatar name={displayName} photoUrl={tutor.photoUrl} size={isMobile ? 80 : 120} />
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }} style={{ flex: 1, minWidth: 220 }}>
+            <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }} style={{ flex: 1, minWidth: isMobile ? 0 : 220 }}>
               {/* Name + badges */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
-                <h1 style={{ color: "var(--text)", fontSize: "clamp(1.4rem, 3vw, 2rem)", fontWeight: 800, margin: 0, letterSpacing: -0.5 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 7 : 10, marginBottom: 6, flexWrap: "wrap" }}>
+                <h1 style={{ color: "var(--text)", fontSize: isMobile ? 22 : "clamp(1.4rem, 3vw, 2rem)", fontWeight: 800, margin: 0, letterSpacing: 0, lineHeight: 1.1 }}>
                   {displayName}
                 </h1>
+                {isMobile && tutor.avgRating !== null && (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--text)", fontSize: 13, fontWeight: 800 }}>
+                    <span style={{ color: "var(--rating)" }}>★</span>
+                    {tutor.avgRating.toFixed(1)}
+                  </span>
+                )}
                 {tutor.isVerified && (
                   <span title="Verified tutor" style={{ color: "var(--accent)", display: "inline-flex", alignItems: "center" }}>
                     <BadgeCheck size={20} strokeWidth={2} aria-hidden />
@@ -348,7 +354,7 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
               </p>
 
               {/* Rating row */}
-              {tutor.avgRating !== null && (
+              {!isMobile && tutor.avgRating !== null && (
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                   <Stars rating={tutor.avgRating} size={16} />
                   <span style={{ fontWeight: 800, color: "var(--text)", fontSize: 15 }}>{tutor.avgRating.toFixed(1)}</span>
@@ -368,7 +374,15 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
               )}
 
               {/* Stats row — pills on mobile, full label-stack on desktop */}
-              <div style={{ display: "flex", gap: isMobile ? 8 : 28, marginBottom: isMobile ? 14 : 20, flexWrap: "wrap" }}>
+              <div style={{
+                display: "flex",
+                gap: isMobile ? 8 : 28,
+                marginBottom: isMobile ? 14 : 20,
+                flexWrap: isMobile ? "nowrap" : "wrap",
+                overflowX: isMobile ? "auto" : "visible",
+                paddingBottom: isMobile ? 2 : 0,
+                WebkitOverflowScrolling: "touch",
+              }}>
                 {[
                   { icon: "Classes", value: tutor.classes.length, label: "Classes" },
                   { icon: "Students", value: tutor.totalStudents, label: "Students" },
@@ -377,7 +391,7 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
                   <div key={s.label} style={isMobile ? {
                     display: "inline-flex", alignItems: "center", gap: 6,
                     background: "var(--bg-card)", border: "1px solid var(--border-light)",
-                    borderRadius: 999, padding: "4px 10px",
+                    borderRadius: 999, padding: "4px 10px", flex: "0 0 auto",
                   } : { display: "flex", alignItems: "center", gap: 6 }}>
                     {isMobile ? (
                       <>
@@ -476,19 +490,19 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
         {/* About */}
         {(tutor.bio || isOwner) && (
           <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "24px", marginBottom: 20 }}>
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: isMobile ? "16px" : "24px", marginBottom: isMobile ? 16 : 20 }}>
             <SectionTitle>About</SectionTitle>
             {tutor.bio ? (
               <>
                 <p style={{
                   color: "var(--text-muted)", fontSize: 15, lineHeight: 1.8, margin: "0 0 10px",
-                  display: bioExpanded ? "block" : "-webkit-box",
-                  WebkitLineClamp: bioExpanded ? undefined : 4,
-                  WebkitBoxOrient: "vertical", overflow: bioExpanded ? "visible" : "hidden",
+                  display: isMobile && !bioExpanded ? "-webkit-box" : "block",
+                  WebkitLineClamp: isMobile && !bioExpanded ? 4 : undefined,
+                  WebkitBoxOrient: "vertical", overflow: isMobile && !bioExpanded ? "hidden" : "visible",
                 }}>
                   {tutor.bio}
                 </p>
-                {tutor.bio.length > 300 && (
+                {isMobile && tutor.bio.length > 180 && (
                   <button onClick={() => setBioExpanded(e => !e)} style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0 }}>
                     {bioExpanded ? "Show less" : "Read more"}
                   </button>
@@ -524,7 +538,7 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
         {/* Ratings and reviews */}
         {tutor.reviews.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "24px", marginBottom: 20 }}>
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: isMobile ? "16px" : "24px", marginBottom: isMobile ? 16 : 20 }}>
             <SectionTitle count={tutor.reviews.length}>Reviews</SectionTitle>
 
             {/* Aggregate */}
