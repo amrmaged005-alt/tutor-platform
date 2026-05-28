@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { BadgeCheck, BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home, MapPin, MessageCircle, Mail } from "lucide-react";
+import { BadgeCheck, BookOpen, Users, GraduationCap, Monitor, Target, FileText, Building2, Home, MapPin, MessageCircle, Mail, Settings } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
@@ -212,7 +212,7 @@ function SectionTitle({ children, count, color = "var(--accent)" }: { children: 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 type Tab = "overview" | "tutors" | "classes";
 
-export default function CenterProfileClient({ center }: { center: CenterData }) {
+export default function CenterProfileClient({ center, isCenterAdmin = false }: { center: CenterData; isCenterAdmin?: boolean }) {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const wa = center.phone?.replace(/\D/g, "") ?? "";
@@ -339,6 +339,12 @@ export default function CenterProfileClient({ center }: { center: CenterData }) 
                     style={{ background: "var(--accent)", color: "var(--accent-fg)", border: "none", borderRadius: 10, padding: "9px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
                     <BookOpen size={15} strokeWidth={2} /> View Classes
                   </button>
+                )}
+                {isCenterAdmin && (
+                  <Link href={`/centers/${center.id}/admin`}
+                    style={{ backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)", color: "var(--text-secondary)", borderRadius: 10, padding: "9px 20px", textDecoration: "none", fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                    <Settings size={15} strokeWidth={2} /> Manage Center
+                  </Link>
                 )}
               </div>
             </motion.div>

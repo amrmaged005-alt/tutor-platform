@@ -2,6 +2,7 @@
 // SERVER COMPONENT — fetches center with tutors, classes, reviews
 
 import { prisma } from "../../../lib/prisma";
+import { auth } from "../../../lib/auth";
 import { notFound } from "next/navigation";
 import CenterProfileClient from "./CenterProfileClient";
 
@@ -11,6 +12,17 @@ export default async function CenterProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  const session = await auth();
+  let isCenterAdmin = false;
+  if (session?.user?.id) {
+    const me = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true, centerId: true },
+    });
+    isCenterAdmin =
+      (me?.role === "CENTER_ADMIN" && me.centerId === id) || me?.role === "ADMIN";
+  }
 
   let center: Awaited<ReturnType<typeof fetchCenter>> | null = null;
   try {
@@ -83,7 +95,7 @@ export default async function CenterProfilePage({
     }),
   };
 
-  return <CenterProfileClient center={centerData} />;
+  return <CenterProfileClient center={centerData} isCenterAdmin={isCenterAdmin} />;
 }
 
 function fetchCenter(id: string) {

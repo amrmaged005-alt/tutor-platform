@@ -335,9 +335,11 @@ function MobileDrawer({
 export default function NavbarClient({
     session,
     role,
+    centerId,
 }: {
     session: boolean;
     role: string;
+    centerId?: string | null;
 }) {
     const { t } = useI18n();
     const { favorites } = useFavorites();
@@ -353,6 +355,7 @@ export default function NavbarClient({
 
     const canCreateClass = role === "TUTOR" || role === "CENTER_ADMIN" || role === "ADMIN";
     const isAdmin = role === "ADMIN";
+    const isCenterAdmin = role === "CENTER_ADMIN" && !!centerId;
     const favoriteCount = session ? favorites.classIds.length + favorites.tutorIds.length : 0;
 
     useEffect(() => {
@@ -381,7 +384,7 @@ export default function NavbarClient({
     };
 
     const publicLinks = [
-        { href: "/classes", label: t("nav.classes") },
+        ...(session ? [{ href: "/classes", label: t("nav.classes") }] : []),
         { href: "/tutors", label: t("nav.tutors") },
         { href: "/centers", label: t("nav.centers") },
         { href: "/signup?role=tutor", label: t("nav.forTutors") },
@@ -389,7 +392,8 @@ export default function NavbarClient({
 
     const dashboardLink = session ? [{ href: "/dashboard", label: t("nav.dashboard") }] : [];
     const bookingsLink = session && canCreateClass ? [{ href: "/dashboard/bookings", label: t("nav.bookings") }] : [];
-    const mobileLinks = [{ href: "/", label: t("nav.home") }, ...publicLinks, ...dashboardLink, ...bookingsLink];
+    const centerAdminLink = isCenterAdmin && centerId ? [{ href: `/centers/${centerId}/admin`, label: "My Center" }] : [];
+    const mobileLinks = [{ href: "/", label: t("nav.home") }, ...publicLinks, ...dashboardLink, ...bookingsLink, ...centerAdminLink];
 
     return (
         <>
@@ -558,6 +562,22 @@ export default function NavbarClient({
                                         gap: 4,
                                     }}>
                                     <Plus size={14} strokeWidth={2} /> {t("nav.createClass").replace("+ ", "")}
+                                </Link>
+                            )}
+
+                            {isCenterAdmin && centerId && (
+                                <Link href={`/centers/${centerId}/admin`}
+                                    style={{
+                                        backgroundColor: "var(--accent-bg)",
+                                        color: "var(--accent)",
+                                        padding: "6px 12px",
+                                        borderRadius: 8,
+                                        fontSize: 13,
+                                        textDecoration: "none",
+                                        fontWeight: 600,
+                                        border: "1px solid var(--accent-border, rgba(13,89,70,0.2))",
+                                    }}>
+                                    My Center
                                 </Link>
                             )}
 
