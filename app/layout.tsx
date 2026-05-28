@@ -73,13 +73,13 @@ export default function RootLayout({
         />
         <script dangerouslySetInnerHTML={{ __html: PREFS_BOOTSTRAP }} />
       </head>
-      <body style={{ margin: 0, padding: 0, backgroundColor: "var(--bg)", color: "var(--text)" }}>
+      <body style={{ margin: 0, padding: 0, minHeight: "100vh", backgroundColor: "var(--bg)", color: "var(--text)" }}>
         <ThemeProvider>
           <I18nProvider>
             <ToastProvider>
               <SkipLink />
               <Navbar />
-              <main id="main-content" className="app-main" tabIndex={-1}>
+              <main id="main-content" className="app-main" tabIndex={-1} style={{ minHeight: "100vh" }}>
                 <PageTransition>{children}</PageTransition>
               </main>
               <FooterContent />

@@ -1,6 +1,7 @@
 import { prisma } from "../../../lib/prisma";
 import { auth } from "../../../lib/auth";
 import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import ClassDetailClient from "./ClassDetailClient";
 import type { Metadata } from "next";
 import { lockSeat } from "@/app/actions/bookings";
@@ -61,45 +62,15 @@ export default async function ClassDetailPage({
   const query = searchParams ? await searchParams : {};
   const now = new Date();
 
-  const cls = await prisma.class.findUnique({
-    where: { id },
-    include: {
-      tutors: { include: { tutor: true } },
-      center: true,
-      owner: true,
-      materials: true,
-      _count: {
-        select: {
-          bookings: {
-            where: {
-              OR: [
-                { status: "CONFIRMED" },
-                { status: "PENDING", lockedUntil: { gt: now } },
-              ],
-            },
-          },
-        },
-      },
-    },
-  });
+  let cls: Awaited<ReturnType<typeof fetchClass>> | null = null;
+  try {
+    cls = await fetchClass(id, now);
+  } catch (err) {
+    console.error("[ClassDetailPage] fetch failed:", err);
+    notFound();
+  }
 
-  if (!cls)
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "var(--bg-card)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--text)",
-          fontSize: 20,
-          fontFamily: "system-ui, sans-serif",
-        }}
-      >
-        Class not found.
-      </div>
-    );
+  if (!cls) notFound();
 
   const spotsLeft = cls.capacity ? cls.capacity - cls._count.bookings : null;
 
@@ -227,4 +198,28 @@ export default async function ClassDetailPage({
       bookingError={query.bookingError === "1"}
     />
   );
+}
+
+function fetchClass(id: string, now: Date) {
+  return prisma.class.findUnique({
+    where: { id },
+    include: {
+      tutors: { include: { tutor: true } },
+      center: true,
+      owner: true,
+      materials: true,
+      _count: {
+        select: {
+          bookings: {
+            where: {
+              OR: [
+                { status: "CONFIRMED" },
+                { status: "PENDING", lockedUntil: { gt: now } },
+              ],
+            },
+          },
+        },
+      },
+    },
+  });
 }

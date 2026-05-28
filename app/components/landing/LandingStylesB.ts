@@ -156,6 +156,43 @@ export const BOOK_CSS_B = `
   border-color: var(--accent-border);
   background: var(--sheet-strong);
 }
+.book-page-controls {
+  position: absolute;
+  inset-inline-end: 22px;
+  inset-block-start: 22px;
+  z-index: 18;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  background: var(--bookmark-bg);
+  box-shadow: var(--shadow-sm);
+}
+.book-page-controls button {
+  min-height: 32px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text);
+  padding: 0 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.book-page-controls button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.book-page-controls span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 42px;
+  text-align: center;
+}
 .book-mobile-scroll {
   height: 100dvh;
   overflow-y: auto;
@@ -179,7 +216,8 @@ export const BOOK_CSS_B = `
 .book-mobile-card {
   width: min(100%, 430px);
   max-height: calc(100dvh - 8.9rem);
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: linear-gradient(145deg, var(--paper), var(--paper-alt));
   border: 1px solid var(--paper-edge);
   border-radius: 16px 10px 10px 16px;
@@ -227,10 +265,10 @@ export const BOOK_CSS_B = `
 }
 .book-mobile-card .book-btn,
 .book-mobile-card .book-btn-secondary {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 0.875rem;
   font-size: 13px;
-  flex: 1 1 130px;
+  flex: 0 0 auto;
 }
 .book-mobile-card .stat-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));

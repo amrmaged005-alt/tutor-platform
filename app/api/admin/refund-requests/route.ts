@@ -18,17 +18,22 @@ export async function GET() {
     return NextResponse.json({ error: "Admin access required", code: "FORBIDDEN" }, { status: 403 });
   }
 
-  const refunds = await prisma.booking.findMany({
-    where: {
-      refundReason:  { not: null },
-      paymentStatus: "PAID",
-    },
-    include: {
-      student: { select: { id: true, fullName: true, name: true, email: true } },
-      class:   { select: { id: true, title: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const refunds = await prisma.booking.findMany({
+      where: {
+        refundReason:  { not: null },
+        paymentStatus: "PAID",
+      },
+      include: {
+        student: { select: { id: true, fullName: true, name: true, email: true } },
+        class:   { select: { id: true, title: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json(refunds);
+    return NextResponse.json(refunds);
+  } catch (err) {
+    console.error("[GET /api/admin/refund-requests] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

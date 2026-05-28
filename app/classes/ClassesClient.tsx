@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import PageShell from "../../components/ui/PageShell";
 import EmptyState from "../../components/ui/EmptyState";
@@ -46,16 +46,45 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
     resetFilters();
   }
 
+  useEffect(() => {
+    const params = new URLSearchParams();
+    Object.entries(typedFilters).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+    });
+    params.set("page", "1");
+    params.set("limit", "12");
+
+    let cancelled = false;
+    fetch(`/api/classes?${params.toString()}`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : { items: [] }))
+      .then((data) => {
+        if (cancelled) return;
+        setItems(Array.isArray(data.items) ? data.items : []);
+        setPage(1);
+        setHasMore(Boolean(data.hasMore));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [typedFilters.q, typedFilters.subject, typedFilters.city, typedFilters.minPrice, typedFilters.maxPrice, typedFilters.type, typedFilters.sort, typedFilters.curriculum, typedFilters.minRating]);
+
   const loadMore = useCallback(async () => {
     const nextPage = page + 1;
-    const res = await fetch(`/api/classes?page=${nextPage}&limit=12`, { cache: "no-store" });
+    const params = new URLSearchParams();
+    Object.entries(typedFilters).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+    });
+    params.set("page", String(nextPage));
+    params.set("limit", "12");
+    const res = await fetch(`/api/classes?${params.toString()}`, { cache: "no-store" });
     if (!res.ok) return;
     const data = await res.json();
     const nextItems = Array.isArray(data.items) ? data.items : [];
     setItems((current) => [...current, ...nextItems]);
     setPage(nextPage);
     setHasMore(Boolean(data.hasMore));
-  }, [page]);
+  }, [page, typedFilters]);
 
   const { sentinelRef, isLoading } = useInfiniteScroll(loadMore, hasMore);
 

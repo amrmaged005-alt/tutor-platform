@@ -12,32 +12,13 @@ export default async function CenterProfilePage({
 }) {
   const { id } = await params;
 
-  const center = await prisma.learningCenter.findUnique({
-    where: { id },
-    include: {
-      tutors: {
-        select: {
-          id: true, fullName: true, name: true,
-          bio: true, subjects: true, photoUrl: true, phone: true, isVerified: true,
-          ownedClasses: {
-            select: {
-              id: true,
-              _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
-              reviews: { select: { rating: true } },
-            },
-          },
-        },
-      },
-      classes: {
-        include: {
-          _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
-          reviews: { select: { rating: true } },
-          owner: { select: { id: true, fullName: true, name: true } },
-        },
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  });
+  let center: Awaited<ReturnType<typeof fetchCenter>> | null = null;
+  try {
+    center = await fetchCenter(id);
+  } catch (err) {
+    console.error("[CenterProfilePage] fetch failed:", err);
+    notFound();
+  }
 
   if (!center) notFound();
 
@@ -103,4 +84,33 @@ export default async function CenterProfilePage({
   };
 
   return <CenterProfileClient center={centerData} />;
+}
+
+function fetchCenter(id: string) {
+  return prisma.learningCenter.findUnique({
+    where: { id },
+    include: {
+      tutors: {
+        select: {
+          id: true, fullName: true, name: true,
+          bio: true, subjects: true, photoUrl: true, phone: true, isVerified: true,
+          ownedClasses: {
+            select: {
+              id: true,
+              _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
+              reviews: { select: { rating: true } },
+            },
+          },
+        },
+      },
+      classes: {
+        include: {
+          _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
+          reviews: { select: { rating: true } },
+          owner: { select: { id: true, fullName: true, name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
 }

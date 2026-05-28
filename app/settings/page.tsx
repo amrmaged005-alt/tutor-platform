@@ -40,7 +40,12 @@ export default async function SettingsPage() {
         fontFamily: "system-ui, -apple-system, sans-serif",
       }}
     >
-      <SettingsClient initialPrefs={user} />
+      <SettingsClient initialPrefs={{
+      notifyBookingConfirmed: user.notifyBookingConfirmed,
+      notifyNewMessage: user.notifyNewMessage,
+      notifyReviewReceived: user.notifyReviewReceived,
+      pushOnBooking: user.notifyBookingConfirmed,
+    }} />
     </main>
   );
 }

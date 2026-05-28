@@ -119,6 +119,8 @@ export function BookScroller({ pages }: { pages: BookPageData[] }) {
   const prefersReduced = useReducedMotion();
   const [isMobile, setIsMobile] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexRef = useRef(activeIndex);
+  const wheelLockRef = useRef(0);
   const rawProgress = useMotionValue(0);
   const smoothProgress = useSpring(rawProgress, {
     stiffness: 220,
@@ -133,6 +135,21 @@ export function BookScroller({ pages }: { pages: BookPageData[] }) {
     query.addEventListener("change", sync);
     return () => query.removeEventListener("change", sync);
   }, []);
+
+  useEffect(() => {
+    activeIndexRef.current = activeIndex;
+  }, [activeIndex]);
+
+  const scrollToIndex = useCallback((index: number) => {
+    const root = ref.current;
+    if (!root) return;
+    const next = Math.min(pages.length - 1, Math.max(0, index));
+    const maxScroll = Math.max(root.offsetHeight - window.innerHeight, 1);
+    const target = root.offsetTop + (maxScroll * next) / Math.max(pages.length - 1, 1);
+    activeIndexRef.current = next;
+    setActiveIndex(next);
+    window.scrollTo({ top: target, behavior: "smooth" });
+  }, [pages.length]);
 
   useEffect(() => {
     let frame = 0;
@@ -179,7 +196,15 @@ export function BookScroller({ pages }: { pages: BookPageData[] }) {
     <>
       <nav className="bookmark-rail" aria-label="Landing page chapters">
         {pages.map((page, index) => (
-          <a key={page.id} href={`#${page.id}`} className={activeIndex === index ? "active" : undefined}>
+          <a
+            key={page.id}
+            href={`#${page.id}`}
+            className={activeIndex === index ? "active" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              scrollToIndex(index);
+            }}
+          >
             {page.tab}
           </a>
         ))}
@@ -189,6 +214,17 @@ export function BookScroller({ pages }: { pages: BookPageData[] }) {
         ref={ref}
         className="book-scroll"
         style={{ "--page-count": pages.length, position: "relative" } as React.CSSProperties}
+        onWheel={(event) => {
+          if (Math.abs(event.deltaY) < 18) return;
+          const now = Date.now();
+          if (now - wheelLockRef.current < 560) {
+            event.preventDefault();
+            return;
+          }
+          wheelLockRef.current = now;
+          event.preventDefault();
+          scrollToIndex(activeIndexRef.current + (event.deltaY > 0 ? 1 : -1));
+        }}
       >
         {pages.map((page, index) => (
           <span
@@ -211,6 +247,15 @@ export function BookScroller({ pages }: { pages: BookPageData[] }) {
               simpleMotion={simpleMotion}
             />
           ))}
+          <div className="book-page-controls" aria-label="Page controls">
+            <button type="button" onClick={() => scrollToIndex(activeIndex - 1)} disabled={activeIndex === 0}>
+              Previous
+            </button>
+            <span>{activeIndex + 1} / {pages.length}</span>
+            <button type="button" onClick={() => scrollToIndex(activeIndex + 1)} disabled={activeIndex === pages.length - 1}>
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </>

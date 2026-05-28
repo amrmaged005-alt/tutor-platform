@@ -38,22 +38,17 @@ export default function RecommendationsSection() {
   const isPersonalized = recommendations.length > 0;
   const items = useMemo(() => (isPersonalized ? recommendations : topClasses).slice(0, 6), [isPersonalized, recommendations, topClasses]);
   const loading = isLoading || (!isPersonalized && topLoading);
-  if (!loading && items.length === 0) return null;
-
   return (
     <section
       data-section="recommendations"
       style={{
         backgroundColor: "var(--bg)",
         borderTop: "1px solid var(--border-light)",
-        scrollSnapAlign: "start",
-        scrollSnapStop: "always",
-        minHeight: "100vh",
+        minHeight: 420,
         paddingTop: 72,
         paddingInline: "1rem",
         paddingBottom: "3rem",
         boxSizing: "border-box",
-        overflow: "hidden",
       }}
     >
       <div style={{ maxWidth: 1120, margin: "0 auto" }}>
@@ -62,6 +57,8 @@ export default function RecommendationsSection() {
         </h2>
         {loading ? (
           <SkeletonRow />
+        ) : items.length === 0 ? (
+          <p style={{ color: "var(--text-muted)", margin: 0 }}>Recommendations will appear as more classes are published.</p>
         ) : (
           <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(220px, 260px)", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
             {items.map((cls, index) => (

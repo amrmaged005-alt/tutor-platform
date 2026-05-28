@@ -25,6 +25,11 @@ export default async function DashboardPage() {
             include: { student: true },
             orderBy: { createdAt: "desc" },
           },
+          reviews: {
+            where: { isApproved: true },
+            include: { student: { select: { fullName: true, name: true, email: true } } },
+            orderBy: { createdAt: "desc" },
+          },
         },
         orderBy: { createdAt: "desc" },
       },
@@ -131,6 +136,15 @@ export default async function DashboardPage() {
         studentPhone: (bk.student as any).phone ?? null,
       })),
     })),
+    tutorReviews: user.ownedClasses.flatMap((cls) => (cls as any).reviews.map((review: any) => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment ?? null,
+      createdAt: review.createdAt.toISOString(),
+      tutorResponse: review.tutorResponse ?? null,
+      classTitle: cls.title,
+      studentName: review.student?.fullName ?? review.student?.name ?? review.student?.email ?? "Student",
+    }))),
     centerData: centerData
       ? {
         id: centerData.id,

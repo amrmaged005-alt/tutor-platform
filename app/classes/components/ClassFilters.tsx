@@ -4,10 +4,11 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
 
 export type ClassFilterState = {
-  search: string;
+  q: string;
   subject: string;
   curriculum: string;
-  format: string;
+  type: string;
+  minPrice: string;
   maxPrice: string;
   city: string;
   minRating: string;
@@ -16,7 +17,8 @@ export type ClassFilterState = {
 
 const SUBJECTS = ["", "Math", "Physics", "Chemistry", "Biology", "English", "Arabic", "Computer Science"];
 const CURRICULA = ["", "NATIONAL", "IGCSE", "AMERICAN", "IB", "FRENCH", "STEM"];
-const FORMATS = ["", "IN_PERSON", "ONLINE", "HYBRID"];
+const TYPES = ["", "online", "inperson", "both"];
+const CITIES = ["", "Cairo", "Alexandria", "Giza", "Mansoura", "Tanta", "Zagazig", "Ismailia"];
 const RATINGS = ["", "4.5", "4", "3"];
 
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
@@ -56,7 +58,7 @@ export function ClassFilterControls({
         <span style={{ position: "absolute", insetInlineStart: 11, top: 12, color: "var(--text-muted)", display: "inline-flex" }}>
           <Search size={15} strokeWidth={1.8} aria-hidden />
         </span>
-        <input value={filters.search} onChange={(event) => onChange("search", event.target.value)} placeholder={t("classes.filter.search")} style={{ ...control, paddingInlineStart: 34 }} />
+        <input value={filters.q} onChange={(event) => onChange("q", event.target.value)} placeholder={t("classes.filter.search")} style={{ ...control, paddingInlineStart: 34 }} />
       </label>
 
       <FilterGroup title={t("classes.filter.subject")}>
@@ -66,7 +68,10 @@ export function ClassFilterControls({
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.priceRange")}>
-        <input value={filters.maxPrice} onChange={(event) => onChange("maxPrice", event.target.value)} placeholder={t("classes.filter.maxPrice")} inputMode="numeric" style={control} />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <input value={filters.minPrice} onChange={(event) => onChange("minPrice", event.target.value)} placeholder="Min EGP" inputMode="numeric" style={control} />
+          <input value={filters.maxPrice} onChange={(event) => onChange("maxPrice", event.target.value)} placeholder={t("classes.filter.maxPrice")} inputMode="numeric" style={control} />
+        </div>
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.curriculum")}>
@@ -76,13 +81,15 @@ export function ClassFilterControls({
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.format")}>
-        <select value={filters.format} onChange={(event) => onChange("format", event.target.value)} style={control}>
-          {FORMATS.map((format) => <option key={format || "all"} value={format}>{format ? format.replace("_", " ") : t("classes.filter.anyFormat")}</option>)}
+        <select value={filters.type} onChange={(event) => onChange("type", event.target.value)} style={control}>
+          {TYPES.map((type) => <option key={type || "all"} value={type}>{type ? type.replace("inperson", "In-person").replace("online", "Online").replace("both", "Both") : t("classes.filter.anyFormat")}</option>)}
         </select>
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.city")}>
-        <input value={filters.city} onChange={(event) => onChange("city", event.target.value)} placeholder={t("classes.filter.city")} style={control} />
+        <select value={filters.city} onChange={(event) => onChange("city", event.target.value)} style={control}>
+          {CITIES.map((city) => <option key={city || "all"} value={city}>{city || "All cities"}</option>)}
+        </select>
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.rating")}>

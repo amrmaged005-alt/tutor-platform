@@ -267,12 +267,9 @@ export default function HeroSection({
       className="book-landing"
       data-section="hero"
       style={{
-        scrollSnapAlign: "start",
-        scrollSnapStop: "always",
         minHeight: "100vh",
         paddingTop: 72,
         boxSizing: "border-box",
-        overflow: "hidden",
       }}
     >
       <style>{BOOK_CSS}</style>

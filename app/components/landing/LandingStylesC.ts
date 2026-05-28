@@ -109,8 +109,7 @@ export const BOOK_CSS_C = `
     0 1px 0 rgba(255,255,255,0.04) inset;
   isolation: isolate;
 }
-.plate img,
-.plate :global(img) {
+.plate img {
   display: block;
   width: 100%;
   height: 100%;
@@ -118,12 +117,10 @@ export const BOOK_CSS_C = `
   object-position: center 35%;
   transform-origin: 55% 50%;
 }
-.plate.portrait img,
-.plate.portrait :global(img) {
+.plate.portrait img {
   object-position: center 22%;
 }
-.plate.square img,
-.plate.square :global(img) {
+.plate.square img {
   object-position: center 30%;
 }
 .plate::after {
@@ -162,12 +159,11 @@ export const BOOK_CSS_C = `
   50%  { transform: scale(1.10) translate3d(-1%, -1.2%, 0); }
   100% { transform: scale(1.04) translate3d(0, 0, 0); }
 }
-.plate-anim img,
-.plate-anim :global(img) {
+.plate-anim img {
   animation: kenburns-soft 22s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .plate-anim img, .plate-anim :global(img) { animation: none; }
+  .plate-anim img { animation: none; }
 }
 
 /* Hero polaroid stack for the cover page */
@@ -196,13 +192,12 @@ export const BOOK_CSS_C = `
   transform: rotate(-1.2deg);
   z-index: 3;
 }
-.hero-frame img,
-.hero-frame :global(img) {
+.hero-frame img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 30%;
+  object-position: center 42%;
   transform-origin: 45% 45%;
   animation: kenburns-soft 24s ease-in-out infinite;
 }
@@ -241,8 +236,7 @@ export const BOOK_CSS_C = `
   transform: rotate(4deg);
   z-index: 2;
 }
-.hero-back-plate img,
-.hero-back-plate :global(img) {
+.hero-back-plate img {
   width: 100%;
   height: 100%;
   object-fit: cover;

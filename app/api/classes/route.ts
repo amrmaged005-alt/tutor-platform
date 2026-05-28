@@ -13,13 +13,48 @@ export async function GET(req: NextRequest) {
   const page  = Math.max(1, Number(searchParams.get("page")  ?? 1));
   const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit") ?? 12)));
   const skip  = (page - 1) * limit;
+  const q = (searchParams.get("q") ?? "").trim();
+  const subject = (searchParams.get("subject") ?? "").trim();
+  const city = (searchParams.get("city") ?? "").trim();
+  const minPrice = Number(searchParams.get("minPrice") ?? "");
+  const maxPrice = Number(searchParams.get("maxPrice") ?? "");
+  const type = (searchParams.get("type") ?? "").trim();
+  const sort = (searchParams.get("sort") ?? "newest").trim();
+  const curriculum = (searchParams.get("curriculum") ?? "").trim();
+
+  const where: any = {
+    isActive: true,
+    ...(q
+      ? {
+        OR: [
+          { title: { contains: q, mode: "insensitive" } },
+          { subject: { contains: q, mode: "insensitive" } },
+          { description: { contains: q, mode: "insensitive" } },
+          { owner: { OR: [{ fullName: { contains: q, mode: "insensitive" } }, { name: { contains: q, mode: "insensitive" } }] } },
+        ],
+      }
+      : {}),
+    ...(subject ? { subject } : {}),
+    ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
+    ...(curriculum ? { curriculum } : {}),
+    ...(Number.isFinite(minPrice) ? { priceEgp: { gte: minPrice } } : {}),
+    ...(Number.isFinite(maxPrice) ? { priceEgp: { ...(Number.isFinite(minPrice) ? { gte: minPrice } : {}), lte: maxPrice } } : {}),
+    ...(type === "online" ? { format: "ONLINE" } : {}),
+    ...(type === "inperson" ? { format: "IN_PERSON" } : {}),
+  };
+
+  const orderBy =
+    sort === "price_asc" ? { priceEgp: "asc" as const } :
+    sort === "price_desc" ? { priceEgp: "desc" as const } :
+    sort === "popular" ? { bookings: { _count: "desc" as const } } :
+    { createdAt: "desc" as const };
 
   const [items, total] = await Promise.all([
     prisma.class.findMany({
-      where: { isActive: true },
+      where,
       skip,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       include: {
         tutors: { include: { tutor: { select: { id: true, fullName: true, name: true, photoUrl: true } } } },
         center: { select: { id: true, name: true, city: true } },
@@ -28,7 +63,7 @@ export async function GET(req: NextRequest) {
         reviews: { select: { rating: true }, where: { isApproved: true } },
       },
     }),
-    prisma.class.count({ where: { isActive: true } }),
+    prisma.class.count({ where }),
   ]);
 
   const classCards = items.map((c) => {

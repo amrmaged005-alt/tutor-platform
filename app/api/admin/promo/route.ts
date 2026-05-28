@@ -21,22 +21,27 @@ export async function GET() {
   const guard = await requireAdmin();
   if (guard.error) return guard.error;
 
-  const codes = await prisma.promoCode.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      code: true,
-      discountPct: true,
-      maxUses: true,
-      usedCount: true,
-      expiresAt: true,
-      isActive: true,
-      createdAt: true,
-      createdBy: { select: { id: true, fullName: true, name: true, email: true } },
-    },
-  });
+  try {
+    const codes = await prisma.promoCode.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        code: true,
+        discountPct: true,
+        maxUses: true,
+        usedCount: true,
+        expiresAt: true,
+        isActive: true,
+        createdAt: true,
+        createdBy: { select: { id: true, fullName: true, name: true, email: true } },
+      },
+    });
 
-  return NextResponse.json({ codes });
+    return NextResponse.json({ codes });
+  } catch (err) {
+    console.error("[GET /api/admin/promo] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -65,20 +70,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid expiresAt date" }, { status: 400 });
   }
 
-  const existing = await prisma.promoCode.findUnique({ where: { code } });
-  if (existing) {
-    return NextResponse.json({ error: "Code already exists" }, { status: 409 });
+  try {
+    const existing = await prisma.promoCode.findUnique({ where: { code } });
+    if (existing) {
+      return NextResponse.json({ error: "Code already exists" }, { status: 409 });
+    }
+
+    const created = await prisma.promoCode.create({
+      data: {
+        code,
+        discountPct,
+        maxUses,
+        expiresAt,
+        createdById: guard.user.id,
+      },
+    });
+
+    return NextResponse.json({ ok: true, code: created });
+  } catch (err) {
+    console.error("[POST /api/admin/promo] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const created = await prisma.promoCode.create({
-    data: {
-      code,
-      discountPct,
-      maxUses,
-      expiresAt,
-      createdById: guard.user.id,
-    },
-  });
-
-  return NextResponse.json({ ok: true, code: created });
 }

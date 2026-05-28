@@ -22,30 +22,35 @@ export async function POST(
     return NextResponse.json({ error: "Admin access required", code: "FORBIDDEN" }, { status: 403 });
   }
 
-  const booking = await prisma.booking.findUnique({
-    where:  { id },
-    select: { id: true },
-  });
+  try {
+    const booking = await prisma.booking.findUnique({
+      where:  { id },
+      select: { id: true },
+    });
 
-  if (!booking) {
-    return NextResponse.json({ error: "Booking not found", code: "NOT_FOUND" }, { status: 404 });
+    if (!booking) {
+      return NextResponse.json({ error: "Booking not found", code: "NOT_FOUND" }, { status: 404 });
+    }
+
+    await prisma.$transaction([
+      prisma.booking.update({
+        where: { id },
+        data:  { refundReason: null },
+      }),
+      prisma.auditLog.create({
+        data: {
+          actorId:    admin.id,
+          actorRole:  "ADMIN",
+          action:     "refund.denied",
+          targetType: "Booking",
+          targetId:   id,
+        },
+      }),
+    ]);
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[POST /api/admin/refund-requests/[id]/deny] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  await prisma.$transaction([
-    prisma.booking.update({
-      where: { id },
-      data:  { refundReason: null },
-    }),
-    prisma.auditLog.create({
-      data: {
-        actorId:    admin.id,
-        actorRole:  "ADMIN",
-        action:     "refund.denied",
-        targetType: "Booking",
-        targetId:   id,
-      },
-    }),
-  ]);
-
-  return NextResponse.json({ ok: true });
 }

@@ -13,7 +13,8 @@ export default function TrendingSection() {
     fetch("/api/classes/trending", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        if (!cancelled) setItems(Array.isArray(data) ? data.slice(0, 8) : []);
+        const nextItems = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+        if (!cancelled) setItems(nextItems.slice(0, 8));
       })
       .catch(() => undefined)
       .finally(() => {
@@ -24,22 +25,17 @@ export default function TrendingSection() {
     };
   }, []);
 
-  if (!loading && items.length === 0) return null;
-
   return (
     <section
       data-section="trending"
       style={{
         backgroundColor: "var(--bg)",
         borderTop: "1px solid var(--border-light)",
-        scrollSnapAlign: "start",
-        scrollSnapStop: "always",
-        minHeight: "100vh",
+        minHeight: 420,
         paddingTop: 72,
         paddingInline: "1rem",
         paddingBottom: "3rem",
         boxSizing: "border-box",
-        overflow: "hidden",
       }}
     >
       <div style={{ maxWidth: 1120, margin: "0 auto" }}>
@@ -47,7 +43,9 @@ export default function TrendingSection() {
           <TrendingUp size={22} strokeWidth={2} color="var(--rating)" aria-hidden />
           Trending This Week
         </h2>
-        <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(220px, 260px)", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
+        {!loading && items.length === 0 ? (
+          <p style={{ color: "var(--text-muted)", margin: 0 }}>Trending classes will appear here once bookings start coming in.</p>
+        ) : <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(220px, 260px)", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
           {loading
             ? [0, 1, 2, 3].map((item) => <div key={item} role="status" aria-label="Loading trending classes" style={{ height: 190, borderRadius: 16, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} />)
             : items.map((cls, index) => (
@@ -58,7 +56,7 @@ export default function TrendingSection() {
                 <ClassCard cls={cls} index={index} compact />
               </div>
             ))}
-        </div>
+        </div>}
       </div>
     </section>
   );

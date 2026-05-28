@@ -41,6 +41,22 @@ export const reviewLimiter = new Ratelimit({
   prefix: "rl:review",
 });
 
+// Message sends — 60 per minute per user
+// Prevents message spam
+export const messageLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(60, "1 m"),
+  prefix: "rl:message",
+});
+
+// Promo code validation — 20 per 15 minutes per user
+// Prevents brute-force code guessing
+export const promoLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, "15 m"),
+  prefix: "rl:promo",
+});
+
 // ─── Helper function ──────────────────────────────────────────────────────────
 // Call this in your API routes and server actions.
 // Pass the limiter you want and an identifier (IP address or user ID).

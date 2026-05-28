@@ -24,55 +24,24 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  // Parallel data fetching
-  const [tutorCount, classCount, bookingCount, rawTutors, rawClasses] =
-    await Promise.all([
-      prisma.user.count({ where: { role: { in: ["TUTOR", "CENTER_ADMIN"] } } }),
-      prisma.class.count(),
-      prisma.booking.count({ where: { status: "CONFIRMED" } }),
-      prisma.user.findMany({
-        where: { role: { in: ["TUTOR", "CENTER_ADMIN"] } },
-        select: {
-          id: true,
-          fullName: true,
-          name: true,
-          bio: true,
-          subjects: true,
-          photoUrl: true,
-          isVerified: true,
-          center: { select: { id: true, name: true, city: true } },
-          ownedClasses: {
-            select: {
-              id: true,
-              bookings: { select: { id: true } },
-              reviews: { select: { rating: true } },
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 6,
-      }),
-      prisma.class.findMany({
-        include: {
-          center: { select: { id: true, name: true, city: true } },
-          owner: {
-            select: {
-              id: true,
-              fullName: true,
-              name: true,
-              photoUrl: true,
-              isVerified: true,
-            },
-          },
-          _count: {
-            select: { bookings: { where: { status: { not: "CANCELLED" } } } },
-          },
-          reviews: { select: { rating: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 6,
-      }),
-    ]);
+  let tutorCount = 0;
+  let classCount = 0;
+  let bookingCount = 0;
+  let rawTutors: Awaited<ReturnType<typeof fetchTutors>> = [];
+  let rawClasses: Awaited<ReturnType<typeof fetchClasses>> = [];
+
+  try {
+    [tutorCount, classCount, bookingCount, rawTutors, rawClasses] =
+      await Promise.all([
+        prisma.user.count({ where: { role: { in: ["TUTOR", "CENTER_ADMIN"] } } }),
+        prisma.class.count(),
+        prisma.booking.count({ where: { status: "CONFIRMED" } }),
+        fetchTutors(),
+        fetchClasses(),
+      ]);
+  } catch (err) {
+    console.error("[HomePage] data fetch failed:", err);
+  }
 
   const featuredTutors = rawTutors.map((t) => {
     const allReviews = t.ownedClasses.flatMap((c) => c.reviews);
@@ -142,4 +111,52 @@ export default async function HomePage() {
       featuredClasses={featuredClasses}
     />
   );
+}
+
+function fetchTutors() {
+  return prisma.user.findMany({
+    where: { role: { in: ["TUTOR", "CENTER_ADMIN"] } },
+    select: {
+      id: true,
+      fullName: true,
+      name: true,
+      bio: true,
+      subjects: true,
+      photoUrl: true,
+      isVerified: true,
+      center: { select: { id: true, name: true, city: true } },
+      ownedClasses: {
+        select: {
+          id: true,
+          bookings: { select: { id: true } },
+          reviews: { select: { rating: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 6,
+  });
+}
+
+function fetchClasses() {
+  return prisma.class.findMany({
+    include: {
+      center: { select: { id: true, name: true, city: true } },
+      owner: {
+        select: {
+          id: true,
+          fullName: true,
+          name: true,
+          photoUrl: true,
+          isVerified: true,
+        },
+      },
+      _count: {
+        select: { bookings: { where: { status: { not: "CANCELLED" } } } },
+      },
+      reviews: { select: { rating: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 6,
+  });
 }

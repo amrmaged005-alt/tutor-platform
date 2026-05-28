@@ -10,6 +10,7 @@ import DashboardMaterials from "./components/DashboardMaterials";
 import DashboardMessages from "./components/DashboardMessages";
 import DashboardRevenue from "./components/DashboardRevenue";
 import DashboardPayouts from "./components/DashboardPayouts";
+import DashboardReviews from "./components/DashboardReviews";
 import DashboardStats from "./components/DashboardStats";
 import type { DashData } from "./components/DashboardTypes";
 
@@ -24,6 +25,10 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
   const { user, bookings, ownedClasses, centerData } = data;
   const role = user.role;
 
+  function exportDashboard() {
+    window.location.href = "/api/dashboard/export";
+  }
+
   const stats = useMemo(() => {
     const confirmedBookings = bookings.filter((b) => b.status === "CONFIRMED").length;
     const pendingBookings = bookings.filter((b) => b.status === "PENDING").length;
@@ -37,6 +42,11 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
 
   return (
     <PageShell>
+      {(role === "TUTOR" || role === "CENTER_ADMIN") && (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+          <button type="button" onClick={exportDashboard} className="btn-secondary">Export CSV</button>
+        </div>
+      )}
       <DashboardStats data={data} stats={stats} isMobile={isMobile} />
       {role === "TUTOR" && <DashboardChecklist tutorId={user.id} />}
 
@@ -73,6 +83,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
             totalRevenue={stats.totalRevenue}
             isMobile={isMobile}
           />
+          <DashboardReviews reviews={data.tutorReviews ?? []} />
           <DashboardPayouts />
         </>
       )}

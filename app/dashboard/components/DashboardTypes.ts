@@ -41,6 +41,16 @@ export type OwnedClass = {
   bookings: ManagedBooking[];
 };
 
+export type TutorReview = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  tutorResponse: string | null;
+  classTitle: string;
+  studentName: string;
+};
+
 export type CenterClass = OwnedClass & {
   ownerName: string | null;
 };
@@ -79,6 +89,7 @@ export type DashData = {
   };
   bookings: StudentBooking[];
   ownedClasses: OwnedClass[];
+  tutorReviews?: TutorReview[];
   centerData: CenterData | null;
 };
 

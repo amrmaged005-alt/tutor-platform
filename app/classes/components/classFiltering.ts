@@ -2,10 +2,11 @@ import type { ClassFilterState } from "./ClassFilters";
 import type { ClassCardData } from "./ClassCard";
 
 export const DEFAULT_CLASS_FILTERS: ClassFilterState = {
-  search: "",
+  q: "",
   subject: "",
   curriculum: "",
-  format: "",
+  type: "",
+  minPrice: "",
   maxPrice: "",
   city: "",
   minRating: "",
@@ -28,11 +29,13 @@ export function filterClasses(classes: ClassCardData[], state: ClassFilterState)
   const result = classes.filter((cls) => {
     const price = cls.priceEgp ?? 0;
     const rating = cls.avgRating ?? 0;
-    if (state.search && !matchesText(cls, state.search)) return false;
+    if (state.q && !matchesText(cls, state.q)) return false;
     if (state.subject && cls.subject !== state.subject) return false;
     if (state.curriculum && cls.curriculum !== state.curriculum) return false;
-    if (state.format && cls.format !== state.format) return false;
+    if (state.type === "online" && cls.format !== "ONLINE") return false;
+    if (state.type === "inperson" && cls.format !== "IN_PERSON") return false;
     if (state.city && !(cls.city ?? "").toLowerCase().includes(state.city.toLowerCase())) return false;
+    if (state.minPrice && price < Number(state.minPrice)) return false;
     if (state.maxPrice && price > Number(state.maxPrice)) return false;
     if (state.minRating && rating < Number(state.minRating)) return false;
     return true;

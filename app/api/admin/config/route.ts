@@ -14,29 +14,34 @@ export async function GET() {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const stored = await prisma.platformConfig.findMany({
-    select: { key: true, value: true, updatedAt: true },
-  });
-  const storedMap = new Map(stored.map((s) => [s.key, s]));
+  try {
+    const stored = await prisma.platformConfig.findMany({
+      select: { key: true, value: true, updatedAt: true },
+    });
+    const storedMap = new Map(stored.map((s) => [s.key, s]));
 
-  const entries = Object.keys(CONFIG_DEFAULTS).map((key) => {
-    const s = storedMap.get(key);
-    return {
-      key,
-      value: s?.value ?? CONFIG_DEFAULTS[key],
-      isDefault: !s,
-      updatedAt: s?.updatedAt ?? null,
-    };
-  });
+    const entries = Object.keys(CONFIG_DEFAULTS).map((key) => {
+      const s = storedMap.get(key);
+      return {
+        key,
+        value: s?.value ?? CONFIG_DEFAULTS[key],
+        isDefault: !s,
+        updatedAt: s?.updatedAt ?? null,
+      };
+    });
 
-  // Include any extra keys stored that aren't in defaults
-  for (const s of stored) {
-    if (!(s.key in CONFIG_DEFAULTS)) {
-      entries.push({ key: s.key, value: s.value, isDefault: false, updatedAt: s.updatedAt });
+    // Include any extra keys stored that aren't in defaults
+    for (const s of stored) {
+      if (!(s.key in CONFIG_DEFAULTS)) {
+        entries.push({ key: s.key, value: s.value, isDefault: false, updatedAt: s.updatedAt });
+      }
     }
-  }
 
-  return NextResponse.json({ config: entries });
+    return NextResponse.json({ config: entries });
+  } catch (err) {
+    console.error("[GET /api/admin/config] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 export async function PATCH(req: NextRequest) {
@@ -68,11 +73,16 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "waitlist_notification_hours must be >= 1" }, { status: 400 });
   }
 
-  const updated = await prisma.platformConfig.upsert({
-    where: { key },
-    create: { key, value },
-    update: { value },
-  });
+  try {
+    const updated = await prisma.platformConfig.upsert({
+      where: { key },
+      create: { key, value },
+      update: { value },
+    });
 
-  return NextResponse.json({ ok: true, entry: updated });
+    return NextResponse.json({ ok: true, entry: updated });
+  } catch (err) {
+    console.error("[PATCH /api/admin/config] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

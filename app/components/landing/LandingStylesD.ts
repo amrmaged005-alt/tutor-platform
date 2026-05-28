@@ -308,8 +308,7 @@ export const BOOK_CSS_D = `
   overflow: hidden;
   flex: 0 0 auto;
 }
-.mini-tutor-chip .avatar img,
-.mini-tutor-chip .avatar :global(img) {
+.mini-tutor-chip .avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;

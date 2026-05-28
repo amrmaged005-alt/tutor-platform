@@ -23,17 +23,22 @@ export async function PATCH(
 
   const { id } = await params;
 
-  const review = await prisma.review.findUnique({ where: { id }, select: { id: true } });
-  if (!review) {
-    return NextResponse.json({ error: "Review not found", code: "NOT_FOUND" }, { status: 404 });
+  try {
+    const review = await prisma.review.findUnique({ where: { id }, select: { id: true } });
+    if (!review) {
+      return NextResponse.json({ error: "Review not found", code: "NOT_FOUND" }, { status: 404 });
+    }
+
+    await prisma.review.update({
+      where: { id },
+      data:  { isApproved: true, moderatedAt: new Date() },
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[PATCH /api/admin/reviews/[id]/approve] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  await prisma.review.update({
-    where: { id },
-    data:  { isApproved: true, moderatedAt: new Date() },
-  });
-
-  return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(
@@ -47,12 +52,17 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const review = await prisma.review.findUnique({ where: { id }, select: { id: true } });
-  if (!review) {
-    return NextResponse.json({ error: "Review not found", code: "NOT_FOUND" }, { status: 404 });
+  try {
+    const review = await prisma.review.findUnique({ where: { id }, select: { id: true } });
+    if (!review) {
+      return NextResponse.json({ error: "Review not found", code: "NOT_FOUND" }, { status: 404 });
+    }
+
+    await prisma.review.delete({ where: { id } });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[DELETE /api/admin/reviews/[id]/approve] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  await prisma.review.delete({ where: { id } });
-
-  return NextResponse.json({ ok: true });
 }

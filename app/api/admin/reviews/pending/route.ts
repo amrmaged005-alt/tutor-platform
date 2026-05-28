@@ -18,14 +18,19 @@ export async function GET() {
     return NextResponse.json({ error: "Admin access required", code: "FORBIDDEN" }, { status: 403 });
   }
 
-  const reviews = await prisma.review.findMany({
-    where:   { isApproved: false },
-    include: {
-      student: { select: { id: true, fullName: true, name: true } },
-      class:   { select: { id: true, title: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const reviews = await prisma.review.findMany({
+      where:   { isApproved: false },
+      include: {
+        student: { select: { id: true, fullName: true, name: true } },
+        class:   { select: { id: true, title: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json(reviews);
+    return NextResponse.json(reviews);
+  } catch (err) {
+    console.error("[GET /api/admin/reviews/pending] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
