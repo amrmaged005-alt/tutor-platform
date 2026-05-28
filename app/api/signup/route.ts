@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 import { hash } from "bcryptjs";
 import { UserRegisterSchema } from "@/schemas/user";
-import { isRateLimited, authLimiter } from "@/lib/ratelimit";
+import { isRateLimited, signupLimiter } from "@/lib/ratelimit";
+import { generateEmailVerificationToken } from "@/lib/tokens";
+import { sendVerificationEmail } from "@/lib/email";
+import { log } from "@/lib/audit";
 import { randomBytes } from "crypto";
 
 function generateReferralCode(): string {
@@ -30,9 +33,12 @@ export async function POST(req: NextRequest) {
   }
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "127.0.0.1";
-  const limited = await isRateLimited(authLimiter, `signup:${ip}`);
+  const limited = await isRateLimited(signupLimiter, `signup:${ip}`);
   if (limited) {
-    return NextResponse.json({ error: "Too many signup attempts. Please try again later." }, { status: 429 });
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": "3600" } }
+    );
   }
 
   try {
@@ -57,9 +63,36 @@ export async function POST(req: NextRequest) {
     const referralCode = await generateUniqueReferralCode();
 
     const created = await prisma.user.create({
-      data: { fullName, name: fullName, email: normalizedEmail, password: hashedPassword, role, referralCode },
+      data: {
+        fullName,
+        name: fullName,
+        email: normalizedEmail,
+        password: hashedPassword,
+        role,
+        referralCode,
+        isEmailVerified: false,
+      },
       select: { id: true },
     });
+
+    await log({
+      action: "user.signup",
+      actorId: created.id,
+      actorRole: role,
+      targetType: "User",
+      targetId: created.id,
+      ipAddress: ip,
+      userAgent: req.headers.get("user-agent") ?? undefined,
+    }).catch(() => {});
+
+    // Issue verification token + send email (best-effort: never fail signup if
+    // email delivery hiccups — the user can request a resend).
+    try {
+      const verificationToken = await generateEmailVerificationToken(created.id);
+      await sendVerificationEmail(normalizedEmail, fullName, verificationToken);
+    } catch (err) {
+      console.error("Verification email failed to send:", err);
+    }
 
     // T18: Handle referral (ref query param)
     const refCode = req.nextUrl.searchParams.get("ref")?.trim().toUpperCase();
@@ -75,7 +108,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, email: normalizedEmail, needsVerification: true }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Something went wrong", code: "INTERNAL_ERROR" }, { status: 500 });
   }

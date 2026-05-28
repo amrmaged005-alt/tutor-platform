@@ -98,6 +98,47 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// ─── Auth Security: tokens + login audit ──────────────────────────────────────
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model LoginAuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  success   Boolean
+  ip        String?
+  userAgent String?
+  reason    String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([email])
+  @@index([createdAt])
+}
+
 // ─── Core Models ──────────────────────────────────────────────────────────────
 
 model User {
@@ -127,6 +168,15 @@ model User {
   isVerified      Boolean @default(false)
   trustScore      Int     @default(50)
   isSuspended     Boolean @default(false)
+
+  // Auth security (account lockout + login telemetry)
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  lastLoginIp      String?
+  passwordChangedAt DateTime?
+  // Bumped to invalidate all existing JWT sessions ("sign out everywhere")
+  sessionVersion   Int       @default(0)
 
   centerId String?
   center   LearningCenter? @relation(fields: [centerId], references: [id])
@@ -164,6 +214,9 @@ model User {
   referralsSent     Referral[]         @relation("ReferralsSent")
   referralReceived  Referral?          @relation("ReferralReceived")
   searchLogs        SearchLog[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  loginAuditLogs          LoginAuditLog[]
 
   @@index([role])
   @@index([centerId])

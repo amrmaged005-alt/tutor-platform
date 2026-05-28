@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const PROTECTED_ROUTES: Record<string, string[]> = {
+// Routes that require any authenticated session.
+const PROTECTED = ["/dashboard", "/messages", "/favorites", "/settings", "/referral", "/bookings", "/create-class"];
+// Routes gated by role.
+const ROLE_GATES: Record<string, string[]> = {
   "/admin": ["ADMIN"],
-  "/create-class": ["TUTOR", "CENTER_ADMIN", "ADMIN"],
-  "/dashboard": ["STUDENT", "TUTOR", "CENTER_ADMIN", "ADMIN"],
+  "/centers": ["CENTER_ADMIN", "ADMIN"],
 };
+// Auth screens a signed-in user shouldn't see (verify-email intentionally omitted).
+const AUTH_ROUTES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
 const ALLOWED_ORIGINS = new Set([
   "http://localhost:3000",
@@ -33,6 +37,8 @@ function applyCors(req: NextRequest, res: NextResponse): NextResponse {
   return res;
 }
 
+const matches = (pathname: string, route: string) => pathname === route || pathname.startsWith(`${route}/`);
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -40,23 +46,27 @@ export async function proxy(req: NextRequest) {
     return new NextResponse(null, { status: 204, headers: corsHeaders(req) });
   }
 
-  for (const [route, allowedRoles] of Object.entries(PROTECTED_ROUTES)) {
-    if (pathname.startsWith(route)) {
-      const token = await getToken({
-        req,
-        secret: process.env.AUTH_SECRET,
-      });
+  // Page-route auth. (API routes guard themselves with auth() server-side.)
+  if (!pathname.startsWith("/api/")) {
+    const token = await getToken({ req, secret: process.env.AUTH_SECRET });
 
+    const roleGate = Object.entries(ROLE_GATES).find(([route]) => matches(pathname, route));
+    const isProtected = PROTECTED.some((route) => matches(pathname, route));
+    const isAuthRoute = AUTH_ROUTES.some((route) => matches(pathname, route));
+
+    if (roleGate || isProtected) {
       if (!token) {
         const loginUrl = new URL("/login", req.url);
         loginUrl.searchParams.set("callbackUrl", pathname);
-        return applyCors(req, NextResponse.redirect(loginUrl));
+        return NextResponse.redirect(loginUrl);
       }
+      if (roleGate && !roleGate[1].includes(token.role as string)) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
+    }
 
-      const userRole = token.role as string;
-      if (!allowedRoles.includes(userRole)) {
-        return applyCors(req, NextResponse.redirect(new URL("/unauthorized", req.url)));
-      }
+    if (isAuthRoute && token) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
 
@@ -66,8 +76,18 @@ export async function proxy(req: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*",
+    "/centers/:path*",
     "/dashboard/:path*",
     "/create-class/:path*",
+    "/messages/:path*",
+    "/favorites/:path*",
+    "/settings/:path*",
+    "/referral/:path*",
+    "/bookings/:path*",
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
     "/api/:path*",
   ],
 };

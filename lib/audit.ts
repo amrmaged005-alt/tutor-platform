@@ -22,7 +22,11 @@ export type AuditAction =
   | "review.edited"
   | "review.deleted"
   // Users
+  | "user.signup"
   | "user.email_verified"
+  | "user.password_reset"
+  | "user.password_changed"
+  | "user.sessions_revoked"
   | "user.suspended"
   | "user.unsuspended"
   // Classes

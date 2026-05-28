@@ -3,16 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import SettingsClient from "./SettingsClient";
+import SecuritySettings from "./SecuritySettings";
 
 export const metadata: Metadata = {
-  title: "Notification Settings | Coursaty",
-  description: "Manage your email notification preferences on Coursaty.",
+  title: "Settings | Coursaty",
+  description: "Manage your notification preferences and account security on Coursaty.",
 };
 
 export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user?.id) {
-    redirect("/login?next=/settings");
+    redirect("/login?callbackUrl=/settings");
   }
 
   const user = await prisma.user.findUnique({
@@ -25,6 +26,13 @@ export default async function SettingsPage() {
       notifyReviewReceived: true,
       notifyPayoutProcessed: true,
       notifyMarketingEmails: true,
+      isEmailVerified: true,
+      password: true,
+      lastLoginAt: true,
+      lastLoginIp: true,
+      failedLoginCount: true,
+      lockedUntil: true,
+      accounts: { select: { provider: true } },
     },
   });
 
@@ -46,6 +54,17 @@ export default async function SettingsPage() {
       notifyReviewReceived: user.notifyReviewReceived,
       pushOnBooking: user.notifyBookingConfirmed,
     }} />
+      <SecuritySettings
+        security={{
+          isEmailVerified: user.isEmailVerified,
+          hasPassword: Boolean(user.password),
+          lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : null,
+          lastLoginIp: user.lastLoginIp,
+          failedLoginCount: user.failedLoginCount,
+          lockedUntil: user.lockedUntil ? user.lockedUntil.toISOString() : null,
+          providers: Array.from(new Set(user.accounts.map((a) => a.provider))),
+        }}
+      />
     </main>
   );
 }

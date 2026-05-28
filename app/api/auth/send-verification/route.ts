@@ -1,45 +1,29 @@
-// TEMP: Email verification disabled
-// This route is temporarily stubbed out. To re-enable, restore the original code below.
-
 import { NextResponse } from "next/server";
-
-export async function POST() {
-  return NextResponse.json(
-    { error: "Email verification is temporarily disabled." },
-    { status: 503 }
-  );
-}
-
-/*
-// ─── ORIGINAL CODE (restore to re-enable) ─────────────────────────────────────
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateEmailVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/email";
-import { randomBytes } from "crypto";
-import { isRateLimited, generalLimiter } from "@/lib/ratelimit";
-import { headers } from "next/headers";
+import { isRateLimited, resendVerificationLimiter } from "@/lib/ratelimit";
 
+// Authenticated resend — for a logged-in user who hasn't verified yet.
 export async function POST() {
   const session = await auth();
   if (!session?.user?.id || !session.user.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const headersList = await headers();
-  const ip =
-    headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-
-  const limited = await isRateLimited(generalLimiter, `verify-email:${ip}`);
+  const email = session.user.email.toLowerCase();
+  const limited = await isRateLimited(resendVerificationLimiter, `resend-verify:${email}`);
   if (limited) {
     return NextResponse.json(
       { error: "Too many requests. Please wait before trying again." },
-      { status: 429 }
+      { status: 429, headers: { "Retry-After": "3600" } }
     );
   }
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { isEmailVerified: true, email: true },
+    select: { id: true, name: true, email: true, isEmailVerified: true },
   });
 
   if (!user) {
@@ -47,29 +31,16 @@ export async function POST() {
   }
 
   if (user.isEmailVerified) {
-    return NextResponse.json(
-      { error: "Email is already verified." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Email is already verified." }, { status: 400 });
   }
 
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: user.email! },
-  });
-
-  const token = randomBytes(32).toString("hex");
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-  await prisma.verificationToken.create({
-    data: {
-      identifier: user.email!,
-      token,
-      expires,
-    },
-  });
-
-  await sendVerificationEmail(user.email!, token);
+  try {
+    const token = await generateEmailVerificationToken(user.id);
+    await sendVerificationEmail(user.email!, user.name ?? "there", token);
+  } catch (err) {
+    console.error("Send verification failed:", err);
+    return NextResponse.json({ error: "Could not send email. Try again later." }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }
-*/

@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertCircle, ShieldCheck } from "lucide-react";
+import { AlertCircle, ShieldCheck, Eye, EyeOff, Mail, CheckCircle } from "lucide-react";
 import { signupSchema } from "../lib/validations";
+import { evaluatePasswordStrength } from "../lib/passwordStrength";
+
+const STRENGTH_COLOR: Record<string, string> = {
+  weak: "var(--error)",
+  fair: "#c98a00",
+  strong: "var(--success)",
+};
 
 function GoogleIcon() {
   return (
@@ -47,12 +53,33 @@ function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) {
 }
 
 export default function SignupPage() {
-  const router = useRouter();
   const { t } = useI18n();
   const isMobile = useIsMobile();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const strength = evaluatePasswordStrength(password);
+
+  async function resendVerification() {
+    if (!submittedEmail) return;
+    setResending(true);
+    try {
+      await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: submittedEmail }),
+      });
+      setResent(true);
+    } catch {
+      // best-effort
+    }
+    setResending(false);
+  }
 
   function validateField(name: string, value: string) {
     const partial = signupSchema.partial().safeParse({ [name]: value });
@@ -106,10 +133,9 @@ export default function SignupPage() {
       return;
     }
 
-    const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-    const next = new URLSearchParams({ registered: "true" });
-    if (callbackUrl && callbackUrl.startsWith("/")) next.set("callbackUrl", callbackUrl);
-    router.push(`/login?${next.toString()}`);
+    // Do NOT auto-login — the account is unverified. Show the check-email state.
+    setSubmittedEmail(email.trim().toLowerCase());
+    setLoading(false);
   }
 
   return (
@@ -209,6 +235,37 @@ export default function SignupPage() {
             boxShadow: "var(--shadow-md)",
           }}
         >
+          {submittedEmail ? (
+            <div style={{ textAlign: "center", padding: "0.5rem 0" }}>
+              <Mail size={32} style={{ color: "var(--accent)" }} aria-hidden />
+              <h2 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "0.75rem 0 0.5rem", color: "var(--text)" }}>
+                Check your email!
+              </h2>
+              <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>
+                We sent a verification link to{" "}
+                <strong style={{ color: "var(--text)" }}>{submittedEmail}</strong>. Click it to activate your account.
+              </p>
+              {resent ? (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: "1.25rem", color: "var(--success)", fontSize: 13, fontWeight: 600 }}>
+                  <CheckCircle size={15} aria-hidden /> Verification email resent
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={resendVerification}
+                  disabled={resending}
+                  style={{ marginTop: "1.25rem", backgroundColor: "transparent", color: "var(--accent)", border: "1px solid var(--accent-border)", borderRadius: 8, padding: "9px 16px", fontSize: 13, fontWeight: 600, cursor: resending ? "wait" : "pointer" }}
+                >
+                  {resending ? "Sending…" : "Resend email"}
+                </button>
+              )}
+              <div style={{ borderTop: "1px solid var(--bg-subtle)", margin: "1.5rem 0 1rem" }} />
+              <Link href="/login" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600, fontSize: 13 }}>
+                Back to login
+              </Link>
+            </div>
+          ) : (
+          <>
           {/* Google OAuth */}
           <button
             type="button"
@@ -290,16 +347,49 @@ export default function SignupPage() {
               >
                 {t("auth.password")}
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                placeholder={t("signup.minPassword")}
-                style={{ ...inputStyle, borderColor: fieldErrors.password ? "var(--error)" : undefined }}
-                onFocus={focusInput}
-                onBlur={(e) => { blurInput(e); validateField("password", e.target.value); }}
-              />
+              <div style={{ position: "relative" }}>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t("signup.minPassword")}
+                  style={{ ...inputStyle, paddingInlineEnd: 40, borderColor: fieldErrors.password ? "var(--error)" : undefined }}
+                  onFocus={focusInput}
+                  onBlur={(e) => { blurInput(e); validateField("password", e.target.value); }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  style={{ position: "absolute", insetInlineEnd: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0, display: "flex" }}
+                >
+                  {showPassword ? <EyeOff size={17} aria-hidden /> : <Eye size={17} aria-hidden />}
+                </button>
+              </div>
+              {password && (
+                <div style={{ marginTop: 6 }}>
+                  <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
+                    {[0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        style={{
+                          flex: 1, height: 4, borderRadius: 2,
+                          backgroundColor:
+                            (strength.level === "weak" && i === 0) ||
+                            (strength.level === "fair" && i <= 1) ||
+                            strength.level === "strong"
+                              ? STRENGTH_COLOR[strength.level]
+                              : "var(--border-light)",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <span style={{ fontSize: 12, color: STRENGTH_COLOR[strength.level], fontWeight: 600 }}>{strength.label} password</span>
+                </div>
+              )}
               {fieldErrors.password && <div style={{ color: "var(--error)", fontSize: 12, marginTop: 4 }}>{fieldErrors.password}</div>}
             </div>
 
@@ -374,6 +464,8 @@ export default function SignupPage() {
               {t("signup.signIn")}
             </Link>
           </p>
+          </>
+          )}
         </div>
 
         {/* Trust badges */}

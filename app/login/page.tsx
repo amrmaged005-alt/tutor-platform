@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { AlertCircle, CheckCircle, ShieldCheck } from "lucide-react";
+import { AlertCircle, CheckCircle, ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 function GoogleIcon() {
   return (
@@ -39,6 +39,7 @@ export default function LoginPage() {
   const isMobile = useIsMobile();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   function validateField(name: string, value: string) {
@@ -52,6 +53,9 @@ export default function LoginPage() {
   }
   const [registered] = useState(
     () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("registered") === "true"
+  );
+  const [verified] = useState(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("verified") === "true"
   );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -75,7 +79,9 @@ export default function LoginPage() {
     const result = await signIn("credentials", { email, password, redirect: false });
 
     if (result?.error) {
-      setError(t("auth.invalid"));
+      // Auth.js forwards our specific message via `code` (lockout countdown,
+      // attempts remaining, unverified email). Fall back to a generic message.
+      setError(result.code || t("auth.invalid"));
       setLoading(false);
       return;
     }
@@ -225,7 +231,7 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit}>
-            {registered && (
+            {(registered || verified) && (
               <div
                 style={{
                   backgroundColor: "var(--accent-bg)",
@@ -241,7 +247,7 @@ export default function LoginPage() {
                 }}
               >
                 <CheckCircle size={14} strokeWidth={2.2} aria-hidden />
-                {t("auth.created")}
+                {verified ? "Email verified! You can now log in." : t("auth.created")}
               </div>
             )}
 
@@ -266,22 +272,37 @@ export default function LoginPage() {
             </div>
 
             <div style={{ marginBottom: isMobile ? "1rem" : "1.5rem" }}>
-              <label
-                htmlFor="password"
-                style={{ display: "block", color: "var(--text)", fontSize: 13, fontWeight: 600, marginBottom: "0.5rem" }}
-              >
-                {t("auth.password")}
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                placeholder={t("auth.passwordPlaceholder")}
-                style={{ ...inputStyle, borderColor: fieldErrors.password ? "var(--error)" : undefined }}
-                onFocus={focusInput}
-                onBlur={(e) => { blurInput(e); validateField("password", e.target.value); }}
-              />
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                <label
+                  htmlFor="password"
+                  style={{ color: "var(--text)", fontSize: 13, fontWeight: 600 }}
+                >
+                  {t("auth.password")}
+                </label>
+                <Link href="/forgot-password" style={{ color: "var(--accent)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
+                  {t("auth.forgot")}
+                </Link>
+              </div>
+              <div style={{ position: "relative" }}>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder={t("auth.passwordPlaceholder")}
+                  style={{ ...inputStyle, paddingInlineEnd: 40, borderColor: fieldErrors.password ? "var(--error)" : undefined }}
+                  onFocus={focusInput}
+                  onBlur={(e) => { blurInput(e); validateField("password", e.target.value); }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  style={{ position: "absolute", insetInlineEnd: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0, display: "flex" }}
+                >
+                  {showPassword ? <EyeOff size={17} aria-hidden /> : <Eye size={17} aria-hidden />}
+                </button>
+              </div>
               {fieldErrors.password && <div style={{ color: "var(--error)", fontSize: 12, marginTop: 4 }}>{fieldErrors.password}</div>}
             </div>
 

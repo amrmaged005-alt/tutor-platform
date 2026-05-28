@@ -1,56 +1,52 @@
-// TEMP: Email verification disabled
-// This route is temporarily stubbed out. To re-enable, restore the original code below.
-
 import { NextRequest, NextResponse } from "next/server";
-
-export async function GET(req: NextRequest) {
-  return NextResponse.redirect(
-    new URL("/login?info=verification-disabled", req.url)
-  );
-}
-
-/*
-// ─── ORIGINAL CODE (restore to re-enable) ─────────────────────────────────────
 import { prisma } from "@/lib/prisma";
+import { sendWelcomeEmail } from "@/lib/email";
+import { log } from "@/lib/audit";
 
+// Verifies an email-verification token. Returns JSON consumed by /verify-email.
 export async function GET(req: NextRequest) {
-  const token = req.nextUrl.searchParams.get("token");
+  const token = req.nextUrl.searchParams.get("token")?.trim();
 
   if (!token) {
-    return NextResponse.redirect(
-      new URL("/login?error=missing-token", req.url)
-    );
+    return NextResponse.json({ error: "Invalid or expired link." }, { status: 400 });
   }
 
-  const verification = await prisma.verificationToken.findUnique({
+  const record = await prisma.emailVerificationToken.findUnique({
     where: { token },
+    include: { user: { select: { id: true, email: true, name: true, isEmailVerified: true } } },
   });
 
-  if (!verification) {
-    return NextResponse.redirect(
-      new URL("/login?error=invalid-token", req.url)
-    );
+  if (!record) {
+    return NextResponse.json({ error: "Invalid or expired link." }, { status: 400 });
   }
 
-  if (verification.expires < new Date()) {
-    await prisma.verificationToken.delete({ where: { token } });
-    return NextResponse.redirect(
-      new URL("/login?error=expired-token", req.url)
-    );
+  if (record.expiresAt < new Date()) {
+    await prisma.emailVerificationToken.delete({ where: { id: record.id } }).catch(() => null);
+    return NextResponse.json({ error: "This link has expired. Request a new one." }, { status: 400 });
+  }
+
+  if (record.user.isEmailVerified) {
+    await prisma.emailVerificationToken.deleteMany({ where: { userId: record.userId } }).catch(() => null);
+    return NextResponse.json({ success: true, alreadyVerified: true });
   }
 
   await prisma.user.update({
-    where: { email: verification.identifier },
-    data: {
-      isEmailVerified: true,
-      emailVerified: new Date(),
-    },
+    where: { id: record.userId },
+    data: { isEmailVerified: true, emailVerified: new Date() },
   });
 
-  await prisma.verificationToken.delete({ where: { token } });
+  await prisma.emailVerificationToken.deleteMany({ where: { userId: record.userId } }).catch(() => null);
 
-  return NextResponse.redirect(
-    new URL("/login?verified=true", req.url)
-  );
+  await log({
+    action: "user.email_verified",
+    actorId: record.userId,
+    targetType: "User",
+    targetId: record.userId,
+  });
+
+  if (record.user.email) {
+    sendWelcomeEmail(record.user.email, record.user.name ?? "there").catch(() => {});
+  }
+
+  return NextResponse.json({ success: true });
 }
-*/

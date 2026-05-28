@@ -49,6 +49,34 @@ export const messageLimiter = new Ratelimit({
   prefix: "rl:message",
 });
 
+// Signup — 5 per hour per IP
+export const signupLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "1 h"),
+  prefix: "rl:signup",
+});
+
+// Forgot-password requests — 3 per 15 minutes per IP
+export const forgotPasswordLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(3, "15 m"),
+  prefix: "rl:forgot",
+});
+
+// Reset-password submissions — 5 per hour per IP
+export const resetPasswordLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "1 h"),
+  prefix: "rl:reset",
+});
+
+// Resend verification email — 3 per hour per email
+export const resendVerificationLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(3, "1 h"),
+  prefix: "rl:resend-verify",
+});
+
 // Promo code validation — 20 per 15 minutes per user
 // Prevents brute-force code guessing
 export const promoLimiter = new Ratelimit({
