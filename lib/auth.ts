@@ -8,6 +8,11 @@ import { prisma } from "./prisma";
 import { isRateLimited, authLimiter } from "./ratelimit";
 import { sendLoginAlertEmail, sendWelcomeEmail } from "./email";
 import { authConfig } from "../auth.config";
+import { validateEnv } from "./validateEnv";
+
+// Crash at startup with a clear message if required env vars are missing,
+// rather than failing silently at runtime when emails/payments/OAuth break.
+validateEnv();
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
