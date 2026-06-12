@@ -26,9 +26,6 @@
     "resend": "^6.9.3",
     "zod": "^4.3.6"
   },
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
-  },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.6",
     "@tailwindcss/postcss": "^4",
