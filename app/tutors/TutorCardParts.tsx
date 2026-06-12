@@ -19,6 +19,8 @@ export interface TutorCardData {
   studentsThisWeek?: number;
   repeatStudentCount?: number;
   lastBookedAt?: string | null;
+  sessionCount?: number;
+  fromPriceEgp?: number | null;
 }
 
 const SUBJECT_COLORS: Record<string, string> = {
@@ -41,6 +43,15 @@ const SUBJECT_COLORS: Record<string, string> = {
 
 export function subjectColor(subject: string) {
   return SUBJECT_COLORS[subject] ?? "var(--accent)";
+}
+
+const ACTIVE_WINDOW_DAYS = 7;
+
+export function isActiveThisWeek(lastBookedAt?: string | null): boolean {
+  if (!lastBookedAt) return false;
+  const last = new Date(lastBookedAt).getTime();
+  if (Number.isNaN(last)) return false;
+  return Date.now() - last < ACTIVE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 }
 
 export function isTopTutor(tutor: TutorCardData) {

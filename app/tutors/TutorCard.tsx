@@ -15,6 +15,7 @@ import {
   TutorTrustSignals,
   VerifiedBadge,
   getRelativeBookedLabel,
+  isActiveThisWeek,
   subjectColor,
   type TutorCardData,
 } from "./TutorCardParts";
@@ -110,7 +111,7 @@ export default function TutorCard({
       {/* Top accent bar */}
       <div style={{ height: 3, backgroundColor: primaryColor, flexShrink: 0 }} />
 
-      <Link href={`/tutors/${tutor.id}`} aria-label={`View ${displayName}'s profile`} style={{ display: "block", position: "relative", aspectRatio: isMobile ? "1 / 1" : "3 / 4", overflow: "hidden", background: `color-mix(in srgb, ${primaryColor} 12%, var(--bg-alt))`, textDecoration: "none" }}>
+      <Link href={`/tutors/${tutor.id}`} aria-label={`View ${displayName}'s profile`} style={{ display: "block", position: "relative", aspectRatio: isMobile ? "1 / 1" : "16 / 10", overflow: "hidden", background: `color-mix(in srgb, ${primaryColor} 12%, var(--bg-alt))`, textDecoration: "none" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={tutor.photoUrl ?? avatarFallback(tutor.id)}
@@ -119,8 +120,14 @@ export default function TutorCard({
           style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 200ms ease" }}
         />
         <span style={{ position: "absolute", insetInlineStart: 12, insetBlockEnd: 12, display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 9px", color: "var(--accent)", background: "color-mix(in srgb, var(--bg-card) 92%, transparent)", borderRadius: 999, fontSize: 11, fontWeight: 800 }}>
-          {tutor.isVerified ? <><BadgeCheck size={13} aria-hidden /> Verified tutor</> : "Tutor profile"}
+          {tutor.isVerified ? <><BadgeCheck size={13} aria-hidden /> {t("tutor.verified")}</> : t("tutor.profileBadge")}
         </span>
+        {isActiveThisWeek(tutor.lastBookedAt) && (
+          <span title={t("tutor.activeThisWeek")} aria-label={t("tutor.activeThisWeek")} style={{ position: "absolute", insetInlineEnd: 12, insetBlockEnd: 12, display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 8px", color: "var(--success)", background: "color-mix(in srgb, var(--bg-card) 92%, transparent)", borderRadius: 999, fontSize: 10, fontWeight: 800 }}>
+            <span className="presence-dot" aria-hidden />
+            {t("tutor.activeThisWeek")}
+          </span>
+        )}
       </Link>
 
       {/* Card body */}
@@ -232,25 +239,35 @@ export default function TutorCard({
           </p>
         )}
 
-        {/* Stats row */}
-        {!isMobile && <div
+        {/* Stats + price row */}
+        <div
           style={{
             display: "flex",
-            gap: 16,
-            paddingBottom: 14,
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+            paddingBottom: isMobile ? 10 : 14,
             borderBottom: "1px solid var(--bg-subtle)",
           }}
         >
-          {[
-            { value: tutor.classCount, label: t("tutor.classes") },
-            { value: tutor.studentCount, label: t("tutor.students") },
-          ].map((stat) => (
-            <div key={stat.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ fontWeight: 700, color: "var(--text)", fontSize: 14 }}>{stat.value}</span>
-              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{stat.label}</span>
-            </div>
-          ))}
-        </div>}
+          <div style={{ display: "flex", gap: isMobile ? 10 : 14, flexWrap: "wrap" }}>
+            {[
+              { value: tutor.classCount, label: t("tutor.classes") },
+              { value: tutor.studentCount, label: t("tutor.students") },
+              ...(tutor.sessionCount ? [{ value: tutor.sessionCount, label: t("tutor.sessions") }] : []),
+            ].map((stat) => (
+              <div key={stat.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ fontWeight: 700, color: "var(--text)", fontSize: isMobile ? 12 : 14 }}>{stat.value}</span>
+                <span style={{ color: "var(--text-muted)", fontSize: isMobile ? 10 : 12 }}>{stat.label}</span>
+              </div>
+            ))}
+          </div>
+          {typeof tutor.fromPriceEgp === "number" && (
+            <span style={{ color: "var(--accent)", fontWeight: 800, fontSize: isMobile ? 12 : 14, whiteSpace: "nowrap", flexShrink: 0 }}>
+              {t("tutor.fromPrice", { price: tutor.fromPriceEgp })}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* CTA */}
@@ -304,7 +321,7 @@ export default function TutorCard({
             onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent-hover)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent)"; }}
           >
-            {t("tutor.browseClasses")}
+            {t("tutor.book")}
           </Link>
         ) : (
           <div style={{

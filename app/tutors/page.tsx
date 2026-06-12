@@ -57,7 +57,9 @@ export default async function TutorsPage() {
       city: t.center?.city ?? "Cairo",
       center: t.center ? { id: t.center.id, name: t.center.name } : null,
       classCount: t.ownedClasses.length,
-      studentCount: allBookings.length,
+      studentCount: Object.keys(bookingsByStudent).length,
+      sessionCount: allBookings.length,
+      fromPriceEgp: t.ownedClasses.length > 0 ? Math.min(...t.ownedClasses.map((c) => c.priceEgp)) : null,
       avgRating: avgRating ? Math.round(avgRating * 10) / 10 : null,
       reviewCount: allReviews.length,
       isVerified: t.isVerified,
@@ -87,6 +89,7 @@ function fetchTutors() {
       ownedClasses: {
         select: {
           id: true,
+          priceEgp: true,
           bookings: { select: { id: true, createdAt: true, studentId: true } },
           reviews: { select: { rating: true } },
         },

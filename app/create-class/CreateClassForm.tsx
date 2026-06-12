@@ -4,18 +4,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 
 const SUBJECTS = ["Math", "Physics", "Chemistry", "Biology", "English", "Arabic", "History", "Geography", "CS"];
 
 const CURRICULA = [
-  { value: "NATIONAL",  label: "National (Thanaweya Amma)" },
-  { value: "IGCSE",     label: "IGCSE / British" },
-  { value: "AMERICAN",  label: "American / SAT / ACT" },
-  { value: "IB",        label: "IB (International Baccalaureate)" },
-  { value: "FRENCH",    label: "French System" },
-  { value: "STEM",      label: "STEM Schools" },
-  { value: "OTHER",     label: "Other" },
-];
+  { value: "NATIONAL",  labelKey: "createClass.curriculum.national" },
+  { value: "IGCSE",     labelKey: "createClass.curriculum.igcse" },
+  { value: "AMERICAN",  labelKey: "createClass.curriculum.american" },
+  { value: "IB",        labelKey: "createClass.curriculum.ib" },
+  { value: "FRENCH",    labelKey: "createClass.curriculum.french" },
+  { value: "STEM",      labelKey: "createClass.curriculum.stem" },
+  { value: "OTHER",     labelKey: "createClass.curriculum.other" },
+] as const;
 
 const GRADES = [
   "Grade 7", "Grade 8", "Grade 9",
@@ -25,10 +26,10 @@ const GRADES = [
 ];
 
 const FORMATS = [
-  { value: "IN_PERSON", label: "In-Person" },
-  { value: "ONLINE",    label: "Online" },
-  { value: "HYBRID",    label: "Hybrid (both)" },
-];
+  { value: "IN_PERSON", labelKey: "createClass.format.inPerson" },
+  { value: "ONLINE",    labelKey: "createClass.format.online" },
+  { value: "HYBRID",    labelKey: "createClass.format.hybrid" },
+] as const;
 
 const LANGUAGES = ["Arabic", "English", "Both"];
 
@@ -63,6 +64,7 @@ const inputStyle: React.CSSProperties = {
 const selectStyle: React.CSSProperties = { ...inputStyle, cursor: "pointer" };
 
 export default function CreateClassForm() {
+  const { t } = useI18n();
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -80,9 +82,9 @@ export default function CreateClassForm() {
 
   async function handleSubmit() {
     setError("");
-    if (!form.title.trim()) return setError("Title is required.");
-    if (!form.subject.trim()) return setError("Subject is required.");
-    if (!form.priceEgp) return setError("Price is required (use 0 for free).");
+    if (!form.title.trim()) return setError(t("createClass.error.title"));
+    if (!form.subject.trim()) return setError(t("createClass.error.subject"));
+    if (!form.priceEgp) return setError(t("createClass.error.price"));
 
     setLoading(true);
 
@@ -98,7 +100,7 @@ export default function CreateClassForm() {
     });
 
     const data = await res.json();
-    if (!res.ok) { setError(data.error ?? "Something went wrong."); setLoading(false); return; }
+    if (!res.ok) { setError(data.error ?? t("signup.error.generic")); setLoading(false); return; }
     router.push("/dashboard");
   }
 
@@ -116,96 +118,96 @@ export default function CreateClassForm() {
 
       <div style={{ maxWidth: 660, margin: "0 auto 1.5rem", position: "relative", zIndex: 1 }}>
         <Link href="/dashboard" style={{ color: "var(--text-muted)", fontSize: 14, textDecoration: "none" }}>
-          Back to dashboard
+          {t("createClass.back")}
         </Link>
       </div>
 
       <div style={{ maxWidth: 660, margin: "0 auto", backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 20, padding: "2rem", position: "relative", zIndex: 1, boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}>
         <div style={{ marginBottom: "2rem" }}>
           <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", marginBottom: "0.4rem", letterSpacing: -0.5 }}>
-            Create a New Class
+            {t("createClass.title")}
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>
-            Fill in the details below. You can edit them later from your dashboard.
+            {t("createClass.subtitle")}
           </p>
         </div>
 
-        <SectionTitle>Basic Information</SectionTitle>
+        <SectionTitle>{t("createClass.section.basic")}</SectionTitle>
 
         <div style={{ marginBottom: "1.25rem" }}>
-          <FieldLabel>Class Title *</FieldLabel>
-          <input style={inputStyle} placeholder="e.g. Physics - Mechanics and Waves (Grade 11)" value={form.title} onChange={e => update("title", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
+          <FieldLabel>{t("createClass.field.title")}</FieldLabel>
+          <input style={inputStyle} placeholder={t("createClass.placeholder.title")} value={form.title} onChange={e => update("title", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.25rem" }}>
           <div>
-            <FieldLabel>Subject *</FieldLabel>
+            <FieldLabel>{t("createClass.field.subject")}</FieldLabel>
             <select style={selectStyle} value={form.subject} onChange={e => update("subject", e.target.value)} onFocus={focusInput} onBlur={blurInput}>
               {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div>
-            <FieldLabel>Price (EGP) *</FieldLabel>
-            <input style={inputStyle} type="number" placeholder="e.g. 300 (or 0 for free)" value={form.priceEgp} onChange={e => update("priceEgp", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
+            <FieldLabel>{t("createClass.field.price")}</FieldLabel>
+            <input style={inputStyle} type="number" placeholder={t("createClass.placeholder.price")} value={form.priceEgp} onChange={e => update("priceEgp", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
           </div>
         </div>
 
         <div style={{ marginBottom: "1.25rem" }}>
-          <FieldLabel>Description</FieldLabel>
-          <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" as const }} placeholder="What will students learn? What topics are covered?" value={form.description} onChange={e => update("description", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
+          <FieldLabel>{t("createClass.field.description")}</FieldLabel>
+          <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" as const }} placeholder={t("createClass.placeholder.description")} value={form.description} onChange={e => update("description", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
         </div>
 
-        <SectionTitle>Curriculum and Level</SectionTitle>
+        <SectionTitle>{t("createClass.section.curriculum")}</SectionTitle>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.25rem" }}>
           <div>
-            <FieldLabel>Curriculum / System</FieldLabel>
+            <FieldLabel>{t("createClass.field.curriculum")}</FieldLabel>
             <select style={selectStyle} value={form.curriculum} onChange={e => update("curriculum", e.target.value)} onFocus={focusInput} onBlur={blurInput}>
-              {CURRICULA.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              {CURRICULA.map(c => <option key={c.value} value={c.value}>{t(c.labelKey)}</option>)}
             </select>
           </div>
           <div>
-            <FieldLabel>Grade / Level</FieldLabel>
+            <FieldLabel>{t("createClass.field.grade")}</FieldLabel>
             <select style={selectStyle} value={form.gradeLevel} onChange={e => update("gradeLevel", e.target.value)} onFocus={focusInput} onBlur={blurInput}>
-              <option value="">Select grade</option>
+              <option value="">{t("createClass.selectGrade")}</option>
               {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
         </div>
 
-        <SectionTitle>Format and Language</SectionTitle>
+        <SectionTitle>{t("createClass.section.format")}</SectionTitle>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.25rem" }}>
           <div>
-            <FieldLabel>Class Format</FieldLabel>
+            <FieldLabel>{t("createClass.field.format")}</FieldLabel>
             <select style={selectStyle} value={form.format} onChange={e => update("format", e.target.value)} onFocus={focusInput} onBlur={blurInput}>
-              {FORMATS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+              {FORMATS.map(f => <option key={f.value} value={f.value}>{t(f.labelKey)}</option>)}
             </select>
           </div>
           <div>
-            <FieldLabel>Teaching Language</FieldLabel>
+            <FieldLabel>{t("createClass.field.language")}</FieldLabel>
             <select style={selectStyle} value={form.language} onChange={e => update("language", e.target.value)} onFocus={focusInput} onBlur={blurInput}>
               {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
         </div>
 
-        <SectionTitle>Location and Schedule</SectionTitle>
+        <SectionTitle>{t("createClass.section.location")}</SectionTitle>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.25rem" }}>
           <div>
-            <FieldLabel>Location / Area</FieldLabel>
-            <input style={inputStyle} placeholder="e.g. Nasr City, Cairo" value={form.location} onChange={e => update("location", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
+            <FieldLabel>{t("createClass.field.location")}</FieldLabel>
+            <input style={inputStyle} placeholder={t("createClass.placeholder.location")} value={form.location} onChange={e => update("location", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
           </div>
           <div>
-            <FieldLabel>Max Students</FieldLabel>
-            <input style={inputStyle} type="number" placeholder="e.g. 15" value={form.capacity} onChange={e => update("capacity", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
+            <FieldLabel>{t("createClass.field.maxStudents")}</FieldLabel>
+            <input style={inputStyle} type="number" placeholder={t("createClass.placeholder.capacity")} value={form.capacity} onChange={e => update("capacity", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
           </div>
         </div>
 
         <div style={{ marginBottom: "1.75rem" }}>
-          <FieldLabel>Schedule</FieldLabel>
-          <input style={inputStyle} placeholder="e.g. Saturday and Monday, 5:00 PM" value={form.schedule} onChange={e => update("schedule", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
+          <FieldLabel>{t("booking.schedule")}</FieldLabel>
+          <input style={inputStyle} placeholder={t("createClass.placeholder.schedule")} value={form.schedule} onChange={e => update("schedule", e.target.value)} onFocus={focusInput} onBlur={blurInput} />
         </div>
 
         {error && (
@@ -232,7 +234,7 @@ export default function CreateClassForm() {
             opacity: loading ? 0.8 : 1,
           }}
         >
-          {loading ? "Creating class..." : "Create Class"}
+          {loading ? t("createClass.creating") : t("dash.action.createClass")}
         </button>
       </div>
     </div>

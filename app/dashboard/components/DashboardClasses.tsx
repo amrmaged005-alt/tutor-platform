@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import DeleteClassButton from "@/app/DeleteClassButton";
+import { useI18n } from "@/app/components/i18n";
 import type { CenterClass, CenterData, OwnedClass } from "./DashboardTypes";
 
 type Props =
@@ -25,7 +26,8 @@ function subjectColor(subject: string): string {
 }
 
 export default function DashboardClasses(props: Props) {
-  const title = props.mode === "center" ? "Center Classes" : "My Classes";
+  const { t } = useI18n();
+  const title = props.mode === "center" ? t("dash.classes.title.center") : t("dash.classes.title.my");
   const { classes, isMobile } = props;
 
   return (
@@ -53,7 +55,7 @@ export default function DashboardClasses(props: Props) {
           style={{ textDecoration: "none", padding: "5px 12px", fontSize: 12 }}
         >
           <Plus size={13} aria-hidden />
-          New Class
+          {t("dash.classes.new")}
         </Link>
       </div>
 
@@ -77,7 +79,7 @@ export default function DashboardClasses(props: Props) {
             }}
           >
             <Plus size={16} aria-hidden />
-            Create your first class
+            {t("dash.classes.createFirst")}
           </Link>
         </div>
       ) : (
@@ -100,7 +102,7 @@ export default function DashboardClasses(props: Props) {
             }}
           >
             <Plus size={14} aria-hidden />
-            Create new class
+            {t("dash.classes.createNew")}
           </Link>
 
           {/* Table header */}
@@ -118,10 +120,10 @@ export default function DashboardClasses(props: Props) {
                 letterSpacing: "0.05em",
               }}
             >
-              <span>Class</span>
-              <span style={{ textAlign: "center" }}>Grade</span>
-              <span style={{ textAlign: "end" }}>Price</span>
-              <span style={{ textAlign: "end" }}>Actions</span>
+              <span>{t("dash.classes.col.class")}</span>
+              <span style={{ textAlign: "center" }}>{t("dash.classes.col.grade")}</span>
+              <span style={{ textAlign: "end" }}>{t("dash.classes.col.price")}</span>
+              <span style={{ textAlign: "end" }}>{t("dash.classes.col.actions")}</span>
             </div>
           )}
 
@@ -178,7 +180,7 @@ export default function DashboardClasses(props: Props) {
                   fontSize: 12,
                 }}
               >
-                {(cls as OwnedClass).gradeLevel ?? "All levels"}
+                {(cls as OwnedClass).gradeLevel ?? t("dash.classes.allLevels")}
               </span>
 
               {/* Price */}
@@ -190,7 +192,7 @@ export default function DashboardClasses(props: Props) {
                   fontWeight: 700,
                 }}
               >
-                {cls.priceEgp === 0 ? "Free" : `EGP ${cls.priceEgp}`}
+                {cls.priceEgp === 0 ? t("common.free") : t("common.priceEgp", { price: cls.priceEgp })}
               </span>
 
               {/* Actions */}
@@ -206,7 +208,7 @@ export default function DashboardClasses(props: Props) {
                   className="btn-secondary"
                   style={{ textDecoration: "none", padding: "4px 10px", fontSize: 11 }}
                 >
-                  View
+                  {t("dash.action.view")}
                 </Link>
                 {props.mode === "tutor" && (
                   <DeleteClassButton classId={cls.id} deleteAction={props.deleteClass} />

@@ -388,7 +388,23 @@ h1,
   background: var(--accent-hover);
   border-color: var(--accent-hover);
   box-shadow: var(--shadow-accent);
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.01);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+.btn-secondary:active,
+.btn-ghost:active,
+.btn-destructive:active {
+  transform: scale(0.97);
+}
+
+.btn-secondary:hover,
+.btn-ghost:hover {
+  transform: scale(1.01);
 }
 
 .btn-secondary {
@@ -405,7 +421,7 @@ h1,
   text-decoration: none;
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 .btn-secondary:hover {
   background: var(--bg-elevated);
@@ -427,7 +443,7 @@ h1,
   text-decoration: none;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 .btn-ghost:hover {
   background: var(--bg-alt);
@@ -749,6 +765,20 @@ select.input:focus {
 
 .typing-dot:nth-child(2) { animation-delay: 120ms; }
 .typing-dot:nth-child(3) { animation-delay: 240ms; }
+
+/* Recent-activity presence indicator (tutor cards, thread list) */
+.presence-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: presence-pulse 2s ease-in-out infinite;
+}
+
+@keyframes presence-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+}
 
 @keyframes typing-bounce {
   0%, 100% { opacity: 0.35; transform: translateY(0); }

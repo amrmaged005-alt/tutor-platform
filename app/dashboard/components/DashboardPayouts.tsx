@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Wallet } from "lucide-react";
 import { StatusBadge } from "./DashboardPrimitives";
+import { useI18n } from "@/app/components/i18n";
 
 type Payout = {
   id: string;
@@ -14,6 +15,8 @@ type Payout = {
 };
 
 export default function DashboardPayouts() {
+  const { t, lang } = useI18n();
+  const locale = lang === "ar" ? "ar-EG" : "en-EG";
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,30 +44,35 @@ export default function DashboardPayouts() {
     <section style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "1.25rem", marginTop: "1.25rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: "1rem", flexWrap: "wrap" }}>
         <h2 style={{ color: "var(--text)", margin: 0, fontSize: "1.05rem", fontWeight: 850, display: "inline-flex", gap: 8, alignItems: "center" }}>
-          <Wallet size={18} strokeWidth={1.8} aria-hidden /> Payouts
+          <Wallet size={18} strokeWidth={1.8} aria-hidden /> {t("dash.payouts.title")}
         </h2>
-        <strong style={{ color: "var(--text)", fontSize: 14 }}>Total earned: {totalEarned} EGP</strong>
+        <strong style={{ color: "var(--text)", fontSize: 14 }}>{t("dash.payouts.totalEarned", { amount: totalEarned })}</strong>
       </div>
 
       {loading ? (
         <div className="skeleton" style={{ height: 160 }} />
       ) : payouts.length === 0 ? (
-        <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>No payouts yet. Complete sessions to earn.</p>
+        <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>{t("dash.payouts.empty")}</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", color: "var(--text)", fontSize: 13 }}>
             <thead>
               <tr style={{ color: "var(--text-muted)", textAlign: "start" }}>
-                {["Date", "Amount", "Status", "Reference"].map((heading) => (
-                  <th key={heading} style={{ textAlign: "start", padding: "0.65rem", borderBottom: "1px solid var(--border-light)" }}>{heading}</th>
+                {([
+                  "dash.payouts.col.date",
+                  "dash.payouts.col.amount",
+                  "dash.payouts.col.status",
+                  "dash.payouts.col.reference",
+                ] as const).map((headingKey) => (
+                  <th key={headingKey} style={{ textAlign: "start", padding: "0.65rem", borderBottom: "1px solid var(--border-light)" }}>{t(headingKey)}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {payouts.map((payout) => (
                 <tr key={payout.id}>
-                  <td style={{ padding: "0.75rem 0.65rem", borderBottom: "1px solid var(--border-light)" }}>{new Date(payout.paidAt ?? payout.createdAt).toLocaleDateString("en-EG")}</td>
-                  <td style={{ padding: "0.75rem 0.65rem", borderBottom: "1px solid var(--border-light)", fontWeight: 800 }}>{payout.amount} EGP</td>
+                  <td style={{ padding: "0.75rem 0.65rem", borderBottom: "1px solid var(--border-light)" }}>{new Date(payout.paidAt ?? payout.createdAt).toLocaleDateString(locale)}</td>
+                  <td style={{ padding: "0.75rem 0.65rem", borderBottom: "1px solid var(--border-light)", fontWeight: 800 }}>{t("common.priceEgp", { price: payout.amount })}</td>
                   <td style={{ padding: "0.75rem 0.65rem", borderBottom: "1px solid var(--border-light)" }}><StatusBadge status={payout.status} /></td>
                   <td style={{ padding: "0.75rem 0.65rem", borderBottom: "1px solid var(--border-light)", color: "var(--text-muted)" }}>{payout.bookingId ?? payout.id}</td>
                 </tr>

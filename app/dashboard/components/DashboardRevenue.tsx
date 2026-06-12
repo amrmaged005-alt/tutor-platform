@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useI18n } from "@/app/components/i18n";
 import type { CenterClass, OwnedClass } from "./DashboardTypes";
 
 type Props = {
@@ -13,13 +14,13 @@ type Props = {
   isMobile: boolean;
 };
 
-function buildWeeklyData(classes: Array<OwnedClass | CenterClass>) {
+function buildWeeklyData(classes: Array<OwnedClass | CenterClass>, locale: string) {
   const now = new Date();
   const weeks = Array.from({ length: 5 }, (_, i) => {
     const d = new Date(now);
     d.setDate(d.getDate() - (4 - i) * 7);
     return {
-      label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      label: d.toLocaleDateString(locale, { month: "short", day: "numeric" }),
       revenue: 0,
     };
   });
@@ -30,7 +31,9 @@ function buildWeeklyData(classes: Array<OwnedClass | CenterClass>) {
 }
 
 export default function DashboardRevenue({ classes, totalRevenue, isMobile }: Props) {
-  const weeklyData = useMemo(() => buildWeeklyData(classes), [classes]);
+  const { t, lang } = useI18n();
+  const locale = lang === "ar" ? "ar-EG" : "en-EG";
+  const weeklyData = useMemo(() => buildWeeklyData(classes, locale), [classes, locale]);
   const platformFee = Math.round(totalRevenue * 0.12);
   const net = Math.max(totalRevenue - platformFee, 0);
 
@@ -53,10 +56,10 @@ export default function DashboardRevenue({ classes, totalRevenue, isMobile }: Pr
         }}
       >
         <h2 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "var(--text)" }}>
-          Revenue Overview
+          {t("dash.section.revenue")}
         </h2>
         <span style={{ color: "var(--accent)", fontWeight: 850, fontSize: 15 }}>
-          EGP {totalRevenue.toLocaleString()}
+          {t("common.priceEgp", { price: totalRevenue.toLocaleString(locale) })}
         </span>
       </div>
 
@@ -73,7 +76,7 @@ export default function DashboardRevenue({ classes, totalRevenue, isMobile }: Pr
               fontSize: 13,
             }}
           >
-            Revenue will appear after students book your classes.
+            {t("dash.revenue.empty")}
           </div>
         ) : (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -103,7 +106,7 @@ export default function DashboardRevenue({ classes, totalRevenue, isMobile }: Pr
                       color: "var(--text)",
                       fontSize: 12,
                     }}
-                    formatter={(value: unknown) => [`EGP ${Number(value ?? 0).toLocaleString()}`, "Revenue"] as [string, string]}
+                    formatter={(value: unknown) => [t("common.priceEgp", { price: Number(value ?? 0).toLocaleString(locale) }), t("dash.stat.revenue")] as [string, string]}
                   />
                   <Bar
                     dataKey="revenue"
@@ -127,9 +130,9 @@ export default function DashboardRevenue({ classes, totalRevenue, isMobile }: Pr
         }}
       >
         {[
-          { label: "Gross", value: `EGP ${totalRevenue.toLocaleString()}`, color: "var(--accent)" },
-          { label: "Platform fee", value: `EGP ${platformFee.toLocaleString()}`, color: "var(--warning)" },
-          { label: "Net", value: `EGP ${net.toLocaleString()}`, color: "var(--success)" },
+          { label: t("dash.revenue.gross"), value: t("common.priceEgp", { price: totalRevenue.toLocaleString(locale) }), color: "var(--accent)" },
+          { label: t("booking.platformFee"), value: t("common.priceEgp", { price: platformFee.toLocaleString(locale) }), color: "var(--warning)" },
+          { label: t("dash.revenue.net"), value: t("common.priceEgp", { price: net.toLocaleString(locale) }), color: "var(--success)" },
         ].map((item, i) => (
           <div
             key={item.label}

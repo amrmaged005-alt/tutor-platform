@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { MessageSquare, Star } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 import type { TutorReview } from "./DashboardTypes";
 
 export default function DashboardReviews({ reviews }: { reviews: TutorReview[] }) {
+  const { t, lang } = useI18n();
+  const locale = lang === "ar" ? "ar-EG" : "en-EG";
   const [items, setItems] = useState(reviews);
   const [openId, setOpenId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -27,10 +30,10 @@ export default function DashboardReviews({ reviews }: { reviews: TutorReview[] }
   return (
     <section style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "1.25rem", marginTop: "1.25rem" }}>
       <h2 style={{ color: "var(--text)", margin: "0 0 1rem", fontSize: "1.05rem", fontWeight: 850, display: "inline-flex", gap: 8, alignItems: "center" }}>
-        <MessageSquare size={18} strokeWidth={1.8} aria-hidden /> Reviews
+        <MessageSquare size={18} strokeWidth={1.8} aria-hidden /> {t("dash.reviews.title")}
       </h2>
       {items.length === 0 ? (
-        <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>No reviews yet.</p>
+        <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>{t("dash.reviews.empty")}</p>
       ) : (
         <div style={{ display: "grid", gap: 10 }}>
           {items.map((review) => (
@@ -41,17 +44,17 @@ export default function DashboardReviews({ reviews }: { reviews: TutorReview[] }
                   <Star size={14} fill="var(--rating)" aria-hidden /> {review.rating}/5
                 </span>
               </div>
-              <p style={{ color: "var(--text-muted)", margin: "0.35rem 0", fontSize: 13 }}>{review.studentName} - {new Date(review.createdAt).toLocaleDateString("en-EG")}</p>
+              <p style={{ color: "var(--text-muted)", margin: "0.35rem 0", fontSize: 13 }}>{review.studentName} - {new Date(review.createdAt).toLocaleDateString(locale)}</p>
               {review.comment && <p style={{ color: "var(--text)", margin: "0.5rem 0", fontSize: 14 }}>{review.comment}</p>}
               {review.tutorResponse ? (
-                <div style={{ borderInlineStart: "3px solid var(--accent)", paddingInlineStart: 10, color: "var(--text-secondary)", fontSize: 13 }}>Reply: {review.tutorResponse}</div>
+                <div style={{ borderInlineStart: "3px solid var(--accent)", paddingInlineStart: 10, color: "var(--text-secondary)", fontSize: 13 }}>{t("dash.reviews.replyPrefix")} {review.tutorResponse}</div>
               ) : openId === review.id ? (
                 <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-                  <textarea value={draft} onChange={(event) => setDraft(event.target.value)} className="input" rows={3} placeholder="Write a reply..." />
-                  <button type="button" onClick={() => submit(review.id)} className="btn-primary" style={{ justifySelf: "start" }}>Submit reply</button>
+                  <textarea value={draft} onChange={(event) => setDraft(event.target.value)} className="input" rows={3} placeholder={t("dash.reviews.writeReply")} />
+                  <button type="button" onClick={() => submit(review.id)} className="btn-primary" style={{ justifySelf: "start" }}>{t("dash.reviews.submitReply")}</button>
                 </div>
               ) : (
-                <button type="button" onClick={() => { setOpenId(review.id); setDraft(""); }} className="btn-secondary" style={{ marginTop: 8 }}>Reply</button>
+                <button type="button" onClick={() => { setOpenId(review.id); setDraft(""); }} className="btn-secondary" style={{ marginTop: 8 }}>{t("dash.reviews.reply")}</button>
               )}
             </article>
           ))}

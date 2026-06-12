@@ -3,19 +3,21 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 
 type Completeness = { score: number; missing: string[] };
 
 const ITEMS = [
-  { label: "Verify your email", match: "email", href: "/settings", icon: "✉" },
-  { label: "Add profile photo", match: "profile photo", href: "/settings", icon: "📷" },
-  { label: "Write your bio", match: "bio", href: "/settings", icon: "✍" },
-  { label: "Add your subjects", match: "subject", href: "/settings", icon: "📚" },
-  { label: "Upload a credential", match: "credential", href: "/settings", icon: "🎓" },
-  { label: "Get your first booking", match: "booking", href: "/dashboard/bookings", icon: "📅" },
-];
+  { labelKey: "dash.checklist.verifyEmail", match: "email", href: "/settings", icon: "✉" },
+  { labelKey: "dash.checklist.addPhoto", match: "profile photo", href: "/settings", icon: "📷" },
+  { labelKey: "dash.checklist.writeBio", match: "bio", href: "/settings", icon: "✍" },
+  { labelKey: "dash.checklist.addSubjects", match: "subject", href: "/settings", icon: "📚" },
+  { labelKey: "dash.checklist.uploadCredential", match: "credential", href: "/settings", icon: "🎓" },
+  { labelKey: "dash.checklist.firstBooking", match: "booking", href: "/dashboard/bookings", icon: "📅" },
+] as const;
 
 export default function DashboardChecklist({ tutorId }: { tutorId: string }) {
+  const { t } = useI18n();
   const [data, setData] = useState<Completeness | null>(null);
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function DashboardChecklist({ tutorId }: { tutorId: string }) {
         }}
       >
         <CheckCircle2 size={18} aria-hidden />
-        Profile complete
+        {t("dash.checklist.complete")}
       </div>
     );
   }
@@ -84,7 +86,7 @@ export default function DashboardChecklist({ tutorId }: { tutorId: string }) {
           }}
         >
           <h2 style={{ color: "var(--text)", margin: 0, fontSize: "0.95rem", fontWeight: 800 }}>
-            Tutor Onboarding
+            {t("dash.checklist.title")}
           </h2>
           <span style={{ color: "var(--accent)", fontSize: 12, fontWeight: 800 }}>{data.score}%</span>
         </div>
@@ -114,7 +116,7 @@ export default function DashboardChecklist({ tutorId }: { tutorId: string }) {
           const Icon = incomplete ? Circle : CheckCircle2;
           return (
             <Link
-              key={item.label}
+              key={item.labelKey}
               href={item.href}
               style={{
                 display: "flex",
@@ -135,7 +137,7 @@ export default function DashboardChecklist({ tutorId }: { tutorId: string }) {
                 color={incomplete ? "var(--text-muted)" : "var(--success)"}
                 aria-hidden
               />
-              <span style={{ flex: 1 }}>{item.label}</span>
+              <span style={{ flex: 1 }}>{t(item.labelKey)}</span>
               {incomplete && (
                 <span
                   style={{
@@ -149,7 +151,7 @@ export default function DashboardChecklist({ tutorId }: { tutorId: string }) {
                     letterSpacing: "0.05em",
                   }}
                 >
-                  To do
+                  {t("dash.checklist.todo")}
                 </span>
               )}
             </Link>

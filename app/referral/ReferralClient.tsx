@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Copy, Check, Gift, Users, Wallet, Share2 } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 
 interface ReferralData {
   referralCode: string;
@@ -16,6 +17,7 @@ interface ReferralClientProps {
 }
 
 export default function ReferralClient({ data }: ReferralClientProps) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [referralCode, setReferralCode] = useState(data.referralCode);
@@ -62,14 +64,14 @@ export default function ReferralClient({ data }: ReferralClientProps) {
   const handleShare = useCallback(async () => {
     if (navigator.share) {
       await navigator.share({
-        title: "Join Coursaty!",
-        text: "Find verified tutors and great classes. Use my referral link to sign up:",
+        title: t("referral.shareTitle"),
+        text: t("referral.shareText"),
         url: referralUrl,
       }).catch(() => {});
     } else {
       handleCopy();
     }
-  }, [referralUrl, handleCopy]);
+  }, [referralUrl, handleCopy, t]);
 
   return (
     <div
@@ -98,10 +100,10 @@ export default function ReferralClient({ data }: ReferralClientProps) {
           <Gift size={28} style={{ color: "var(--accent)" }} aria-hidden />
         </div>
         <h1 style={{ fontSize: "1.75rem", fontWeight: 800, margin: "0 0 0.5rem" }}>
-          Refer &amp; earn
+          {t("referral.title")}
         </h1>
         <p style={{ color: "var(--text-muted)", fontSize: 15, margin: 0, maxWidth: 380, marginInline: "auto" }}>
-          Invite friends to Coursaty. When they book their first class, you both earn wallet credit.
+          {t("referral.subtitle")}
         </p>
       </div>
 
@@ -135,10 +137,10 @@ export default function ReferralClient({ data }: ReferralClientProps) {
         </div>
         <div>
           <p style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: "0.06em", margin: 0 }}>
-            Wallet balance
+            {t("referral.walletBalance")}
           </p>
           <p style={{ fontSize: "1.75rem", fontWeight: 900, color: "var(--text)", margin: 0 }}>
-            {data.walletBalanceEgp} <span style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-muted)" }}>EGP</span>
+            {data.walletBalanceEgp} <span style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-muted)" }}>{t("dash.stat.egp")}</span>
           </p>
         </div>
       </div>
@@ -152,9 +154,9 @@ export default function ReferralClient({ data }: ReferralClientProps) {
           marginBottom: "1.5rem",
         }}
       >
-        <StatCard icon={<Users size={18} style={{ color: "var(--accent)" }} />} value={data.referralCount} label="Invited" />
-        <StatCard icon={<Check size={18} style={{ color: "var(--success, #16a34a)" }} />} value={data.completedCount} label="Completed" />
-        <StatCard icon={<Wallet size={18} style={{ color: "var(--accent)" }} />} value={`${data.totalEarnedEgp} EGP`} label="Earned" />
+        <StatCard icon={<Users size={18} style={{ color: "var(--accent)" }} />} value={data.referralCount} label={t("referral.invited")} />
+        <StatCard icon={<Check size={18} style={{ color: "var(--success, #16a34a)" }} />} value={data.completedCount} label={t("referral.completed")} />
+        <StatCard icon={<Wallet size={18} style={{ color: "var(--accent)" }} />} value={t("common.priceEgp", { price: data.totalEarnedEgp })} label={t("referral.earned")} />
       </div>
 
       {/* Referral link */}
@@ -177,7 +179,7 @@ export default function ReferralClient({ data }: ReferralClientProps) {
             marginBottom: "0.875rem",
           }}
         >
-          Your referral link
+          {t("referral.yourLink")}
         </p>
 
         {!referralCode ? (
@@ -197,7 +199,7 @@ export default function ReferralClient({ data }: ReferralClientProps) {
               cursor: generating ? "wait" : "pointer",
             }}
           >
-            {generating ? "Generating…" : "Generate my referral link"}
+            {generating ? t("referral.generating") : t("referral.generate")}
           </button>
         ) : (
           <>
@@ -279,17 +281,17 @@ export default function ReferralClient({ data }: ReferralClientProps) {
                   cursor: "pointer",
                   transition: "all 0.15s",
                 }}
-                aria-label={copied ? "Copied!" : "Copy link"}
+                aria-label={copied ? t("referral.copied") : t("referral.copyLink")}
               >
                 {copied ? (
                   <>
                     <Check size={15} strokeWidth={2.5} aria-hidden />
-                    Copied!
+                    {t("referral.copied")}
                   </>
                 ) : (
                   <>
                     <Copy size={15} strokeWidth={1.8} aria-hidden />
-                    Copy
+                    {t("referral.copy")}
                   </>
                 )}
               </button>
@@ -311,10 +313,10 @@ export default function ReferralClient({ data }: ReferralClientProps) {
                   fontSize: 13,
                   cursor: "pointer",
                 }}
-                aria-label="Share referral link"
+                aria-label={t("referral.shareAria")}
               >
                 <Share2 size={15} strokeWidth={1.8} aria-hidden />
-                Share
+                {t("referral.share")}
               </button>
             </div>
           </>
@@ -340,12 +342,12 @@ export default function ReferralClient({ data }: ReferralClientProps) {
             marginBottom: "1rem",
           }}
         >
-          How it works
+          {t("how.label")}
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Step n="1" text="Share your unique referral link with friends" />
-          <Step n="2" text="They sign up and book their first class" />
-          <Step n="3" text="You both receive wallet credit automatically" />
+          <Step n="1" text={t("referral.step1")} />
+          <Step n="2" text={t("referral.step2")} />
+          <Step n="3" text={t("referral.step3")} />
         </div>
       </div>
     </div>
