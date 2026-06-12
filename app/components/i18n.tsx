@@ -681,6 +681,12 @@ const DICT = {
   "status.pending": { en: "Pending", ar: "قيد الانتظار" },
   "status.cancelled": { en: "Cancelled", ar: "ملغى" },
   "status.paid": { en: "Paid", ar: "مدفوع" },
+  "status.all": { en: "All", ar: "الكل" },
+  "dash.bookings.title": { en: "Bookings", ar: "الحجوزات" },
+  "dash.bookings.emptyFilter": { en: "No bookings match this filter.", ar: "لا توجد حجوزات مطابقة لهذا الفلتر." },
+  "dash.browseClasses": { en: "Browse Classes", ar: "تصفح الفصول" },
+  "dash.viewClass": { en: "View Class", ar: "عرض الفصل" },
+  "common.priceEgp": { en: "{price} EGP", ar: "{price} جنيه" },
 } as const;
 
 type DictKey = keyof typeof DICT;

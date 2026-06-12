@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import CancelBookingButton from "@/app/CancelBookingButton";
 import { DashboardIcon, EmptyState, ReceiptButton, RefundRequestButton, SectionHeader, StatusBadge } from "./DashboardPrimitives";
 import type { StudentBooking } from "./DashboardTypes";
+import { useI18n } from "@/app/components/i18n";
 
 type Filter = "ALL" | "CONFIRMED" | "PENDING" | "PAID";
 
@@ -18,7 +19,14 @@ export default function DashboardBookings({
   cancelBooking: (formData: FormData) => Promise<void>;
   isMobile: boolean;
 }) {
+  const { t } = useI18n();
   const [filter, setFilter] = useState<Filter>("ALL");
+  const FILTER_LABEL: Record<Filter, string> = {
+    ALL: t("status.all"),
+    CONFIRMED: t("status.confirmed"),
+    PENDING: t("status.pending"),
+    PAID: t("status.paid"),
+  };
   const filtered = useMemo(() => {
     if (filter === "ALL") return bookings;
     if (filter === "PAID") return bookings.filter((booking) => booking.paymentStatus === "PAID");
@@ -39,7 +47,7 @@ export default function DashboardBookings({
 
   return (
     <section>
-      <SectionHeader title="Bookings" count={bookings.length} />
+      <SectionHeader title={t("dash.bookings.title")} count={bookings.length} />
       <div style={{ display: "flex", gap: 8, marginBottom: "1rem", overflowX: "auto" }}>
         {(["ALL", "CONFIRMED", "PENDING", "PAID"] as const).map((tab) => (
           <button
@@ -59,13 +67,13 @@ export default function DashboardBookings({
               whiteSpace: "nowrap",
             }}
           >
-            {tab} ({counts[tab]})
+            {FILTER_LABEL[tab]} ({counts[tab]})
           </button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon="inbox" message="No bookings match this filter." actionHref="/classes" actionLabel="Browse Classes" />
+        <EmptyState icon="inbox" message={t("dash.bookings.emptyFilter")} actionHref="/classes" actionLabel={t("dash.browseClasses")} />
       ) : (
         <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 12, paddingInlineStart: 24 }}>
           <span aria-hidden style={{ position: "absolute", insetInlineStart: 7, insetBlock: "10px", width: 1, background: "var(--border)" }} />
@@ -83,7 +91,7 @@ export default function DashboardBookings({
                     <h3 style={{ color: "var(--text)", fontWeight: 800, margin: "0 0 5px", fontSize: isMobile ? 13 : 15 }}>{booking.class.title}</h3>
                     <span style={{ display: "flex", gap: 12, flexWrap: "wrap", color: "var(--text-muted)", fontSize: 13 }}>
                       <strong style={{ color: "var(--accent)" }}>{booking.class.subject}</strong>
-                      <span>{booking.class.priceEgp === 0 ? "Free" : `${booking.class.priceEgp} EGP`}</span>
+                      <span>{booking.class.priceEgp === 0 ? t("common.free") : t("common.priceEgp", { price: booking.class.priceEgp })}</span>
                       {booking.class.schedule && <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><DashboardIcon name="clock" size={13} />{booking.class.schedule}</span>}
                       {booking.class.location && <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><DashboardIcon name="location" size={13} />{booking.class.location}</span>}
                     </span>
@@ -96,7 +104,7 @@ export default function DashboardBookings({
               </div>
 
               <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border-light)", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <Link href={`/classes/${booking.classId}`} className="btn-secondary" style={{ textDecoration: "none", padding: "7px 12px", fontSize: 12 }}>View Class</Link>
+                <Link href={`/classes/${booking.classId}`} className="btn-secondary" style={{ textDecoration: "none", padding: "7px 12px", fontSize: 12 }}>{t("dash.viewClass")}</Link>
                 {booking.paymentStatus === "PAID" && <ReceiptButton bookingId={booking.id} />}
                 {booking.paymentStatus === "PAID" && booking.status !== "CANCELLED" && (
                   <RefundRequestButton booking={{ id: booking.id, title: booking.class.title, amountEgp: booking.class.priceEgp }} />
