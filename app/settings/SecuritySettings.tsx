@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signOut } from "next-auth/react";
 import {
   ShieldCheck, AlertTriangle, Eye, EyeOff, Loader2, CheckCircle,
-  LogOut, KeyRound, Clock, MonitorSmartphone,
+  LogOut, KeyRound, Clock, MonitorSmartphone, Smartphone, Trash2,
 } from "lucide-react";
 import { evaluatePasswordStrength } from "../lib/passwordStrength";
 
@@ -21,22 +21,19 @@ interface SecurityData {
 const card: React.CSSProperties = {
   backgroundColor: "var(--bg-card)",
   border: "1px solid var(--border-light)",
-  borderRadius: 16,
+  borderRadius: 12,
   overflow: "hidden",
-  marginBottom: "1.25rem",
 };
 
 const sectionHeader: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: 8,
-  padding: "1rem 1.25rem",
+  padding: "0.85rem 1rem",
   borderBottom: "1px solid var(--border-light)",
   fontWeight: 700,
-  fontSize: 13,
-  color: "var(--text-muted)",
-  textTransform: "uppercase",
-  letterSpacing: "0.06em",
+  fontSize: 12,
+  color: "var(--text)",
 };
 
 const inputStyle: React.CSSProperties = {
@@ -54,7 +51,7 @@ const inputStyle: React.CSSProperties = {
 
 const STRENGTH_COLOR: Record<string, string> = {
   weak: "var(--error)",
-  fair: "#c98a00",
+  fair: "var(--warning)",
   strong: "var(--success)",
 };
 
@@ -69,17 +66,32 @@ function formatDate(iso: string | null): string {
 
 export default function SecuritySettings({ security }: { security: SecurityData }) {
   return (
-    <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 1.25rem 4rem", color: "var(--text)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "1rem 0 1.5rem" }}>
-        <ShieldCheck size={20} style={{ color: "var(--accent)" }} aria-hidden />
-        <h2 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0 }}>Security</h2>
+    <div style={{ color: "var(--text)" }}>
+      <div className="settings-security-layout" style={{ display: "grid", gridTemplateColumns: "180px minmax(0, 1fr)", gap: 14, alignItems: "start" }}>
+        <aside style={{ position: "sticky", top: 16, padding: "0.9rem", background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 12 }}>
+          <div style={{ display: "flex", gap: 7, alignItems: "center", marginBottom: 7, color: "var(--accent)", fontSize: 12, fontWeight: 850 }}><ShieldCheck size={15} aria-hidden />Account security</div>
+          <p style={{ margin: "0 0 12px", color: "var(--text-muted)", fontSize: 10, lineHeight: 1.55 }}>Manage your password and sign-in protection.</p>
+          {[
+            ["#change-password", "Change password"],
+            ["#email-verification", "Email verification"],
+            ["#two-factor", "Two-factor authentication"],
+            ["#connected-accounts", "Connected accounts"],
+            ["#sessions", "Sessions"],
+          ].map(([href, label]) => (
+            <a key={href} href={href} style={{ display: "block", padding: "5px 0", color: "var(--text-secondary)", fontSize: 11, fontWeight: 700, textDecoration: "none" }}>{label}</a>
+          ))}
+        </aside>
+        <div style={{ display: "grid", gap: 12 }}>
+          {security.hasPassword && <ChangePasswordCard />}
+          <EmailVerificationCard verified={security.isEmailVerified} />
+          <TwoFactorCard />
+          <ConnectedAccountsCard providers={security.providers} hasPassword={security.hasPassword} />
+          <AccountActivityCard security={security} />
+          <SessionsCard />
+          <DangerZoneCard />
+        </div>
       </div>
-
-      <EmailVerificationCard verified={security.isEmailVerified} />
-      <AccountActivityCard security={security} />
-      {security.hasPassword && <ChangePasswordCard />}
-      <ConnectedAccountsCard providers={security.providers} hasPassword={security.hasPassword} />
-      <SessionsCard />
+      <style>{`@media (max-width: 760px) { .settings-security-layout { grid-template-columns: 1fr !important; } .settings-security-layout > aside { display: none; } }`}</style>
     </div>
   );
 }
@@ -106,7 +118,7 @@ function EmailVerificationCard({ verified }: { verified: boolean }) {
   }
 
   return (
-    <div style={card}>
+    <div id="email-verification" style={card}>
       <div style={sectionHeader}>Email verification</div>
       <div style={{ padding: "1.25rem", display: "flex", alignItems: "center", gap: 12 }}>
         {verified ? (
@@ -177,6 +189,7 @@ function ChangePasswordCard() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const strength = evaluatePasswordStrength(next);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -210,10 +223,18 @@ function ChangePasswordCard() {
   }
 
   return (
-    <div style={card}>
+    <div id="change-password" style={card}>
       <div style={sectionHeader}>
-        <KeyRound size={15} strokeWidth={1.8} aria-hidden /> Change password
+        <KeyRound size={15} strokeWidth={1.8} aria-hidden />
+        <span style={{ flex: 1 }}>
+          <strong style={{ display: "block" }}>Change password</strong>
+          <small style={{ display: "block", marginTop: 2, color: "var(--text-muted)", fontSize: 10, fontWeight: 500 }}>Use a strong password so you do not lose access.</small>
+        </span>
+        <button type="button" onClick={() => setExpanded((current) => !current)} className="btn-secondary" style={{ padding: "6px 10px", fontSize: 11 }}>
+          {expanded ? "Close" : "Change password"}
+        </button>
       </div>
+      {expanded && (
       <form onSubmit={submit} style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.85rem" }}>
         <input
           type={show ? "text" : "password"}
@@ -294,6 +315,7 @@ function ChangePasswordCard() {
           {busy ? "Updating…" : "Update password"}
         </button>
       </form>
+      )}
       <style>{`@keyframes ssSpin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -302,7 +324,7 @@ function ChangePasswordCard() {
 function ConnectedAccountsCard({ providers, hasPassword }: { providers: string[]; hasPassword: boolean }) {
   const googleLinked = providers.includes("google");
   return (
-    <div style={card}>
+    <div id="connected-accounts" style={card}>
       <div style={sectionHeader}>Connected accounts</div>
       <div style={{ padding: "1rem 1.25rem", display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ fontSize: 14, fontWeight: 600, flex: 1 }}>Google</span>
@@ -334,7 +356,7 @@ function SessionsCard() {
   }
 
   return (
-    <div style={card}>
+    <div id="sessions" style={card}>
       <div style={sectionHeader}>Active sessions</div>
       <div style={{ padding: "1.25rem", display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ flex: 1 }}>
@@ -352,6 +374,38 @@ function SessionsCard() {
           <LogOut size={15} aria-hidden />
           {busy ? "Signing out…" : "Sign out of all devices"}
         </button>
+      </div>
+    </div>
+  );
+}
+
+function TwoFactorCard() {
+  return (
+    <div id="two-factor" style={card}>
+      <div style={{ padding: "0.95rem 1rem", display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ display: "grid", width: 34, height: 34, placeItems: "center", flexShrink: 0, color: "var(--accent)", background: "var(--accent-bg)", borderRadius: 9 }}><Smartphone size={16} aria-hidden /></span>
+        <span style={{ flex: 1 }}>
+          <strong style={{ display: "block", fontSize: 13 }}>Two-factor authentication is off</strong>
+          <small style={{ display: "block", marginTop: 2, color: "var(--text-muted)", fontSize: 11 }}>Add an extra step to secure your account.</small>
+        </span>
+        <button type="button" className="btn-secondary" style={{ padding: "7px 11px", color: "var(--accent)", fontSize: 11 }}>Enable 2FA</button>
+      </div>
+    </div>
+  );
+}
+
+function DangerZoneCard() {
+  return (
+    <div style={{ ...card, borderColor: "var(--error-border)", background: "var(--error-bg)" }}>
+      <div style={{ padding: "0.95rem 1rem", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <AlertTriangle size={18} color="var(--error)" aria-hidden />
+        <span style={{ flex: 1, minWidth: 220 }}>
+          <strong style={{ display: "block", color: "var(--error)", fontSize: 12 }}>Danger zone</strong>
+          <small style={{ display: "block", marginTop: 2, color: "var(--text-secondary)", fontSize: 11 }}>Permanently delete your account and all of your data. This action cannot be undone.</small>
+        </span>
+        <a href="mailto:support@coursaty.com?subject=Delete account request" className="btn-secondary" style={{ padding: "7px 11px", color: "var(--error)", borderColor: "var(--error-border)", fontSize: 11, textDecoration: "none" }}>
+          <Trash2 size={14} aria-hidden /> Delete account
+        </a>
       </div>
     </div>
   );

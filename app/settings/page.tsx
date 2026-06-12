@@ -2,8 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import SettingsClient from "./SettingsClient";
-import SecuritySettings from "./SecuritySettings";
+import SettingsTabs from "./SettingsTabs";
 
 export const metadata: Metadata = {
   title: "Settings | Coursaty",
@@ -26,6 +25,10 @@ export default async function SettingsPage() {
       notifyReviewReceived: true,
       notifyPayoutProcessed: true,
       notifyMarketingEmails: true,
+      fullName: true,
+      name: true,
+      email: true,
+      role: true,
       isEmailVerified: true,
       password: true,
       lastLoginAt: true,
@@ -41,30 +44,23 @@ export default async function SettingsPage() {
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--bg-alt)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-      }}
-    >
-      <SettingsClient initialPrefs={{
+    <SettingsTabs
+      initialPrefs={{
       notifyBookingConfirmed: user.notifyBookingConfirmed,
       notifyNewMessage: user.notifyNewMessage,
       notifyReviewReceived: user.notifyReviewReceived,
       pushOnBooking: user.notifyBookingConfirmed,
-    }} />
-      <SecuritySettings
-        security={{
-          isEmailVerified: user.isEmailVerified,
-          hasPassword: Boolean(user.password),
-          lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : null,
-          lastLoginIp: user.lastLoginIp,
-          failedLoginCount: user.failedLoginCount,
-          lockedUntil: user.lockedUntil ? user.lockedUntil.toISOString() : null,
-          providers: Array.from(new Set(user.accounts.map((a) => a.provider))),
-        }}
-      />
-    </main>
+      }}
+      profile={{ name: user.fullName ?? user.name ?? "Coursaty member", email: user.email ?? "No email address", role: user.role }}
+      security={{
+        isEmailVerified: user.isEmailVerified,
+        hasPassword: Boolean(user.password),
+        lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : null,
+        lastLoginIp: user.lastLoginIp,
+        failedLoginCount: user.failedLoginCount,
+        lockedUntil: user.lockedUntil ? user.lockedUntil.toISOString() : null,
+        providers: Array.from(new Set(user.accounts.map((a) => a.provider))),
+      }}
+    />
   );
 }

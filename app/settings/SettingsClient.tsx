@@ -1,324 +1,121 @@
 "use client";
 
-import { useState, useCallback, useEffect, useTransition } from "react";
-import { Bell, Mail, MessageSquare, BookOpen, Star } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bell, BookOpen, Check, MessageSquare, Save, Star } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-interface NotifPrefs {
+export interface NotifPrefs {
   notifyBookingConfirmed: boolean;
   notifyNewMessage: boolean;
   notifyReviewReceived: boolean;
   pushOnBooking: boolean;
 }
+const PREFS = [
+  { key: "notifyBookingConfirmed", label: "Booking emails", description: "Receive an email when someone books or confirms a session.", icon: BookOpen },
+  { key: "notifyNewMessage", label: "Message emails", description: "Receive an email when a tutor or student sends a message.", icon: MessageSquare },
+  { key: "notifyReviewReceived", label: "Review emails", description: "Receive an email when a student leaves a review.", icon: Star },
+  { key: "pushOnBooking", label: "Booking alerts", description: "Keep booking notifications enabled for your account.", icon: Bell },
+] as const;
 
-interface SettingsClientProps {
-  initialPrefs: Partial<NotifPrefs>;
-}
-
-const PREFS: Array<{
-  key: keyof NotifPrefs;
-  label: string;
-  description: string;
-  icon: LucideIcon;
-}> = [
-  {
-    key: "notifyBookingConfirmed",
-    label: "Email when someone books a session",
-    description: "Get an email for new or confirmed bookings",
-    icon: BookOpen,
-  },
-  {
-    key: "notifyNewMessage",
-    label: "Email when you receive a message",
-    description: "When you receive a new message in your inbox",
-    icon: MessageSquare,
-  },
-  {
-    key: "notifyReviewReceived",
-    label: "Email when you receive a review",
-    description: "When a student leaves a review on your class",
-    icon: Star,
-  },
-  {
-    key: "pushOnBooking",
-    label: "Push notifications for bookings",
-    description: "Receive booking alerts on your device",
-    icon: Bell,
-  },
-];
-
-function Toggle({
-  checked,
-  onChange,
-  id,
-  disabled,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  id: string;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      id={id}
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      disabled={disabled}
-      style={{
-        position: "relative",
-        width: 44,
-        height: 24,
-        borderRadius: 999,
-        border: "none",
-        cursor: disabled ? "not-allowed" : "pointer",
-        background: checked
-          ? "linear-gradient(135deg, var(--accent), var(--accent-hover))"
-          : "var(--border-light)",
-        transition: "background 0.2s",
-        flexShrink: 0,
-        opacity: disabled ? 0.5 : 1,
-      }}
-    >
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          top: 3,
-          insetInlineStart: checked ? 23 : 3,
-          width: 18,
-          height: 18,
-          borderRadius: "50%",
-          backgroundColor: "var(--bg-card)",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.22)",
-          transition: "inset-inline-start 0.2s",
-        }}
-      />
-    </button>
-  );
-}
-
-export default function SettingsClient({ initialPrefs }: SettingsClientProps) {
-  const [prefs, setPrefs] = useState<NotifPrefs>({
+export default function SettingsClient({ initialPrefs }: { initialPrefs: Partial<NotifPrefs> }) {
+  const initial = useMemo<NotifPrefs>(() => ({
     notifyBookingConfirmed: initialPrefs.notifyBookingConfirmed ?? true,
     notifyNewMessage: initialPrefs.notifyNewMessage ?? true,
     notifyReviewReceived: initialPrefs.notifyReviewReceived ?? true,
     pushOnBooking: initialPrefs.pushOnBooking ?? false,
-  });
+  }), [initialPrefs]);
+  const [savedPrefs, setSavedPrefs] = useState(initial);
+  const [prefs, setPrefs] = useState(initial);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  const handleToggle = useCallback(
-    (key: keyof NotifPrefs, value: boolean) => {
-      const updated = { ...prefs, [key]: value };
-      setPrefs(updated);
-      setSaved(false);
-      setSaveError(null);
-
-      startTransition(async () => {
-        try {
-          const res = await fetch("/api/me/notifications", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ [key]: value }),
-          });
-          if (res.ok) {
-            setSaved(true);
-            setTimeout(() => setSaved(false), 2500);
-          } else {
-            const data = await res.json().catch(() => ({}));
-            setSaveError(data.error ?? "Could not save. Please try again.");
-            setPrefs(prefs); // revert
-          }
-        } catch {
-          setSaveError("Network error. Please try again.");
-          setPrefs(prefs); // revert
-        }
-      });
-    },
-    [prefs]
-  );
+  const [error, setError] = useState("");
+  const dirty = JSON.stringify(prefs) !== JSON.stringify(savedPrefs);
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/me/notifications", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
+      .then((response) => response.ok ? response.json() : null)
       .then((data) => {
-        if (!cancelled && data?.preferences) setPrefs({ ...data.preferences, pushOnBooking: data.preferences.pushOnBooking ?? false });
+        if (!cancelled && data?.preferences) {
+          const next = { ...initial, ...data.preferences, pushOnBooking: data.preferences.pushOnBooking ?? initial.pushOnBooking };
+          setPrefs(next);
+          setSavedPrefs(next);
+        }
       })
       .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+      .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initial]);
+
+  async function save() {
+    setSaving(true);
+    setSaved(false);
+    setError("");
+    try {
+      const response = await fetch("/api/me/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(prefs),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(data.error ?? "Could not save your preferences.");
+        return;
+      }
+      setSavedPrefs(prefs);
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 2200);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) return <div className="skeleton" role="status" aria-label="Loading notification settings" style={{ height: 280 }} />;
 
   return (
-    <div
-      style={{
-        maxWidth: 640,
-        margin: "0 auto",
-        padding: "2rem 1.25rem 4rem",
-        color: "var(--text)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          marginBottom: "2rem",
-        }}
-      >
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
-            backgroundColor: "var(--accent-bg)",
-            border: "1px solid var(--accent-border)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <Bell size={22} style={{ color: "var(--accent)" }} aria-hidden />
-        </div>
-        <div>
-          <h1 style={{ fontSize: "1.4rem", fontWeight: 800, margin: 0 }}>
-            Notification settings
-          </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: 13, margin: 0 }}>
-            Choose which email notifications you receive
-          </p>
-        </div>
+    <section aria-labelledby="notification-heading">
+      <div style={{ marginBottom: 18 }}>
+        <h2 id="notification-heading" style={{ margin: 0, color: "var(--text)", fontSize: "1.15rem" }}>Notifications</h2>
+        <p style={{ margin: "4px 0 0", color: "var(--text-secondary)", fontSize: 13 }}>Choose the updates that are useful to you.</p>
       </div>
-
-      {/* Save feedback */}
-      {loading && <div className="skeleton" style={{ height: 220, marginBottom: "1rem" }} />}
-      {saved && (
-        <div
-          role="status"
-          style={{
-            padding: "10px 14px",
-            backgroundColor: "var(--success-bg, rgba(22,163,74,0.08))",
-            border: "1px solid var(--success, #16a34a)",
-            borderRadius: 10,
-            color: "var(--success, #16a34a)",
-            fontSize: 13,
-            fontWeight: 600,
-            marginBottom: "1rem",
-          }}
-        >
-          ✓ Preferences saved
-        </div>
-      )}
-      {saveError && (
-        <div
-          role="alert"
-          style={{
-            padding: "10px 14px",
-            backgroundColor: "var(--error-bg, rgba(220,38,38,0.08))",
-            border: "1px solid var(--error-border, rgba(220,38,38,0.3))",
-            borderRadius: 10,
-            color: "var(--error, #dc2626)",
-            fontSize: 13,
-            marginBottom: "1rem",
-          }}
-        >
-          {saveError}
-        </div>
-      )}
-
-      {/* Email section */}
-      {!loading && <div
-        style={{
-          backgroundColor: "var(--bg-card)",
-          border: "1px solid var(--border-light)",
-          borderRadius: 16,
-          overflow: "hidden",
-        }}
-      >
-        {/* Section header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "1rem 1.25rem",
-            borderBottom: "1px solid var(--border-light)",
-          }}
-        >
-          <Mail size={15} strokeWidth={1.8} style={{ color: "var(--text-muted)" }} aria-hidden />
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: 13,
-              color: "var(--text-muted)",
-              textTransform: "uppercase" as const,
-              letterSpacing: "0.06em",
-            }}
-          >
-            Email notifications
-          </span>
-        </div>
-
-        {/* Toggle rows */}
-        {PREFS.map(({ key, label, description, icon: Icon }, i) => (
-          <label
-            key={key}
-            htmlFor={`pref-${key}`}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              padding: "1rem 1.25rem",
-              borderBottom:
-                i < PREFS.length - 1 ? "1px solid var(--border-light)" : "none",
-              cursor: isPending ? "wait" : "pointer",
-            }}
-          >
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor: "var(--bg-alt)",
-                border: "1px solid var(--border-light)",
-                flexShrink: 0,
-              }}
-            >
-              <Icon size={15} strokeWidth={1.8} color="var(--accent)" aria-hidden />
-            </span>
-
-            <div style={{ flex: 1 }}>
-              <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{label}</p>
-              <p style={{ color: "var(--text-muted)", fontSize: 12, margin: 0 }}>
-                {description}
-              </p>
-            </div>
-
-            <Toggle
-              id={`pref-${key}`}
-              checked={Boolean(prefs[key])}
-              onChange={(v) => handleToggle(key, v)}
-              disabled={isPending}
-            />
-          </label>
+      <div style={{ overflow: "hidden", background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: "var(--radius-lg)" }}>
+        {PREFS.map(({ key, label, description, icon: Icon }, index) => (
+          <div key={key} style={{ display: "flex", alignItems: "center", gap: 12, padding: "1rem 1.1rem", borderBlockEnd: index < PREFS.length - 1 ? "1px solid var(--border-light)" : 0 }}>
+            <span style={{ display: "inline-grid", width: 34, height: 34, placeItems: "center", color: "var(--accent)", background: "var(--accent-bg)", borderRadius: 10 }}><Icon size={16} aria-hidden /></span>
+            <label htmlFor={`pref-${key}`} style={{ flex: 1 }}>
+              <strong style={{ display: "block", color: "var(--text)", fontSize: 14 }}>{label}</strong>
+              <span style={{ display: "block", color: "var(--text-muted)", fontSize: 12 }}>{description}</span>
+            </label>
+            <Toggle id={`pref-${key}`} checked={prefs[key]} onChange={(checked) => {
+              setPrefs((current) => ({ ...current, [key]: checked }));
+              setSaved(false);
+            }} />
+          </div>
         ))}
-      </div>}
-      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .skeleton { background: var(--color-border, var(--border-light)); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }`}</style>
-    </div>
+      </div>
+      <AnimatePresence>
+        {(dirty || saved || error) && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} style={{ position: "sticky", bottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 16, padding: "10px 12px", color: error ? "var(--error)" : saved ? "var(--success)" : "var(--text-secondary)", background: "var(--bg-elevated)", border: "1px solid var(--border-light)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-md)", fontSize: 13 }}>
+            <span>{error || (saved ? "Preferences saved" : "You have unsaved changes.")}</span>
+            {dirty && <button type="button" onClick={save} disabled={saving} className="btn-primary"><Save size={15} aria-hidden />{saving ? "Saving..." : "Save changes"}</button>}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+function Toggle({ id, checked, onChange }: { id: string; checked: boolean; onChange: (checked: boolean) => void }) {
+  return (
+    <button id={id} type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} style={{ position: "relative", width: 48, height: 28, flexShrink: 0, padding: 3, background: checked ? "var(--accent)" : "var(--border)", border: 0, borderRadius: 999, cursor: "pointer" }}>
+      <motion.span animate={{ x: checked ? 20 : 0 }} transition={{ duration: 0.18 }} style={{ display: "grid", width: 22, height: 22, placeItems: "center", color: checked ? "var(--accent)" : "var(--text-muted)", background: "var(--bg-card)", borderRadius: "50%" }}>
+        {checked && <Check size={13} aria-hidden />}
+      </motion.span>
+    </button>
   );
 }

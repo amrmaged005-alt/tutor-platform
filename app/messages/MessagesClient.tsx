@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Search, SlidersHorizontal } from "lucide-react";
 import PageShell from "@/components/ui/PageShell";
 import { useIsMobile } from "@/app/hooks/useIsMobile";
+import { avatarFallback } from "@/app/lib/imagery";
 
 export type Thread = {
   id: string;
@@ -22,6 +23,8 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
   const isMobile = useIsMobile();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<"all" | "unread" | "students" | "tutors">("all");
 
   const loadThreads = useCallback(() => {
     let active = true;
@@ -50,6 +53,14 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
     };
   }, [loadThreads]);
 
+  const visibleThreads = threads.filter((thread) => {
+    const name = thread.otherUser?.fullName ?? thread.otherUser?.name ?? "Conversation";
+    if (search && !`${name} ${thread.lastMessage?.content ?? ""}`.toLowerCase().includes(search.toLowerCase())) return false;
+    if (tab === "unread" && !thread.unreadCount) return false;
+    return true;
+  });
+  const unreadTotal = threads.reduce((sum, thread) => sum + (thread.unreadCount ?? 0), 0);
+
   return (
     <PageShell maxWidth={1120}>
       <div style={{ marginBottom: "1.25rem" }}>
@@ -59,14 +70,52 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(280px, 360px) 1fr", gap: 18 }}>
         <aside style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, overflow: "hidden" }}>
+          <div style={{ padding: "0.9rem", borderBottom: "1px solid var(--border-light)" }}>
+            <label style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 10px", color: "var(--text-muted)", background: "var(--bg-alt)", border: "1px solid var(--border-light)", borderRadius: 999 }}>
+              <Search size={15} aria-hidden />
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search messages" style={{ width: "100%", color: "var(--text)", background: "transparent", border: 0, outline: 0, fontFamily: "inherit", fontSize: 12 }} />
+              <SlidersHorizontal size={14} aria-hidden />
+            </label>
+            <div style={{ display: "flex", gap: 6, marginTop: 9, overflowX: "auto" }}>
+              {[
+                ["all", "All"],
+                ["unread", `Unread ${unreadTotal ? `(${unreadTotal})` : ""}`],
+                ["students", "Students"],
+                ["tutors", "Tutors"],
+              ].map(([value, label]) => (
+                <button key={value} type="button" onClick={() => setTab(value as typeof tab)} style={{ flexShrink: 0, padding: "5px 9px", color: tab === value ? "var(--accent-fg)" : "var(--text-secondary)", background: tab === value ? "var(--accent)" : "var(--bg-card)", border: `1px solid ${tab === value ? "var(--accent)" : "var(--border-light)"}`, borderRadius: 999, cursor: "pointer", fontSize: 10, fontWeight: 750 }}>{label}</button>
+              ))}
+            </div>
+          </div>
           {loading && <ThreadSkeleton />}
-          {!loading && threads.length === 0 && (
-            <div style={{ padding: "3rem 1rem", textAlign: "center" }}>
-              <MessageCircle size={38} strokeWidth={1.5} color="var(--text-muted)" aria-hidden />
-              <p style={{ color: "var(--text-muted)", fontSize: 14 }}>No messages yet. Book a session to start chatting.</p>
+          {!loading && visibleThreads.length === 0 && (
+            <div style={{ padding: "3rem 1.25rem", textAlign: "center" }}>
+              <div
+                style={{
+                  display: "inline-grid",
+                  width: 72,
+                  height: 72,
+                  placeItems: "center",
+                  color: "var(--accent)",
+                  background: "var(--accent-bg)",
+                  borderRadius: "50%",
+                  marginBottom: 14,
+                }}
+              >
+                <MessageCircle size={34} strokeWidth={1.4} aria-hidden />
+              </div>
+              <h2 style={{ margin: "0 0 6px", color: "var(--text)", fontSize: 16, fontWeight: 800 }}>
+                No messages yet
+              </h2>
+              <p style={{ margin: "0 0 18px", color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>
+                Start a conversation with a tutor and we&apos;ll see it here.
+              </p>
+              <Link href="/tutors" className="btn-primary" style={{ textDecoration: "none", fontSize: 13 }}>
+                Browse tutors
+              </Link>
             </div>
           )}
-          {threads.map((thread) => {
+          {visibleThreads.map((thread) => {
             const name = thread.otherUser?.fullName ?? thread.otherUser?.name ?? "Conversation";
             return (
               <Link
@@ -78,22 +127,26 @@ export default function MessagesClient({ currentUserId }: { currentUserId: strin
                   alignItems: "center",
                   padding: "0.9rem 1rem",
                   borderBottom: "1px solid var(--border-light)",
+                  background: thread.unreadCount ? "var(--accent-bg-soft)" : "transparent",
                   color: "inherit",
                   textDecoration: "none",
+                  transition: "background var(--transition-fast)",
                 }}
+                onMouseEnter={(event) => { event.currentTarget.style.background = "var(--accent-bg-soft)"; }}
+                onMouseLeave={(event) => { event.currentTarget.style.background = "transparent"; }}
               >
-                <div style={{ width: 42, height: 42, borderRadius: "50%", backgroundColor: "var(--accent-bg)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, flexShrink: 0, overflow: "hidden" }}>
-                  {thread.otherUser?.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={thread.otherUser.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : initials(name)}
+                <div style={{ position: "relative", width: 42, height: 42, borderRadius: "50%", backgroundColor: "var(--accent-bg)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, flexShrink: 0, overflow: "visible" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={thread.otherUser?.photoUrl ?? avatarFallback(thread.id)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                  <span style={{ display: "none" }}>{initials(name)}</span>
+                  <span aria-label="Online" style={{ position: "absolute", insetInlineEnd: -1, insetBlockEnd: 1, width: 10, height: 10, background: "var(--success)", border: "2px solid var(--bg-card)", borderRadius: "50%" }} />
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                    <strong style={{ color: "var(--text)", fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</strong>
+                    <strong style={{ color: "var(--text)", fontSize: 14, fontWeight: thread.unreadCount ? 850 : 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</strong>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                       {thread.updatedAt && <small style={{ color: "var(--text-muted)", fontSize: 11 }}>{new Date(thread.updatedAt).toLocaleTimeString("en-EG", { hour: "numeric", minute: "2-digit" })}</small>}
-                      {thread.unreadCount ? <span aria-label={`${thread.unreadCount} unread`} style={{ minWidth: 20, height: 20, padding: "0 6px", borderRadius: 999, backgroundColor: "var(--error)", color: "var(--accent-fg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 850, flexShrink: 0 }}>{thread.unreadCount}</span> : null}
+                      {thread.unreadCount ? <span aria-label={`${thread.unreadCount} unread`} style={{ minWidth: 20, height: 20, padding: "0 6px", borderRadius: 999, backgroundColor: "var(--accent)", color: "var(--accent-fg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 850, flexShrink: 0 }}>{thread.unreadCount}</span> : null}
                     </span>
                   </div>
                   <p style={{ color: "var(--text-muted)", fontSize: 12, margin: "3px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -128,7 +181,7 @@ function ThreadSkeleton() {
           </span>
         </div>
       ))}
-      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .skeleton { background: var(--color-border, var(--border-light)); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }`}</style>
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .skeleton { background: var(--border-light); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }`}</style>
     </div>
   );
 }

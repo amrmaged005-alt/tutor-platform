@@ -78,7 +78,6 @@ export default function ReferralClient({ data }: ReferralClientProps) {
         margin: "0 auto",
         padding: "2rem 1.25rem 4rem",
         color: "var(--text)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
       }}
     >
       {/* Header */}

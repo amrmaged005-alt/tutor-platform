@@ -41,7 +41,6 @@ export default async function ReferralPage() {
       style={{
         minHeight: "100vh",
         backgroundColor: "var(--bg-alt)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
       }}
     >
       <ReferralClient
