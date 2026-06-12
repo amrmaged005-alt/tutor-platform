@@ -1,6 +1,6 @@
 export default function TutorsLoading() {
     return (
-        <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)" }}>
+        <div role="status" aria-label="Loading tutors" aria-busy="true" style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)" }}>
             {/* Hero section skeleton */}
             <div
                 style={{

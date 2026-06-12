@@ -105,7 +105,7 @@ function FilterSidebar({
                   border: selectedCity === city ? "1px solid var(--accent-border)" : "1px solid transparent",
                   borderRadius: 8,
                   padding: "7px 10px",
-                  textAlign: "left",
+                  textAlign: "start",
                   color: selectedCity === city ? "var(--accent)" : "var(--text-secondary)",
                   fontWeight: selectedCity === city ? 600 : 400,
                   fontSize: 13,
@@ -242,9 +242,9 @@ function MobileTutorFilterDrawer({
       />
       <div
         ref={dialogRef}
-        role="dialog" aria-modal="true" aria-label={t("common.filters")}
+        role="dialog" aria-modal="true" aria-label={t("common.filters")} aria-hidden={!open}
         style={{
-          position: "fixed", bottom: 0, left: 0, right: 0,
+          position: "fixed", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0,
           maxHeight: "80vh",
           backgroundColor: "var(--bg-elevated)",
           borderRadius: "20px 20px 0 0",
@@ -252,6 +252,8 @@ function MobileTutorFilterDrawer({
           zIndex: 998,
           transform: open ? `translateY(${dragY}px)` : "translateY(100%)",
           transition: dragY === 0 ? "transform 0.3s cubic-bezier(0.4,0,0.2,1)" : "none",
+          visibility: open ? "visible" : "hidden",
+          pointerEvents: open ? "auto" : "none",
           display: "flex", flexDirection: "column",
           boxShadow: "var(--shadow-xl)",
           overflowY: "auto",
@@ -461,15 +463,13 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
         }}
       >
         {/* Hero image on desktop — students learning together as social proof */}
-        {!isMobile && (
-          <motion.div
-            initial={{ opacity: 0, scale: 1.02 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
+        <div
+            className="desktop-only"
             style={{
               position: "absolute",
-              inset: 0,
-              insetInlineStart: "auto",
+              top: 0,
+              bottom: 0,
+              insetInlineEnd: 0,
               width: "min(44%, 520px)",
               opacity: 0.5,
               pointerEvents: "none",
@@ -486,8 +486,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
               sizes="520px"
               style={{ objectFit: "cover" }}
             />
-          </motion.div>
-        )}
+        </div>
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
           {/* Breadcrumb */}
           <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
@@ -527,6 +526,8 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
               <Search size={16} strokeWidth={2} aria-hidden />
             </div>
             <input
+              name="tutor-search"
+              aria-label={t("tutors.searchPlaceholder")}
               type="text"
               placeholder={t("tutors.searchPlaceholder")}
               value={search}
@@ -547,7 +548,7 @@ export default function TutorsClient({ tutors }: { tutors: TutorCardData[] }) {
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = "var(--accent)";
-                e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)";
+                e.target.style.boxShadow = "0 0 0 3px rgba(13,89,70,0.15)";
               }}
               onBlur={(e) => {
                 e.target.style.borderColor = "var(--border-light)";

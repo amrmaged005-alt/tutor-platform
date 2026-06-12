@@ -15,7 +15,7 @@ export type ClassFilterState = {
   sort: string;
 };
 
-const SUBJECTS = ["", "Math", "Physics", "Chemistry", "Biology", "English", "Arabic", "Computer Science"];
+const SUBJECTS = ["", "Math", "Physics", "Chemistry", "Biology", "English", "Arabic", "History", "Geography", "French", "Computer Science", "Science", "Economics", "Accounting", "Business"];
 const CURRICULA = ["", "NATIONAL", "IGCSE", "AMERICAN", "IB", "FRENCH", "STEM"];
 const TYPES = ["", "online", "inperson", "both"];
 const CITIES = ["", "Cairo", "Alexandria", "Giza", "Mansoura", "Tanta", "Zagazig", "Ismailia"];
@@ -23,8 +23,8 @@ const RATINGS = ["", "4.5", "4", "3"];
 
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <details open style={{ borderTop: "1px solid var(--border-light)", paddingTop: 12 }}>
-      <summary style={{ color: "var(--text)", fontSize: 13, fontWeight: 800, cursor: "pointer", listStyle: "none", marginBottom: 10 }}>
+    <details open style={{ borderTop: "1px solid var(--border-light)", paddingTop: 14 }}>
+      <summary style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 800, cursor: "pointer", listStyle: "none", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>
         {title}
       </summary>
       {children}
@@ -41,10 +41,10 @@ export function ClassFilterControls({
 }) {
   const { t } = useI18n();
   const control: React.CSSProperties = {
-    backgroundColor: "var(--bg-card)",
+    backgroundColor: "var(--bg-alt)",
     color: "var(--text)",
     border: "1px solid var(--border-light)",
-    borderRadius: 10,
+    borderRadius: 8,
     padding: "10px 12px",
     fontSize: 13,
     fontFamily: "inherit",
@@ -58,43 +58,52 @@ export function ClassFilterControls({
         <span style={{ position: "absolute", insetInlineStart: 11, top: 12, color: "var(--text-muted)", display: "inline-flex" }}>
           <Search size={15} strokeWidth={1.8} aria-hidden />
         </span>
-        <input value={filters.q} onChange={(event) => onChange("q", event.target.value)} placeholder={t("classes.filter.search")} style={{ ...control, paddingInlineStart: 34 }} />
+        <input name="class-filter-search" aria-label={t("classes.filter.search")} value={filters.q} onChange={(event) => onChange("q", event.target.value)} placeholder={t("classes.filter.search")} style={{ ...control, paddingInlineStart: 34 }} />
       </label>
 
       <FilterGroup title={t("classes.filter.subject")}>
-        <select value={filters.subject} onChange={(event) => onChange("subject", event.target.value)} style={control}>
+        <select name="class-filter-subject" aria-label={t("classes.filter.subject")} value={filters.subject} onChange={(event) => onChange("subject", event.target.value)} style={control}>
           {SUBJECTS.map((subject) => <option key={subject || "all"} value={subject}>{subject || t("classes.filter.allSubjects")}</option>)}
         </select>
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.priceRange")}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <input value={filters.minPrice} onChange={(event) => onChange("minPrice", event.target.value)} placeholder="Min EGP" inputMode="numeric" style={control} />
-          <input value={filters.maxPrice} onChange={(event) => onChange("maxPrice", event.target.value)} placeholder={t("classes.filter.maxPrice")} inputMode="numeric" style={control} />
+          <input name="class-filter-min-price" aria-label="Minimum price in EGP" value={filters.minPrice} onChange={(event) => onChange("minPrice", event.target.value)} placeholder="Min EGP" inputMode="numeric" style={control} />
+          <input name="class-filter-max-price" aria-label={t("classes.filter.maxPrice")} value={filters.maxPrice} onChange={(event) => onChange("maxPrice", event.target.value)} placeholder={t("classes.filter.maxPrice")} inputMode="numeric" style={control} />
         </div>
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.curriculum")}>
-        <select value={filters.curriculum} onChange={(event) => onChange("curriculum", event.target.value)} style={control}>
+        <select name="class-filter-curriculum" aria-label={t("classes.filter.curriculum")} value={filters.curriculum} onChange={(event) => onChange("curriculum", event.target.value)} style={control}>
           {CURRICULA.map((curriculum) => <option key={curriculum || "all"} value={curriculum}>{curriculum || t("classes.filter.allCurricula")}</option>)}
         </select>
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.format")}>
-        <select value={filters.type} onChange={(event) => onChange("type", event.target.value)} style={control}>
+        <select name="class-filter-format" aria-label={t("classes.filter.format")} value={filters.type} onChange={(event) => onChange("type", event.target.value)} style={control}>
           {TYPES.map((type) => <option key={type || "all"} value={type}>{type ? type.replace("inperson", "In-person").replace("online", "Online").replace("both", "Both") : t("classes.filter.anyFormat")}</option>)}
         </select>
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.city")}>
-        <select value={filters.city} onChange={(event) => onChange("city", event.target.value)} style={control}>
+        <select name="class-filter-city" aria-label={t("classes.filter.city")} value={filters.city} onChange={(event) => onChange("city", event.target.value)} style={control}>
           {CITIES.map((city) => <option key={city || "all"} value={city}>{city || "All cities"}</option>)}
         </select>
       </FilterGroup>
 
       <FilterGroup title={t("classes.filter.rating")}>
-        <select value={filters.minRating} onChange={(event) => onChange("minRating", event.target.value)} style={control}>
+        <select name="class-filter-rating" aria-label={t("classes.filter.rating")} value={filters.minRating} onChange={(event) => onChange("minRating", event.target.value)} style={control}>
           {RATINGS.map((rating) => <option key={rating || "any"} value={rating}>{rating ? t("classes.filter.starsPlus", { rating }) : t("classes.filter.anyRating")}</option>)}
+        </select>
+      </FilterGroup>
+
+      <FilterGroup title="Sort">
+        <select name="class-filter-sort" aria-label="Sort classes" value={filters.sort} onChange={(event) => onChange("sort", event.target.value)} style={control}>
+          <option value="popular">Most popular</option>
+          <option value="newest">Newest</option>
+          <option value="price_asc">Price low-high</option>
+          <option value="price_desc">Price high-low</option>
         </select>
       </FilterGroup>
     </div>
@@ -114,7 +123,7 @@ export default function ClassFilters({
 }) {
   const { t } = useI18n();
   return (
-    <aside style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "1rem", position: "sticky", top: 88 }}>
+    <aside style={{ width: 240, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 14, padding: 20, position: "sticky", top: 80 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--text)", fontWeight: 850 }}>
           <SlidersHorizontal size={17} strokeWidth={2} aria-hidden /> {t("classes.filters")}

@@ -50,7 +50,6 @@ export default async function CenterAdminPage({
           maxWidth: 900,
           margin: "0 auto",
           padding: "1.5rem 1rem",
-          fontFamily: "system-ui, -apple-system, sans-serif",
         }}
       >
         {/* Page header */}

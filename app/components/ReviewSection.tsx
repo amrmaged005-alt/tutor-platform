@@ -334,7 +334,7 @@ export default function ReviewSection({
                   </div>
                 </div>
 
-                <div style={{ marginLeft: "auto", alignSelf: "flex-start", marginTop: "4px" }}>
+                <div style={{ marginInlineStart: "auto", alignSelf: "flex-start", marginTop: "4px" }}>
                   <StarRating value={review.rating} readonly />
                 </div>
               </div>

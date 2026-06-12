@@ -1,10 +1,8 @@
 import { prisma } from "../../../lib/prisma";
 import { auth } from "../../../lib/auth";
-import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import ClassDetailClient from "./ClassDetailClient";
 import type { Metadata } from "next";
-import { lockSeat } from "@/app/actions/bookings";
 
 export async function generateMetadata({
   params,
@@ -124,14 +122,6 @@ export default async function ClassDetailPage({
     }
   }
 
-  async function bookClass() {
-    "use server";
-    const result = await lockSeat(cls!.id);
-    if (!result.success) redirect(`/classes/${cls!.id}?bookingError=1`);
-    if (result.iframeUrl) redirect(result.iframeUrl);
-    redirect("/booking-confirmed?bookingId=" + result.bookingId);
-  }
-
   const classData = {
     id: cls.id,
     title: cls.title,
@@ -193,7 +183,6 @@ export default async function ClassDetailPage({
       currentUserRole={currentUserRole}
       isEligibleToReview={isEligibleToReview}
       existingUserReview={existingUserReview}
-      bookClass={bookClass}
       classId={id}
       bookingError={query.bookingError === "1"}
     />

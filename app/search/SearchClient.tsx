@@ -6,10 +6,8 @@ import {
   Search,
   BookOpen,
   GraduationCap,
-  Building2,
   Loader2,
   X,
-  MapPin,
   Tag,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -125,7 +123,6 @@ export default function SearchClient({ initialQuery }: { initialQuery: string })
         margin: "0 auto",
         padding: "2rem 1.25rem 4rem",
         color: "var(--text)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
       }}
     >
       {/* Search input */}
@@ -451,57 +448,6 @@ function TutorRow({ tutor }: { tutor: TutorResult }) {
         )}
       </div>
       <Tag size={14} style={{ color: "var(--text-muted)", flexShrink: 0 }} aria-hidden />
-    </Link>
-  );
-}
-
-function CenterRow({ center }: { center: CenterResult }) {
-  return (
-    <Link
-      href={`/centers/${center.id}`}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "14px 16px",
-        borderBottom: "1px solid var(--border-light)",
-        textDecoration: "none",
-        color: "inherit",
-        transition: "background 0.12s",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-alt)")}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-    >
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 8,
-          backgroundColor: "var(--bg-alt)",
-          border: "1px solid var(--border-light)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          overflow: "hidden",
-        }}
-      >
-        {center.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={center.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        ) : (
-          <Building2 size={16} style={{ color: "var(--text-muted)" }} aria-hidden />
-        )}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{center.name}</p>
-        {center.city && (
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, display: "flex", alignItems: "center", gap: 4 }}>
-            <MapPin size={11} strokeWidth={1.8} aria-hidden />
-            {center.city}
-          </p>
-        )}
-      </div>
     </Link>
   );
 }

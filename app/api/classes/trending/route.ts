@@ -61,6 +61,7 @@ export async function GET() {
         ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
         : null;
       const { reviews, ...rest } = cls;
+      void reviews;
       return {
         ...rest,
         avgRating,

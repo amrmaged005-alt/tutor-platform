@@ -20,7 +20,6 @@ export default async function SearchPage({
       style={{
         minHeight: "100vh",
         backgroundColor: "var(--bg-alt)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
       }}
     >
       <Suspense fallback={null}>

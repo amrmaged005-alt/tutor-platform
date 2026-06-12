@@ -37,7 +37,7 @@ export default function CenterAdminClient({ centerId }: { centerId: string }) {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   return (
-    <div style={{ fontFamily: "'Cairo', system-ui, -apple-system, sans-serif" }}>
+    <div>
       {/* Tab bar */}
       <div style={{
         display: "flex", gap: 2, padding: "0 1rem",

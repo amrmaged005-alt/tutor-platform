@@ -16,8 +16,10 @@ export async function GET(req: NextRequest) {
   const q = (searchParams.get("q") ?? "").trim();
   const subject = (searchParams.get("subject") ?? "").trim();
   const city = (searchParams.get("city") ?? "").trim();
-  const minPrice = Number(searchParams.get("minPrice") ?? "");
-  const maxPrice = Number(searchParams.get("maxPrice") ?? "");
+  const minPriceParam = searchParams.get("minPrice");
+  const maxPriceParam = searchParams.get("maxPrice");
+  const minPrice = minPriceParam ? Number(minPriceParam) : null;
+  const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
   const type = (searchParams.get("type") ?? "").trim();
   const sort = (searchParams.get("sort") ?? "newest").trim();
   const curriculum = (searchParams.get("curriculum") ?? "").trim();
@@ -31,14 +33,15 @@ export async function GET(req: NextRequest) {
           { subject: { contains: q, mode: "insensitive" } },
           { description: { contains: q, mode: "insensitive" } },
           { owner: { OR: [{ fullName: { contains: q, mode: "insensitive" } }, { name: { contains: q, mode: "insensitive" } }] } },
+          { tutors: { some: { tutor: { OR: [{ fullName: { contains: q, mode: "insensitive" } }, { name: { contains: q, mode: "insensitive" } }] } } } },
         ],
       }
       : {}),
     ...(subject ? { subject } : {}),
     ...(city ? { city: { contains: city, mode: "insensitive" } } : {}),
     ...(curriculum ? { curriculum } : {}),
-    ...(Number.isFinite(minPrice) ? { priceEgp: { gte: minPrice } } : {}),
-    ...(Number.isFinite(maxPrice) ? { priceEgp: { ...(Number.isFinite(minPrice) ? { gte: minPrice } : {}), lte: maxPrice } } : {}),
+    ...(minPrice !== null && Number.isFinite(minPrice) ? { priceEgp: { gte: minPrice } } : {}),
+    ...(maxPrice !== null && Number.isFinite(maxPrice) ? { priceEgp: { ...(minPrice !== null && Number.isFinite(minPrice) ? { gte: minPrice } : {}), lte: maxPrice } } : {}),
     ...(type === "online" ? { format: "ONLINE" } : {}),
     ...(type === "inperson" ? { format: "IN_PERSON" } : {}),
   };

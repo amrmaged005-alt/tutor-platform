@@ -1,15 +1,15 @@
 ﻿"use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { BadgeCheck, Heart, MapPin } from "lucide-react";
 import { useI18n } from "../components/i18n";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useFavorites } from "../hooks/useFavorites";
 import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
+import { avatarFallback } from "../lib/imagery";
 import { useState } from "react";
 import {
-  Avatar,
   Stars,
   SubjectPill,
   TutorTrustSignals,
@@ -31,6 +31,7 @@ export default function TutorCard({
 }) {
   const { t } = useI18n();
   const isMobile = useIsMobile();
+  const reduceMotion = useReducedMotion();
   const { isFavorited, toggle } = useFavorites();
   const [modalOpen, setModalOpen] = useState(false);
   const displayName = tutor.fullName || tutor.name || t("tutor.unnamed");
@@ -57,6 +58,7 @@ export default function TutorCard({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.35, delay: index * 0.05, ease: "easeOut" }}
+        whileHover={reduceMotion ? undefined : { y: -3 }}
         style={{
           backgroundColor: "var(--bg-card)",
           border: "1px solid var(--border-light)",
@@ -108,14 +110,25 @@ export default function TutorCard({
       {/* Top accent bar */}
       <div style={{ height: 3, backgroundColor: primaryColor, flexShrink: 0 }} />
 
+      <Link href={`/tutors/${tutor.id}`} aria-label={`View ${displayName}'s profile`} style={{ display: "block", position: "relative", aspectRatio: isMobile ? "1 / 1" : "3 / 4", overflow: "hidden", background: `color-mix(in srgb, ${primaryColor} 12%, var(--bg-alt))`, textDecoration: "none" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={tutor.photoUrl ?? avatarFallback(tutor.id)}
+          alt={displayName}
+          loading="lazy"
+          style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 200ms ease" }}
+        />
+        <span style={{ position: "absolute", insetInlineStart: 12, insetBlockEnd: 12, display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 9px", color: "var(--accent)", background: "color-mix(in srgb, var(--bg-card) 92%, transparent)", borderRadius: 999, fontSize: 11, fontWeight: 800 }}>
+          {tutor.isVerified ? <><BadgeCheck size={13} aria-hidden /> Verified tutor</> : "Tutor profile"}
+        </span>
+      </Link>
+
       {/* Card body */}
       <div style={{ padding: isMobile ? "12px 12px 0" : "20px 20px 0" }}>
 
-        {/* Top row: avatar + name + info */}
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 14 }}>
-          <Avatar name={displayName} photoUrl={tutor.photoUrl} size={isMobile ? 40 : 56} />
-
-          <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Top row: name + info */}
+        <div style={{ marginBottom: isMobile ? 10 : 14 }}>
+          <div style={{ minWidth: 0 }}>
             <div
               style={{
                 fontWeight: 700,
@@ -148,8 +161,7 @@ export default function TutorCard({
                 </>
               )}
             </div>
-
-            {tutor.isVerified && <VerifiedBadge label={t("tutor.verified")} />}
+            {!isMobile && tutor.isVerified && <VerifiedBadge label={t("tutor.verified")} />}
           </div>
         </div>
 

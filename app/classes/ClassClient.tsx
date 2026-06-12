@@ -509,7 +509,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 fontSize: isMobile ? 13 : 14, outline: "none", boxSizing: "border-box",
                 fontFamily: "inherit", transition: "border-color 0.15s, box-shadow 0.15s",
               }}
-              onFocus={e => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+              onFocus={e => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(13,89,70,0.15)"; }}
               onBlur={e => { e.target.style.borderColor = "var(--border-light)"; e.target.style.boxShadow = "none"; }}
             />
             {search && (
@@ -519,7 +519,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
 
           {/* Quick pills */}
           <div style={{ display: isMobile ? "none" : "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, marginRight: 2 }}>Quick:</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, marginInlineEnd: 2 }}>Quick:</span>
             {QUICK_PILLS.map(tag => {
               const isActive = selectedSubjects.includes(tag) || (tag === "Online" && selectedFormats.includes("ONLINE")) || (tag === "IGCSE" && selectedCurriculum === "IGCSE") || selectedGrade === tag;
               return (

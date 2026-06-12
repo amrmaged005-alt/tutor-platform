@@ -11,11 +11,11 @@ const SUBJECT_OPTIONS = [
 ];
 
 const SUBJECT_COLORS: Record<string, string> = {
-  Math: "var(--accent)", Physics: "#5d3a5f", Chemistry: "var(--success)",
+  Math: "var(--accent)", Physics: "var(--subject-plum)", Chemistry: "var(--success)",
   Biology: "var(--success)", English: "var(--rating)", Arabic: "var(--error)",
-  History: "#8a5e1a", Geography: "#1c6e7a", French: "#5d3a5f",
-  "Computer Science": "#1c6e7a", Science: "var(--success)",
-  Economics: "var(--rating)", Accounting: "#8a5e1a", Business: "#5d3a5f",
+  History: "var(--subject-ochre)", Geography: "var(--subject-teal)", French: "var(--subject-plum)",
+  "Computer Science": "var(--subject-teal)", Science: "var(--success)",
+  Economics: "var(--rating)", Accounting: "var(--subject-ochre)", Business: "var(--subject-plum)",
 };
 
 function subjectColor(s: string) {
@@ -109,7 +109,7 @@ export default function TutorEditClient({
     background: "linear-gradient(180deg,var(--accent),transparent)",
     borderRadius: 2,
     display: "inline-block",
-    marginRight: 8,
+    marginInlineEnd: 8,
     verticalAlign: "middle",
   };
 
@@ -127,7 +127,6 @@ export default function TutorEditClient({
       style={{
         minHeight: "100vh",
         backgroundColor: "var(--bg-card)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
         color: "var(--text)",
       }}
     >
@@ -154,7 +153,7 @@ export default function TutorEditClient({
           style={{
             position: "absolute",
             top: -60,
-            right: -60,
+            insetInlineEnd: -60,
             width: 240,
             height: 240,
             borderRadius: "50%",
@@ -417,7 +416,7 @@ export default function TutorEditClient({
                       if (subjectInput.trim()) addSubject(subjectInput);
                     }
                   }}
-                  style={{ ...inputStyle, paddingRight: 90 }}
+                  style={{ ...inputStyle, paddingInlineEnd: 90 }}
                 />
                 {subjectInput.trim() && (
                   <button
@@ -425,7 +424,7 @@ export default function TutorEditClient({
                     onMouseDown={(e) => { e.preventDefault(); addSubject(subjectInput); }}
                     style={{
                       position: "absolute",
-                      right: 8,
+                      insetInlineEnd: 8,
                       top: "50%",
                       transform: "translateY(-50%)",
                       backgroundColor: "var(--accent)",
@@ -449,8 +448,8 @@ export default function TutorEditClient({
                   style={{
                     position: "absolute",
                     top: "calc(100% + 6px)",
-                    left: 0,
-                    right: 0,
+                    insetInlineStart: 0,
+                    insetInlineEnd: 0,
                     backgroundColor: "var(--bg-card)",
                     border: "1px solid var(--border-light)",
                     borderRadius: 12,

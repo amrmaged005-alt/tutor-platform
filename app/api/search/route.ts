@@ -109,7 +109,10 @@ export async function GET(req: NextRequest) {
 
     // Strip internal scoring field
     const strip = <T extends { _exact: number }>(arr: T[]): Omit<T, "_exact">[] =>
-      arr.map(({ _exact: _, ...rest }) => rest);
+      arr.map(({ _exact, ...rest }) => {
+        void _exact;
+        return rest;
+      });
 
     return NextResponse.json({
       classes: strip(rankedClasses),

@@ -27,25 +27,26 @@ import {
   User,
   Users,
 } from "lucide-react";
+import { classBanner, subjectAccent } from "../../lib/imagery";
 
 // Subject color map
 const SUBJECT_COLORS: Record<string, { glow: string; badge: string; bg: string }> = {
   Math:        { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
   Mathematics: { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
-  Physics:     { glow: "#5d3a5f",        badge: "#5d3a5f",        bg: "rgba(93,58,95,0.10)" },
+  Physics:     { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
   Chemistry:   { glow: "var(--success)", badge: "var(--success)", bg: "var(--success-bg)" },
   Biology:     { glow: "var(--success)", badge: "var(--success)", bg: "var(--success-bg)" },
   English:     { glow: "var(--rating)",  badge: "var(--rating)",  bg: "var(--warning-bg)" },
   Arabic:      { glow: "var(--error)",   badge: "var(--error)",   bg: "var(--error-bg)" },
-  History:     { glow: "#8a5e1a",        badge: "#8a5e1a",        bg: "var(--warning-bg)" },
-  Geography:   { glow: "#1c6e7a",        badge: "#1c6e7a",        bg: "rgba(28,110,122,0.10)" },
-  French:      { glow: "#5d3a5f",        badge: "#5d3a5f",        bg: "rgba(93,58,95,0.10)" },
-  Computer:    { glow: "#1c6e7a",        badge: "#1c6e7a",        bg: "rgba(28,110,122,0.10)" },
+  History:     { glow: "var(--warning)", badge: "var(--warning)", bg: "var(--warning-bg)" },
+  Geography:   { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
+  French:      { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
+  Computer:    { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
   Science:     { glow: "var(--success)", badge: "var(--success)", bg: "var(--success-bg)" },
 };
 
 function getSubjectColor(subject: string) {
-  return SUBJECT_COLORS[subject] ?? { glow: "var(--accent)", badge: "#1c6e7a", bg: "rgba(28,110,122,0.10)" };
+  return SUBJECT_COLORS[subject] ?? { glow: "var(--accent)", badge: "var(--subject-teal)", bg: "var(--subject-teal-bg)" };
 }
 
 // Animated progress bar
@@ -86,7 +87,7 @@ function SpotsBar({ capacity, spotsLeft }: { capacity: number; spotsLeft: number
             height: "100%",
             borderRadius: 99,
             background: isCritical
-              ? "linear-gradient(90deg, var(--error), #8a5e1a)"
+              ? "linear-gradient(90deg, var(--error), var(--subject-ochre))"
               : isLow
                 ? "linear-gradient(90deg, var(--rating), var(--rating))"
                 : "linear-gradient(90deg, var(--success), var(--success))",
@@ -169,16 +170,12 @@ type ClassMaterial = {
   isLocked?: boolean;
 };
 
-type PackageOption = { sessions: number; discountPct: number };
-
 function ClassMaterials({
   classId,
   hasAccess,
-  materialCount,
 }: {
   classId: string;
   hasAccess: boolean;
-  materialCount: number;
 }) {
   const [materials, setMaterials] = useState<ClassMaterial[]>([]);
   const [loading, setLoading] = useState(hasAccess);
@@ -186,7 +183,9 @@ function ClassMaterials({
   useEffect(() => {
     if (!hasAccess) return;
     let cancelled = false;
-    setLoading(true);
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true);
+    });
     fetch(`/api/classes/${classId}/materials`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
@@ -309,7 +308,6 @@ interface Props {
   currentUserRole: string;
   isEligibleToReview: boolean;
   existingUserReview: { rating: number; comment: string | null } | null;
-  bookClass: () => Promise<void>;
   classId: string;
   bookingError: boolean;
 }
@@ -322,7 +320,6 @@ export default function ClassDetailClient({
   currentUserRole,
   isEligibleToReview,
   existingUserReview,
-  bookClass,
   classId,
   bookingError,
 }: Props) {
@@ -337,9 +334,6 @@ export default function ClassDetailClient({
   const [similarClasses, setSimilarClasses] = useState(cls.relatedClasses);
   const [similarLoading, setSimilarLoading] = useState(true);
   const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null);
-  const [bookingMode, setBookingMode] = useState<"single" | "package">("single");
-  const [packageOptions, setPackageOptions] = useState<PackageOption[]>([]);
-  const [selectedPackage, setSelectedPackage] = useState<PackageOption | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const bookingCardRef = useRef<HTMLDivElement>(null);
   const isFull = cls.capacity !== null && cls.spotsLeft !== null && cls.spotsLeft <= 0;
@@ -371,25 +365,10 @@ export default function ClassDetailClient({
   }, [cls.id]);
 
   useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/classes/${cls.id}/packages`, { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled && data?.packagesEnabled && Array.isArray(data.packageOptions)) {
-          const options = data.packageOptions.length > 0 ? data.packageOptions : [{ sessions: 4, discountPct: 10 }, { sessions: 8, discountPct: 15 }];
-          setPackageOptions(options);
-          setSelectedPackage(options[0] ?? null);
-        }
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [cls.id]);
-
-  useEffect(() => {
     const saved = window.localStorage.getItem(`coursaty.waitlist.${cls.id}`);
-    if (saved) setWaitlistPosition(Number(saved));
+    if (saved) {
+      queueMicrotask(() => setWaitlistPosition(Number(saved)));
+    }
   }, [cls.id]);
 
   async function joinWaitlist() {
@@ -439,7 +418,7 @@ export default function ClassDetailClient({
             <Clock size={17} strokeWidth={2} aria-hidden />
             {waitlistPosition ? `You're on the waitlist - Position #${waitlistPosition}` : "Join Waitlist"}
           </button>
-          <p style={{ color: "var(--text-muted)", fontSize: 12, margin: "0.5rem 0 0", textAlign: "center" }}>We'll email you the moment a spot opens</p>
+          <p style={{ color: "var(--text-muted)", fontSize: 12, margin: "0.5rem 0 0", textAlign: "center" }}>We&apos;ll email you the moment a spot opens</p>
         </div>
       );
     }
@@ -501,7 +480,7 @@ export default function ClassDetailClient({
             fontSize: "1rem",
           }}
         >
-          <CheckCircle size={16} strokeWidth={2.2} aria-hidden style={{ verticalAlign: "-3px", marginRight: 6 }} />
+          <CheckCircle size={16} strokeWidth={2.2} aria-hidden style={{ verticalAlign: "-3px", marginInlineEnd: 6 }} />
           Already booked
         </div>
       );
@@ -524,10 +503,10 @@ export default function ClassDetailClient({
       );
     }
     return (
-      <form action={bookClass}>
-        <button
-          type="submit"
+      <Link
+          href={`/classes/${cls.id}/book`}
           style={{
+            display: "block",
             width: "100%",
             background: "linear-gradient(135deg, var(--accent), var(--accent-hover))",
             color: "var(--accent-fg)",
@@ -539,21 +518,20 @@ export default function ClassDetailClient({
             cursor: "pointer",
             boxShadow: "0 4px 24px rgba(13,89,70,0.31)",
             transition: "transform 0.15s, box-shadow 0.15s",
+            textAlign: "center",
+            textDecoration: "none",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 32px rgba(13,89,70,0.38)";
+            (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
+            (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 8px 32px rgba(13,89,70,0.38)";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 24px rgba(13,89,70,0.31)";
+            (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+            (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 4px 24px rgba(13,89,70,0.31)";
           }}
-        >
-          {bookingMode === "package" && selectedPackage
-            ? "Book Package"
-            : cls.priceEgp === 0 ? "Book free - get started" : `Book now - ${cls.priceEgp} EGP`}
-        </button>
-      </form>
+      >
+          {cls.priceEgp === 0 ? "Book free - get started" : `Book now - ${cls.priceEgp} EGP`}
+      </Link>
     );
   };
 
@@ -563,7 +541,6 @@ export default function ClassDetailClient({
       style={{
         minHeight: "100vh",
         backgroundColor: "var(--bg-card)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
         color: "var(--text)",
       }}
     >
@@ -578,12 +555,30 @@ export default function ClassDetailClient({
           padding: isMobile ? "0.75rem 0.875rem 0.875rem" : "3rem 2rem 2.5rem",
         }}
       >
+        {/* Real photography backdrop — emerald duotone for brand cohesion */}
+        <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={classBanner(`${cls.subject}-${cls.id}-hero`, 1400, 600)}
+            alt=""
+            loading="lazy"
+            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.18, mixBlendMode: "luminosity" }}
+          />
+          <span
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: `linear-gradient(135deg, ${subjectAccent(cls.subject)}22 0%, transparent 45%, transparent 100%)`,
+            }}
+          />
+        </div>
+
         {/* Subtle subject wash — desktop only; on mobile it eats vertical space */}
         {!isMobile && <div
           style={{
             position: "absolute",
             top: -80,
-            right: -80,
+            insetInlineEnd: -80,
             width: 360,
             height: 360,
             borderRadius: "50%",
@@ -634,12 +629,12 @@ export default function ClassDetailClient({
             <Badge color={subjectColor.badge} bg={subjectColor.bg}>
               {cls.subject}
             </Badge>
-            <Badge color="#5d3a5f" bg="rgba(93,58,95,0.10)">
+            <Badge color="var(--accent)" bg="var(--accent-bg)">
               {cls.curriculum}
             </Badge>
             <Badge
-              color={cls.format === "ONLINE" ? "#1c6e7a" : cls.format === "IN_PERSON" ? "var(--success)" : "var(--rating)"}
-              bg={cls.format === "ONLINE" ? "rgba(28,110,122,0.10)" : cls.format === "IN_PERSON" ? "var(--success-bg)" : "var(--warning-bg)"}
+              color={cls.format === "ONLINE" ? "var(--subject-teal)" : cls.format === "IN_PERSON" ? "var(--success)" : "var(--rating)"}
+              bg={cls.format === "ONLINE" ? "var(--subject-teal-bg)" : cls.format === "IN_PERSON" ? "var(--success-bg)" : "var(--warning-bg)"}
             >
               {cls.format === "IN_PERSON" ? "In-person" : cls.format === "ONLINE" ? "Online" : "Hybrid"}
             </Badge>
@@ -681,18 +676,18 @@ export default function ClassDetailClient({
             style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 20, flexWrap: "wrap" as const, fontSize: isMobile ? 12 : 14 }}
           >
             <span style={{ color: "var(--text-muted)", fontSize: "inherit" }}>
-              <Users size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+              <Users size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
               <strong style={{ color: "var(--text)" }}>{cls.bookingsCount}</strong> students enrolled
             </span>
             {cls.capacity && (
               <span style={{ color: "var(--text-muted)", fontSize: "inherit" }}>
-                <ClipboardList size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+                <ClipboardList size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
                 Capacity: <strong style={{ color: "var(--text)" }}>{cls.capacity}</strong>
               </span>
             )}
             {tutor && (
               <span style={{ color: "var(--text-muted)", fontSize: "inherit" }}>
-                <User size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+                <User size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
                 by{" "}
                 <strong style={{ color: "var(--text)" }}>
                   {tutor.fullName || tutor.name || "Tutor"}
@@ -771,7 +766,6 @@ export default function ClassDetailClient({
           <ClassMaterials
             classId={cls.id}
             hasAccess={hasMaterialAccess}
-            materialCount={cls.materials.length}
           />
 
           {/* Stats grid */}
@@ -1116,7 +1110,7 @@ export default function ClassDetailClient({
                           fontSize: 13,
                         }}
                       >
-                        <MessageCircle size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+                        <MessageCircle size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
                         WhatsApp
                       </a>
                     )}
@@ -1249,7 +1243,7 @@ export default function ClassDetailClient({
                   textAlign: "center" as const,
                 }}
               >
-                <Flame size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginRight: 5 }} />
+                <Flame size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
                 Only {cls.spotsLeft} spot{cls.spotsLeft !== 1 ? "s" : ""} left
               </motion.div>
             )}
@@ -1270,40 +1264,6 @@ export default function ClassDetailClient({
                 }}
               >
                 We could not complete this booking. Please try again or choose another class.
-              </div>
-            )}
-            {packageOptions.length > 0 && !isFull && (
-              <div style={{ marginBottom: "1rem" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 10 }}>
-                  {[
-                    { id: "single" as const, label: "Single Session" },
-                    { id: "package" as const, label: "Package Deal" },
-                  ].map((mode) => (
-                    <button key={mode.id} type="button" onClick={() => setBookingMode(mode.id)} style={{ border: `1px solid ${bookingMode === mode.id ? "var(--accent)" : "var(--border-light)"}`, backgroundColor: bookingMode === mode.id ? "var(--accent-bg)" : "var(--bg-card)", color: bookingMode === mode.id ? "var(--accent)" : "var(--text-muted)", borderRadius: 10, padding: "8px 10px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
-                      {mode.label}
-                    </button>
-                  ))}
-                </div>
-                {bookingMode === "package" && (
-                  <div style={{ display: "grid", gap: 8 }}>
-                    {packageOptions.map((option) => {
-                      const original = option.sessions * cls.priceEgp;
-                      const discounted = Math.round(original * (1 - option.discountPct / 100));
-                      const selected = selectedPackage?.sessions === option.sessions;
-                      return (
-                        <button key={option.sessions} type="button" onClick={() => setSelectedPackage(option)} style={{ textAlign: "start", border: `1px solid ${selected ? "var(--accent)" : "var(--border-light)"}`, backgroundColor: selected ? "var(--accent-bg)" : "var(--bg-card)", borderRadius: 12, padding: "10px 12px", color: "var(--text)", cursor: "pointer" }}>
-                          <strong style={{ display: "block", fontSize: 13 }}>{option.sessions} sessions at {option.discountPct}% off</strong>
-                          <span style={{ color: "var(--text-muted)", fontSize: 12 }}><s>{original} EGP</s> {discounted} EGP - save {original - discounted} EGP</span>
-                        </button>
-                      );
-                    })}
-                    {selectedPackage && (
-                      <div style={{ color: "var(--accent)", fontSize: 13, fontWeight: 800 }}>
-                        {selectedPackage.sessions} x {cls.priceEgp} EGP = {Math.round(selectedPackage.sessions * cls.priceEgp * (1 - selectedPackage.discountPct / 100))} EGP
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             )}
             {bookingCTA()}

@@ -112,7 +112,7 @@ function SpotsBar({ capacity, booked }: { capacity: number; booked: number }) {
 }
 
 // ── Heart / Save Button ───────────────────────────────────────────────────
-function HeartButton({ id }: { id: string }) {
+function HeartButton() {
   const [saved, setSaved] = useState(false);
   return (
     <motion.button
@@ -136,7 +136,6 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
   const isUrgent = spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 5;
   const displayName = cls.center ? cls.center.name : (cls.owner?.fullName ?? cls.owner?.name ?? "Unknown");
   const isCenter = !!cls.center;
-  const initial = (displayName || "?")[0].toUpperCase();
 
   return (
     <motion.div
@@ -188,7 +187,7 @@ function ClassCard({ cls, index }: { cls: ClassResult; index: number }) {
               <span style={{ backgroundColor: fmt.bg, color: fmt.color, fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, border: `1px solid ${fmt.color}30` }}>
                 {fmt.label}
               </span>
-              <HeartButton id={cls.id} />
+              <HeartButton />
             </div>
           </div>
 
@@ -313,8 +312,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
   const [maxPrice,    setMaxPrice]    = useState("");
   const [location,    setLocation]    = useState("");
   const [sortBy,      setSortBy]      = useState("newest");
-  const [showRecent, setShowRecent] = useState(false);
-  const { recent, add, remove } = useRecentSearches();
+  const { add } = useRecentSearches();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const fetchClasses = useCallback(async () => {
@@ -363,7 +361,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
   };
 
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div>
 
       {/* ── Hero search bar ── */}
       <div style={{ maxWidth: 760, margin: "0 auto 1.5rem", padding: "0 1.5rem" }}>
@@ -374,10 +372,7 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             type="text"
             placeholder="Search by class name, tutor, subject…"
             value={search}
-            onChange={e => {
-              setSearch(e.target.value);
-              setShowRecent(e.target.value.trim() === "");
-            }}
+            onChange={e => setSearch(e.target.value)}
             style={{
               width: "100%",
               backgroundColor: "var(--bg-card)",
@@ -392,14 +387,9 @@ export default function ClassSearch({ initialClasses }: { initialClasses: ClassR
             }}
             onFocus={e => {
               e.currentTarget.style.borderColor = "var(--accent)";
-              if (!search.trim()) setShowRecent(true);
             }}
             onBlur={e => {
               e.currentTarget.style.borderColor = "var(--border-light)";
-              window.setTimeout(() => setShowRecent(false), 120);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") setShowRecent(false);
             }}
           />
           {search && (

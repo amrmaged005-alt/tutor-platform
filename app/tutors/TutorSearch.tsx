@@ -81,7 +81,7 @@ export default function TutorSearch({ tutors, centers }: Props) {
   };
 
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "32px" }}>
         <div style={{ position: "relative" }}>
           <input

@@ -1,4 +1,5 @@
 import { BadgeCheck, Clock3, Flame, RotateCcw, Star, TrendingUp, type LucideIcon } from "lucide-react";
+import Image from "next/image";
 import type { useI18n } from "../components/i18n";
 
 export interface TutorCardData {
@@ -73,9 +74,12 @@ export function Avatar({ name, photoUrl, size = 64 }: { name: string; photoUrl: 
 
   if (photoUrl) {
     return (
-      <img
+      <Image
         src={photoUrl}
         alt={name}
+        width={size}
+        height={size}
+        unoptimized
         style={{
           width: size,
           height: size,

@@ -142,7 +142,7 @@ function FavoritesSkeleton() {
   return (
     <div role="status" aria-label="Loading favorites" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
       {[0, 1, 2, 3, 4, 5].map((item) => <div key={item} className="skeleton" style={{ height: 220 }} />)}
-      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .skeleton { background: var(--color-border, var(--border-light)); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }`}</style>
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .skeleton { background: var(--border-light); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }`}</style>
     </div>
   );
 }

@@ -8,6 +8,9 @@ import { BadgeCheck, BookOpen, MessageCircle } from "lucide-react";
 import BackgroundFloaters from "../../../components/ui/BackgroundFloaters";
 import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import { useI18n } from "../../components/i18n";
+
+type Translator = ReturnType<typeof useI18n>["t"];
 
 // Types
 interface TutorClass {
@@ -53,11 +56,11 @@ interface TutorData {
 
 // Subject colors
 const SUBJECT_COLORS: Record<string, string> = {
-  Math: "var(--accent)", Mathematics: "var(--accent)", Physics: "#5d3a5f",
+  Math: "var(--accent)", Mathematics: "var(--accent)", Physics: "var(--subject-plum)",
   Chemistry: "var(--success)", Biology: "var(--success)", English: "var(--rating)",
-  Arabic: "var(--error)", History: "#8a5e1a", Geography: "#1c6e7a",
-  French: "#5d3a5f", "Computer Science": "#1c6e7a", Science: "var(--success)",
-  Economics: "var(--rating)", Business: "#5d3a5f",
+  Arabic: "var(--error)", History: "var(--subject-ochre)", Geography: "var(--subject-teal)",
+  French: "var(--subject-plum)", "Computer Science": "var(--subject-teal)", Science: "var(--success)",
+  Economics: "var(--rating)", Business: "var(--subject-plum)",
 };
 
 function subjectColor(s: string) {
@@ -70,7 +73,7 @@ const FORMAT_LABELS: Record<string, string> = {
 
 // Avatar
 function Avatar({ name, photoUrl, size = 96 }: { name: string; photoUrl: string | null; size?: number }) {
-  const colors = [["var(--accent)","var(--accent-hover)"],["#5d3a5f","var(--accent)"],["var(--success)","var(--success)"],["#8a5e1a","var(--warning)"],["#1c6e7a","var(--accent)"]];
+  const colors = [["var(--accent)","var(--accent-hover)"],["var(--subject-plum)","var(--accent)"],["var(--success)","var(--success)"],["var(--subject-ochre)","var(--warning)"],["var(--subject-teal)","var(--accent)"]];
   const pair = colors[(name.charCodeAt(0) ?? 0) % colors.length];
   if (photoUrl) {
     return (
@@ -148,7 +151,7 @@ function ClassCard({ cls, isMobile }: { cls: TutorClass; isMobile: boolean }) {
           </p>
         )}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: "1px solid var(--border-light)" }}>
-          <span style={{ fontWeight: 800, color: cls.priceEgp === 0 ? "var(--success)" : "#1c6e7a", fontSize: isMobile ? 13 : 15 }}>
+          <span style={{ fontWeight: 800, color: cls.priceEgp === 0 ? "var(--success)" : "var(--subject-teal)", fontSize: isMobile ? 13 : 15 }}>
             {cls.priceEgp === 0 ? "Free" : `${cls.priceEgp} EGP`}
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -176,7 +179,7 @@ function ReviewCard({ review }: { review: TutorReview }) {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, var(--accent), #5d3a5f)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--bg-card)", fontSize: 14, flexShrink: 0 }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, var(--accent), var(--subject-plum))", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--bg-card)", fontSize: 14, flexShrink: 0 }}>
             {review.studentName[0]?.toUpperCase() ?? "S"}
           </div>
           <div>
@@ -204,54 +207,27 @@ function SectionTitle({ children, count }: { children: React.ReactNode; count?: 
   );
 }
 
-function ScheduleSection({ classes, isMobile }: { classes: TutorClass[]; isMobile: boolean }) {
+function ScheduleSection({ classes, isMobile, t }: { classes: TutorClass[]; isMobile: boolean; t: Translator }) {
   const scheduled = classes.filter((cls) => cls.schedule);
-  if (scheduled.length === 0) return null;
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const times = Array.from({ length: 14 }, (_, i) => `${i + 8}:00`);
-
-  if (isMobile) {
-    return (
-      <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-        style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "16px", marginBottom: 16 }}>
-        <SectionTitle>Availability</SectionTitle>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {scheduled.map((cls) => (
-            <div key={cls.id} style={{ border: "1px solid var(--border-light)", borderRadius: 10, padding: "0.75rem", color: "var(--text-secondary)", fontSize: 13 }}>
-              <strong style={{ color: "var(--text)" }}>{cls.title}</strong>
-              <div>{cls.schedule}</div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    );
-  }
-
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-      style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "24px", marginBottom: 20 }}>
+      style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: isMobile ? "16px" : "24px", marginBottom: isMobile ? 16 : 20 }}>
       <SectionTitle>Availability</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "72px repeat(7, 1fr)", border: "1px solid var(--border-light)", borderRadius: 12, overflow: "hidden" }}>
-        <div style={{ backgroundColor: "var(--bg-alt)" }} />
-        {days.map((day) => <div key={day} style={{ backgroundColor: "var(--bg-alt)", color: "var(--text)", fontSize: 12, fontWeight: 700, padding: 8, textAlign: "center" }}>{day}</div>)}
-        {times.map((time) => (
-          <>
-            <div key={`${time}-label`} style={{ color: "var(--text-muted)", fontSize: 11, padding: 8, borderTop: "1px solid var(--border-light)" }}>{time}</div>
-            {days.map((day) => {
-              const match = scheduled.find((cls) => cls.schedule?.toLowerCase().includes(day.toLowerCase()));
-              return (
-                <div key={`${time}-${day}`} style={{ minHeight: 42, borderTop: "1px solid var(--border-light)", borderInlineStart: "1px solid var(--border-light)", backgroundColor: "var(--bg-alt)", padding: 4 }}>
-                  {match && time === "17:00" && (
-                    <div title={match.schedule ?? ""} style={{ backgroundColor: "var(--accent)", color: "var(--accent-fg)", borderRadius: 8, padding: "5px 6px", fontSize: 11, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {match.title}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </>
-        ))}
-      </div>
+      {scheduled.length > 0 ? (
+        <div style={{ display: "grid", gap: 8 }}>
+          {scheduled.map((cls) => (
+            <Link key={cls.id} href={`/classes/${cls.id}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: isMobile ? "10px 11px" : "12px 14px", color: "var(--text)", background: "var(--bg-alt)", border: "1px solid var(--border-light)", borderRadius: 10, textDecoration: "none" }}>
+              <span style={{ minWidth: 0 }}>
+                <strong style={{ display: "block", overflow: "hidden", fontSize: isMobile ? 13 : 14, textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cls.title}</strong>
+                <small style={{ display: "block", marginTop: 3, color: "var(--text-muted)", fontSize: 12 }}>{cls.schedule}</small>
+              </span>
+              <span style={{ flexShrink: 0, color: "var(--accent)", fontSize: 12, fontWeight: 800 }}>{t("tutor.viewClass")}</span>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p style={{ margin: 0, color: "var(--text-muted)", fontSize: 14 }}>{t("tutor.confirmAvailability")}</p>
+      )}
     </motion.div>
   );
 }
@@ -259,6 +235,7 @@ function ScheduleSection({ classes, isMobile }: { classes: TutorClass[]; isMobil
 // Main component
 export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tutor: TutorData; isOwner: boolean; isSignedIn?: boolean }) {
   const isMobile = useIsMobile();
+  const { t } = useI18n();
   const displayName = tutor.fullName || tutor.name || "Unnamed Tutor";
   const whatsappNumber = tutor.phone?.replace(/\D/g, "") ?? "";
   const primaryColor = subjectColor(tutor.subjects[0] ?? "Math");
@@ -284,7 +261,7 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
   }));
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "system-ui, -apple-system, sans-serif", color: "var(--text)", position: "relative" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", color: "var(--text)", position: "relative" }}>
       <BackgroundFloaters count={3} />
 
       {/* Hero banner */}
@@ -296,8 +273,8 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
       }}>
         {/* Subtle subject washes — desktop only on mobile they bloat the hero */}
         {!isMobile && <>
-          <div style={{ position: "absolute", top: -100, right: -100, width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}20 0%, transparent 70%)`, pointerEvents: "none" }} />
-          <div style={{ position: "absolute", bottom: -60, left: -60, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}10 0%, transparent 70%)`, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: -100, insetInlineEnd: -100, width: 400, height: 400, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}20 0%, transparent 70%)`, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -60, insetInlineStart: -60, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${primaryColor}10 0%, transparent 70%)`, pointerEvents: "none" }} />
         </>}
 
         <div style={{ maxWidth: 920, margin: "0 auto", position: "relative" }}>
@@ -335,7 +312,7 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
                     <BadgeCheck size={20} strokeWidth={2} aria-hidden />
                   </span>
                 )}
-                <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: tutor.role === "CENTER_ADMIN" ? "var(--success-bg)" : "rgba(93,58,95,0.10)", color: tutor.role === "CENTER_ADMIN" ? "var(--success)" : "#5d3a5f", border: "1px solid currentColor", letterSpacing: 0.5 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: tutor.role === "CENTER_ADMIN" ? "var(--success-bg)" : "var(--subject-plum-bg)", color: tutor.role === "CENTER_ADMIN" ? "var(--success)" : "var(--subject-plum)", border: "1px solid currentColor", letterSpacing: 0.5 }}>
                   {tutor.role === "CENTER_ADMIN" ? "CENTER ADMIN" : "TUTOR"}
                 </span>
               </div>
@@ -346,7 +323,7 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
                 {tutor.center && (
                   <>
                     <span style={{ color: "var(--text-secondary)" }}>·</span>
-                    <Link href={`/centers/${tutor.center.id}`} style={{ color: "#1c6e7a", textDecoration: "none", fontWeight: 600 }}>
+                    <Link href={`/centers/${tutor.center.id}`} style={{ color: "var(--subject-teal)", textDecoration: "none", fontWeight: 600 }}>
                       {tutor.center.name}
                     </Link>
                   </>
@@ -533,7 +510,7 @@ export default function TutorProfileClient({ tutor, isOwner, isSignedIn }: { tut
           </motion.div>
         )}
 
-        <ScheduleSection classes={tutor.classes} isMobile={isMobile} />
+        <ScheduleSection classes={tutor.classes} isMobile={isMobile} t={t} />
 
         {/* Ratings and reviews */}
         {tutor.reviews.length > 0 && (

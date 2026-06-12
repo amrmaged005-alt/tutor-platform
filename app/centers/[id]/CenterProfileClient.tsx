@@ -227,7 +227,7 @@ export default function CenterProfileClient({ center, isCenterAdmin = false }: {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "system-ui, -apple-system, sans-serif", color: "var(--text)", position: "relative" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", color: "var(--text)", position: "relative" }}>
       {!isMobile && <BackgroundFloaters
         floaters={[
           { color: "var(--accent-hover)", size: 500, top: "-10%", left: "-8%",  duration: 12 },
