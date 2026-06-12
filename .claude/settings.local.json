@@ -8,7 +8,14 @@
       "Skill(ui-ux-pro-max)",
       "Skill(ui-ux-pro-max:*)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Amr\\\\tutor-platform\" -Force)",
-      "Bash(python skills/ui-ux-pro-max/scripts/search.py \"tutoring marketplace education SaaS booking professional\" --design-system -p \"TutorPlatform\")"
+      "Bash(python skills/ui-ux-pro-max/scripts/search.py \"tutoring marketplace education SaaS booking professional\" --design-system -p \"TutorPlatform\")",
+      "Bash(npx next *)",
+      "Bash(curl -s http://localhost:3000 -o /dev/null -w \"%{http_code}\")",
+      "Bash(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "Bash(Stop-Process -Force)",
+      "Bash(Start-Sleep -Seconds 2)",
+      "Bash(Select-Object Id, ProcessName)",
+      "Bash(npx prisma *)"
     ]
   }
 }
