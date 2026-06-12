@@ -12,7 +12,7 @@ const LOCK_DURATION_MINUTES = 10;
 export async function lockSeat(
   classId: string
 ): Promise<
-  | { success: true; bookingId: string; iframeUrl: string | null }
+  | { success: true; bookingId: string; paymentUrl: string | null }
   | { success: false; error: string }
 > {
   const session = await auth();
@@ -196,15 +196,15 @@ export async function lockSeat(
           data: { status: "CONFIRMED", paymentStatus: "PAID", paidAt: new Date() },
         });
       }
-      return { success: true, bookingId: booking.id, iframeUrl: null };
+      return { success: true, bookingId: booking.id, paymentUrl: null };
     }
 
     // 7. If online, create a Paymob payment link
     const { createPaymobPayment } = await import("@/lib/paymob");
 
-    let iframeUrl: string;
+    let paymentUrl: string;
     try {
-      iframeUrl = await createPaymobPayment({
+      paymentUrl = await createPaymobPayment({
         amountEGP: amountEgp,
         bookingId: booking.id,
         user: {
@@ -231,7 +231,7 @@ export async function lockSeat(
       };
     }
 
-    return { success: true, bookingId: booking.id, iframeUrl };
+    return { success: true, bookingId: booking.id, paymentUrl };
   } catch (error) {
     console.error("lockSeat error:", error);
     return { success: false, error: "Something went wrong. Please try again." };

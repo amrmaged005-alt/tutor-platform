@@ -41,10 +41,12 @@ export default async function ClassBookingPage({
         subject: true,
         priceEgp: true,
         format: true,
+        paymentType: true,
+        city: true,
         schedule: true,
         capacity: true,
         isActive: true,
-        owner: { select: { fullName: true, name: true } },
+        owner: { select: { id: true, fullName: true, name: true } },
         center: { select: { name: true } },
         _count: {
           select: {
@@ -102,8 +104,7 @@ export default async function ClassBookingPage({
     <main
       style={{
         minHeight: "100vh",
-        backgroundColor: "var(--bg-alt)",
-        fontFamily: "system-ui, -apple-system, sans-serif",
+        backgroundColor: "var(--surface-booking)",
       }}
     >
       <BookingCheckout
@@ -113,9 +114,11 @@ export default async function ClassBookingPage({
           subject: cls.subject,
           priceEgp: cls.priceEgp,
           format: cls.format,
-          city: null,
+          paymentType: cls.paymentType,
+          city: cls.city,
           schedule: cls.schedule,
           spotsLeft,
+          tutorId: cls.owner?.id ?? null,
           tutorName,
         }}
       />

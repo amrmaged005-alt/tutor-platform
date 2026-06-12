@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-async function requireAdmin(id: string) {
+async function requireAdmin() {
   const session = await auth();
   if (!session?.user?.id) return null;
   const user = await prisma.user.findUnique({
@@ -17,7 +17,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const admin = await requireAdmin(id);
+  const admin = await requireAdmin();
   if (!admin) {
     return NextResponse.json({ error: "Admin access required", code: "FORBIDDEN" }, { status: 403 });
   }

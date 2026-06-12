@@ -1,11 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createPaymobPayment } from "@/lib/paymob";
-import { classSelect, requireMobileUser, serializeClass } from "../mobile/_utils";
+import { auth } from "@/lib/auth";
+import { classSelect, requireMobileUser, serializeClass, type MobileUser } from "../mobile/_utils";
 import { isRateLimited, bookingLimiter } from "@/lib/ratelimit";
 
+async function requireBookingUser(req: NextRequest): Promise<MobileUser | NextResponse> {
+  if (req.headers.get("authorization")?.toLowerCase().startsWith("bearer ")) {
+    return requireMobileUser(req);
+  }
+
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Sign in is required." }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      name: true,
+      role: true,
+      isSuspended: true,
+    },
+  });
+
+  if (!user || user.isSuspended) {
+    return NextResponse.json({ error: "Account is not available." }, { status: 401 });
+  }
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.fullName ?? user.name ?? "",
+    role: user.role,
+  };
+}
+
 export async function GET(req: NextRequest) {
-  const user = await requireMobileUser(req);
+  const user = await requireBookingUser(req);
   if (user instanceof NextResponse) return user;
 
   const where =
@@ -43,7 +78,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = await requireMobileUser(req);
+  const user = await requireBookingUser(req);
   if (user instanceof NextResponse) return user;
 
   if (user.role !== "STUDENT") {
@@ -62,7 +97,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const classId = String(body?.classId ?? "");
   const sessionCount = Math.min(Math.max(Number(body?.sessionCount ?? 1), 1), 5);
-  const paymentType = body?.paymentType === "ONLINE" ? "ONLINE" : "IN_PERSON";
+  const requestedPaymentType = body?.paymentType === "ONLINE" ? "ONLINE" : "IN_PERSON";
   const note = typeof body?.note === "string" ? body.note.slice(0, 500) : "";
   const packageOption: { sessions: number; discountPct: number } | null =
     body?.packageOption && typeof body.packageOption === "object" ? body.packageOption : null;
@@ -91,9 +126,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "This class is no longer available." }, { status: 404 });
   }
 
-  if (cls.capacity && cls._count.bookings >= cls.capacity) {
-    return NextResponse.json({ error: "Sorry, this class is fully booked." }, { status: 409 });
-  }
+  // An online-only class must never be downgraded to cash by a client request.
+  // In-person classes may still opt into Paymob from the mobile checkout.
+  const paymentType = cls.paymentType === "ONLINE" ? "ONLINE" : requestedPaymentType;
 
   const existing = await prisma.booking.findUnique({
     where: { classId_studentId: { classId, studentId: user.id } },
@@ -105,6 +140,10 @@ export async function POST(req: NextRequest) {
       { error: "You have already booked this class.", bookingId: existing.id },
       { status: 409 }
     );
+  }
+
+  if (cls.capacity && cls._count.bookings >= cls.capacity) {
+    return NextResponse.json({ error: "Sorry, this class is fully booked." }, { status: 409 });
   }
 
   // Validate package option if provided
@@ -198,7 +237,7 @@ export async function POST(req: NextRequest) {
         where: { id: booking.id },
         data: { paymentStatus: "FAILED" },
       });
-      console.error("Mobile Paymob start error:", error);
+      console.error("Paymob start error:", error);
       return NextResponse.json(
         { error: "Could not start online payment. Please choose pay at center or try again." },
         { status: 502 }

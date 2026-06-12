@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  CheckCircle,
   XCircle,
   Clock,
   BookOpen,
@@ -18,6 +17,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "../components/i18n";
 import { useIsMobile } from "../hooks/useIsMobile";
+import AnimatedCheck from "@/components/ui/AnimatedCheck";
 
 export interface BookingConfirmedData {
   bookingId: string;
@@ -122,15 +122,19 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
           </motion.div>
         )}
 
+        {isPaid && (
+          <div className="confetti-burst" aria-hidden>
+            {Array.from({ length: 12 }, (_, index) => <span key={index} />)}
+          </div>
+        )}
+
         {/* Status icon */}
         <div style={{ textAlign: "center", marginBottom: isMobile ? "1rem" : "1.75rem" }}>
           {isFailed ? (
             <XCircle size={isMobile ? 46 : 64} strokeWidth={1.5} color="var(--error)" style={{ margin: "0 auto" }} />
           ) : isPending ? (
             <Clock size={isMobile ? 46 : 64} strokeWidth={1.5} color="var(--rating)" style={{ margin: "0 auto" }} />
-          ) : (
-            <CheckCircle size={isMobile ? 46 : 64} strokeWidth={1.5} color="var(--success)" style={{ margin: "0 auto" }} />
-          )}
+          ) : <AnimatedCheck />}
         </div>
 
         {/* Heading */}
@@ -188,7 +192,7 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
         {/* Booking details card */}
         <div
           style={{
-            backgroundColor: "var(--bg-card)",
+            background: isFailed ? "var(--bg-card)" : "linear-gradient(145deg, var(--bg-card), var(--accent-bg-soft))",
             border: "1px solid var(--border-light)",
             borderRadius: isMobile ? 12 : 16,
             padding: isMobile ? "1rem" : "1.5rem",
@@ -326,7 +330,7 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
-                  backgroundColor: "#22c55e",
+                  backgroundColor: "var(--whatsapp)",
                   color: "#fff",
                   borderRadius: 10,
                   padding: isMobile ? "0.65rem 1rem" : "0.875rem 1.25rem",
@@ -336,11 +340,11 @@ export default function BookingConfirmedClient({ data }: { data: BookingConfirme
                   transition: "background 0.15s, transform 0.15s",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#16a34a";
+                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--whatsapp-hover)";
                   (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "#22c55e";
+                  (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--whatsapp)";
                   (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
                 }}
               >
