@@ -15,13 +15,17 @@ export default async function CenterProfilePage({
 
   const session = await auth();
   let isCenterAdmin = false;
+  let memberAccessLevel: "FULL" | "LIMITED" | "VIEW_ONLY" | null = null;
   if (session?.user?.id) {
     const me = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { role: true, centerId: true },
+      select: { role: true, centerId: true, centerAccessLevel: true },
     });
     isCenterAdmin =
       (me?.role === "CENTER_ADMIN" && me.centerId === id) || me?.role === "ADMIN";
+    if (me?.role === "TUTOR" && me.centerId === id) {
+      memberAccessLevel = me.centerAccessLevel;
+    }
   }
 
   let center: Awaited<ReturnType<typeof fetchCenter>> | null = null;
@@ -95,7 +99,7 @@ export default async function CenterProfilePage({
     }),
   };
 
-  return <CenterProfileClient center={centerData} isCenterAdmin={isCenterAdmin} />;
+  return <CenterProfileClient center={centerData} isCenterAdmin={isCenterAdmin} memberAccessLevel={memberAccessLevel} />;
 }
 
 function fetchCenter(id: string) {

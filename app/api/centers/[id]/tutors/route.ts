@@ -19,6 +19,8 @@ async function requireCenterAdmin(centerId: string) {
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
+  const guard = await requireCenterAdmin(id);
+  if (guard.error) return guard.error;
 
   const tutors = await prisma.user.findMany({
     where: { centerId: id, role: { in: ["TUTOR", "CENTER_ADMIN"] } },
@@ -31,6 +33,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       bio: true,
       subjects: true,
       isVerified: true,
+      centerAccessLevel: true,
       _count: { select: { ownedClasses: true } },
     },
   });
@@ -76,12 +79,48 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       bio: t.bio,
       subjects: t.subjects,
       isVerified: t.isVerified,
+      accessLevel: t.centerAccessLevel,
       classCount: t._count.ownedClasses,
       avgRating: rb && rb.count > 0 ? Math.round((rb.sum / rb.count) * 10) / 10 : null,
     };
   });
 
   return NextResponse.json({ tutors: result });
+}
+
+const ACCESS_LEVELS = ["FULL", "LIMITED", "VIEW_ONLY"] as const;
+type AccessLevel = (typeof ACCESS_LEVELS)[number];
+
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  const guard = await requireCenterAdmin(id);
+  if (guard.error) return guard.error;
+
+  const body = await req.json().catch(() => null);
+  const tutorId = typeof body?.tutorId === "string" ? body.tutorId : "";
+  const accessLevel = body?.accessLevel as AccessLevel | undefined;
+  if (!tutorId || !accessLevel || !ACCESS_LEVELS.includes(accessLevel)) {
+    return NextResponse.json({ error: "tutorId and a valid accessLevel are required" }, { status: 400 });
+  }
+
+  const tutor = await prisma.user.findUnique({
+    where: { id: tutorId },
+    select: { id: true, centerId: true, role: true },
+  });
+  if (!tutor || tutor.centerId !== id) {
+    return NextResponse.json({ error: "Tutor is not in this center" }, { status: 404 });
+  }
+  if (tutor.role === "CENTER_ADMIN") {
+    return NextResponse.json({ error: "Center admins always have full access" }, { status: 400 });
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: tutorId },
+    data: { centerAccessLevel: accessLevel },
+    select: { id: true, centerAccessLevel: true },
+  });
+
+  return NextResponse.json({ ok: true, tutorId: updated.id, accessLevel: updated.centerAccessLevel });
 }
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {

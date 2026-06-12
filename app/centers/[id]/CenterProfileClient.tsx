@@ -212,7 +212,15 @@ function SectionTitle({ children, count, color = "var(--accent)" }: { children: 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 type Tab = "overview" | "tutors" | "classes";
 
-export default function CenterProfileClient({ center, isCenterAdmin = false }: { center: CenterData; isCenterAdmin?: boolean }) {
+type MemberAccessLevel = "FULL" | "LIMITED" | "VIEW_ONLY";
+
+const ACCESS_DESCRIPTIONS: Record<MemberAccessLevel, { label: string; can: string }> = {
+  FULL: { label: "Full Access", can: "You can see all bookings for your classes, manage your students, and accept or decline bookings." },
+  LIMITED: { label: "Limited", can: "You can see your class schedule. Revenue and other students are managed by the center." },
+  VIEW_ONLY: { label: "View Only", can: "You can view your class info. Changes are managed by the center admin." },
+};
+
+export default function CenterProfileClient({ center, isCenterAdmin = false, memberAccessLevel = null }: { center: CenterData; isCenterAdmin?: boolean; memberAccessLevel?: MemberAccessLevel | null }) {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const wa = center.phone?.replace(/\D/g, "") ?? "";
@@ -351,6 +359,24 @@ export default function CenterProfileClient({ center, isCenterAdmin = false }: {
           </div>
         </div>
       </div>
+
+      {/* ── MY ROLE BANNER (member tutors only) ── */}
+      {memberAccessLevel && (
+        <div style={{ backgroundColor: "var(--accent-bg)", borderBottom: "1px solid var(--accent-border)" }}>
+          <div style={{ maxWidth: 920, margin: "0 auto", padding: isMobile ? "10px 14px" : "12px 24px", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <GraduationCap size={16} strokeWidth={2} style={{ color: "var(--accent)", flexShrink: 0 }} aria-hidden />
+            <span style={{ fontSize: 12, fontWeight: 800, color: "var(--accent)", padding: "2px 9px", borderRadius: 999, border: "1px solid var(--accent-border)", background: "var(--bg-card)", flexShrink: 0 }}>
+              My Role: {ACCESS_DESCRIPTIONS[memberAccessLevel].label}
+            </span>
+            <span style={{ fontSize: 12, color: "var(--text-secondary)", flex: 1, minWidth: 200 }}>
+              {ACCESS_DESCRIPTIONS[memberAccessLevel].can}
+            </span>
+            <Link href="/dashboard" style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textDecoration: "none", flexShrink: 0 }}>
+              Manage my classes
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* ── TAB BAR ── */}
       <div style={{ borderBottom: "1px solid var(--border-light)", backgroundColor: "var(--bg-card)", position: "sticky", top: 60, zIndex: 10 }}>

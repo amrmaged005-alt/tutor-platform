@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Users, UserPlus, Trash2, ShieldCheck, Star } from "lucide-react";
 
+type AccessLevel = "FULL" | "LIMITED" | "VIEW_ONLY";
+
 interface TutorEntry {
   id: string;
   fullName: string | null;
@@ -10,9 +12,16 @@ interface TutorEntry {
   email: string | null;
   subjects: string[];
   isVerified: boolean;
+  accessLevel: AccessLevel;
   classCount: number;
   avgRating: number | null;
 }
+
+const ACCESS_OPTIONS: Array<{ value: AccessLevel; label: string; hint: string }> = [
+  { value: "FULL", label: "Full Access", hint: "Sees all bookings for their classes, manages students, accepts/declines bookings" },
+  { value: "LIMITED", label: "Limited", hint: "Sees their class schedule only; no revenue or other students" },
+  { value: "VIEW_ONLY", label: "View Only", hint: "Sees their class info; cannot make changes" },
+];
 
 const thS: React.CSSProperties = {
   color: "var(--text-muted)", fontSize: 11, fontWeight: 700,
@@ -61,6 +70,26 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
       }
     } catch { setInviteError("Network error"); }
     finally { setInviting(false); }
+  };
+
+  const [savingAccess, setSavingAccess] = useState<string | null>(null);
+
+  const handleAccessChange = async (tutorId: string, accessLevel: AccessLevel) => {
+    const previous = tutors;
+    setSavingAccess(tutorId);
+    setTutors((prev) => prev.map((t) => (t.id === tutorId ? { ...t, accessLevel } : t)));
+    try {
+      const res = await fetch(`/api/centers/${centerId}/tutors`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tutorId, accessLevel }),
+      });
+      if (!res.ok) setTutors(previous);
+    } catch {
+      setTutors(previous);
+    } finally {
+      setSavingAccess(null);
+    }
   };
 
   const handleRemove = async (tutorId: string) => {
@@ -116,6 +145,7 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
                   <th style={thS}>Subjects</th>
                   <th style={{ ...thS, textAlign: "center" }}>Classes</th>
                   <th style={{ ...thS, textAlign: "center" }}>Rating</th>
+                  <th style={thS}>Access Level</th>
                   <th style={{ ...thS, textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
@@ -151,6 +181,20 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
                           <Star size={12} strokeWidth={2} fill="currentColor" aria-hidden />{t.avgRating}
                         </span>
                       ) : <span style={{ color: "var(--text-muted)", fontSize: 12 }}>—</span>}
+                    </td>
+                    <td style={tdS}>
+                      <select
+                        value={t.accessLevel}
+                        disabled={savingAccess === t.id}
+                        onChange={(e) => handleAccessChange(t.id, e.target.value as AccessLevel)}
+                        aria-label={`Access level for ${t.fullName ?? t.name ?? "tutor"}`}
+                        title={ACCESS_OPTIONS.find((o) => o.value === t.accessLevel)?.hint}
+                        style={{ padding: "5px 8px", borderRadius: 7, border: "1px solid var(--border-light)", backgroundColor: "var(--bg-alt)", color: "var(--text)", fontSize: 12, fontWeight: 600, cursor: savingAccess === t.id ? "wait" : "pointer" }}
+                      >
+                        {ACCESS_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
                     </td>
                     <td style={{ ...tdS, textAlign: "right" }}>
                       <button onClick={() => handleRemove(t.id)} disabled={removing === t.id} title="Remove from center"

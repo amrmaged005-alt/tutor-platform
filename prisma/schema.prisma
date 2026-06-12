@@ -18,6 +18,13 @@ enum Role {
   ADMIN
 }
 
+// What a tutor can see/do inside their learning center
+enum CenterAccessLevel {
+  FULL
+  LIMITED
+  VIEW_ONLY
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -180,6 +187,8 @@ model User {
 
   centerId String?
   center   LearningCenter? @relation(fields: [centerId], references: [id])
+  // Agreement level between a center and this tutor (only meaningful when centerId is set)
+  centerAccessLevel CenterAccessLevel @default(FULL)
 
   // T15: Notification preferences
   notifyBookingConfirmed Boolean @default(true)
