@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Save } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 
 interface CenterFields {
   name: string;
@@ -29,6 +30,7 @@ const labelS: React.CSSProperties = {
 };
 
 export default function CenterAdminSettings({ centerId }: { centerId: string }) {
+  const { t } = useI18n();
   const [fields, setFields] = useState<CenterFields>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -60,7 +62,7 @@ export default function CenterAdminSettings({ centerId }: { centerId: string }) 
     setFields((f) => ({ ...f, [key]: e.target.value }));
 
   const handleSave = async () => {
-    if (!fields.name.trim()) { setError("Center name is required."); return; }
+    if (!fields.name.trim()) { setError(t("centerAdmin.settings.nameRequired")); return; }
     setSaving(true); setError(null); setSuccess(false);
     try {
       const res = await fetch(`/api/centers/${centerId}`, {
@@ -77,7 +79,7 @@ export default function CenterAdminSettings({ centerId }: { centerId: string }) 
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { setError(data.error ?? "Failed to save."); return; }
+      if (!res.ok) { setError(data.error ?? t("centerAdmin.settings.saveFailed")); return; }
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } finally {
@@ -86,55 +88,55 @@ export default function CenterAdminSettings({ centerId }: { centerId: string }) 
   };
 
   if (loading) {
-    return <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>Loading settings…</div>;
+    return <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>{t("centerAdmin.settings.loading")}</div>;
   }
 
   return (
     <div style={{ maxWidth: 560 }}>
       <div style={{ display: "grid", gap: 16 }}>
         <div>
-          <label style={labelS}>Center Name *</label>
+          <label style={labelS}>{t("centerAdmin.settings.field.name")}</label>
           <input type="text" value={fields.name} onChange={set("name")} style={inputS} />
         </div>
         <div>
-          <label style={labelS}>Description / About</label>
+          <label style={labelS}>{t("centerAdmin.settings.field.description")}</label>
           <textarea rows={4} value={fields.description} onChange={set("description")}
-            style={{ ...inputS, resize: "vertical" }} placeholder="Tell students about your center…" />
+            style={{ ...inputS, resize: "vertical" }} placeholder={t("centerAdmin.settings.field.descriptionPlaceholder")} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
-            <label style={labelS}>City</label>
-            <input type="text" value={fields.city} onChange={set("city")} style={inputS} placeholder="Cairo" />
+            <label style={labelS}>{t("centerAdmin.settings.field.city")}</label>
+            <input type="text" value={fields.city} onChange={set("city")} style={inputS} placeholder={t("centerAdmin.settings.field.cityPlaceholder")} />
           </div>
           <div>
-            <label style={labelS}>Address</label>
-            <input type="text" value={fields.location} onChange={set("location")} style={inputS} placeholder="Street / area" />
+            <label style={labelS}>{t("centerAdmin.settings.field.address")}</label>
+            <input type="text" value={fields.location} onChange={set("location")} style={inputS} placeholder={t("centerAdmin.settings.field.addressPlaceholder")} />
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
-            <label style={labelS}>Phone</label>
+            <label style={labelS}>{t("centerAdmin.settings.field.phone")}</label>
             <input type="tel" value={fields.phone} onChange={set("phone")} style={inputS} placeholder="+20 10 xxxxxxxx" />
           </div>
           <div>
-            <label style={labelS}>Email</label>
+            <label style={labelS}>{t("centerAdmin.settings.field.email")}</label>
             <input type="email" value={fields.email} onChange={set("email")} style={inputS} placeholder="center@example.com" />
           </div>
         </div>
         <div>
-          <label style={labelS}>Logo URL</label>
+          <label style={labelS}>{t("centerAdmin.settings.field.logoUrl")}</label>
           <input type="url" value={fields.logoUrl} onChange={set("logoUrl")} style={inputS} placeholder="https://…" />
           {fields.logoUrl && (
             <div style={{ marginTop: 8, display: "inline-block" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={fields.logoUrl} alt="Logo preview" style={{ width: 64, height: 64, borderRadius: 12, objectFit: "cover", border: "1px solid var(--border-light)" }} />
+              <img src={fields.logoUrl} alt={t("centerAdmin.settings.logoPreview")} style={{ width: 64, height: 64, borderRadius: 12, objectFit: "cover", border: "1px solid var(--border-light)" }} />
             </div>
           )}
         </div>
       </div>
 
       {error && <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--error)" }}>{error}</p>}
-      {success && <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--success)" }}>Settings saved successfully.</p>}
+      {success && <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--success)" }}>{t("centerAdmin.settings.saved")}</p>}
 
       <button
         onClick={handleSave}
@@ -147,7 +149,7 @@ export default function CenterAdminSettings({ centerId }: { centerId: string }) 
         }}
       >
         <Save size={15} strokeWidth={2} />
-        {saving ? "Saving…" : "Save Changes"}
+        {saving ? t("centerAdmin.settings.saving") : t("centerAdmin.settings.save")}
       </button>
     </div>
   );

@@ -84,7 +84,7 @@ export default function ClassCard({
               flexDirection: "column",
               backgroundColor: "var(--bg-card)",
               border: "1px solid var(--border-light)",
-              borderRadius: isCompact ? 14 : 16,
+              borderRadius: isCompact ? 10 : 11,
               overflow: "hidden",
               transition: "border-color var(--transition-fast), box-shadow var(--transition-fast)",
             }}
@@ -93,7 +93,7 @@ export default function ClassCard({
             <div
               style={{
                 position: "relative",
-                height: isCompact ? 96 : 132,
+                height: isCompact ? 96 : 104,
                 flexShrink: 0,
                 overflow: "hidden",
                 backgroundColor: accent,
@@ -133,8 +133,8 @@ export default function ClassCard({
                   insetInlineEnd: 10,
                   top: 10,
                   zIndex: 2,
-                  width: 32,
-                  height: 32,
+                  width: isCompact ? 32 : 24,
+                  height: isCompact ? 32 : 24,
                   borderRadius: 999,
                   border: "none",
                   backgroundColor: "rgba(255,255,255,0.92)",
@@ -159,8 +159,8 @@ export default function ClassCard({
                   backgroundColor: "rgba(255,255,255,0.94)",
                   color: accent,
                   borderRadius: 999,
-                  padding: isCompact ? "3px 9px" : "4px 11px",
-                  fontSize: isCompact ? 10 : 11,
+                  padding: isCompact ? "3px 9px" : "3px 8px",
+                  fontSize: isCompact ? 10 : 9,
                   fontWeight: 800,
                   boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
                 }}
@@ -169,9 +169,9 @@ export default function ClassCard({
               </span>
             </div>
 
-            <div style={{ padding: isCompact ? "10px 10px 12px" : "16px 18px 18px", display: "flex", flexDirection: "column", flex: 1 }}>
+            <div style={{ padding: isCompact ? "10px 10px 12px" : "9px 10px 10px", display: "flex", flexDirection: "column", flex: 1 }}>
             {!isCompact && cls.format && (
-              <span style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 2 }}>
+              <span style={{ color: "var(--text-muted)", fontSize: 9, marginBottom: 1, lineHeight: 1.2 }}>
                 {cls.format.replace("_", " ")}
               </span>
             )}
@@ -179,10 +179,10 @@ export default function ClassCard({
             <h3
               style={{
                 color: "var(--text)",
-                fontSize: isCompact ? 12 : 15,
-                lineHeight: 1.35,
+                fontSize: isCompact ? 12 : 11,
+                lineHeight: 1.25,
                 fontWeight: 800,
-                margin: "2px 0 6px",
+                margin: "1px 0 4px",
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
@@ -193,58 +193,58 @@ export default function ClassCard({
             </h3>
 
             {!isCompact && cls.description && (
-              <p style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6, margin: "0 0 12px" }}>
-                {cls.description.length > 92 ? `${cls.description.slice(0, 92)}...` : cls.description}
+              <p style={{ color: "var(--text-muted)", fontSize: 9, lineHeight: 1.35, margin: "0 0 6px", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                {cls.description}
               </p>
             )}
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: isCompact ? 8 : 12 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: isCompact ? 8 : 6 }}>
               {(cls.gradeLevel || cls.curriculum) && (
-                <span style={{ border: "1px solid var(--border-light)", borderRadius: 999, padding: "2px 8px", color: "var(--text-muted)", fontSize: 11 }}>
+                <span style={{ border: "1px solid var(--border-light)", borderRadius: 999, padding: "1px 6px", color: "var(--text-muted)", fontSize: isCompact ? 11 : 9, lineHeight: 1.4 }}>
                   {cls.gradeLevel ?? cls.curriculum}
                 </span>
               )}
               {!isCompact && cls.curriculum && cls.gradeLevel && (
-                <span style={{ border: "1px solid var(--border-light)", borderRadius: 999, padding: "2px 8px", color: "var(--text-muted)", fontSize: 11 }}>
+                <span style={{ border: "1px solid var(--border-light)", borderRadius: 999, padding: "1px 6px", color: "var(--text-muted)", fontSize: 9, lineHeight: 1.4 }}>
                   {cls.curriculum}
                 </span>
               )}
             </div>
 
             {!isCompact && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 5, color: "var(--text-muted)", fontSize: 12, marginBottom: 12 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3, color: "var(--text-muted)", fontSize: 9, marginBottom: 7 }}>
                 {(cls.location || cls.city) && (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <MapPin size={13} strokeWidth={1.8} aria-hidden /> {cls.location ?? cls.city}
+                    <MapPin size={10} strokeWidth={1.8} aria-hidden /> {cls.location ?? cls.city}
                   </span>
                 )}
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                   {cls.center ? (
-                    <Building2 size={13} strokeWidth={1.8} aria-hidden />
+                    <Building2 size={10} strokeWidth={1.8} aria-hidden />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={tutorPhoto} alt="" loading="lazy" style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover", border: "1.5px solid var(--bg-card)", boxShadow: "0 0 0 1px var(--border-light)" }} />
+                    <img src={tutorPhoto} alt="" loading="lazy" style={{ width: 14, height: 14, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--bg-card)", boxShadow: "0 0 0 1px var(--border-light)" }} />
                   )}
                   {name}
                   {isVerified && (
                     <span title="Verified tutor" style={{ color: "var(--accent)", display: "inline-flex" }}>
-                      <BadgeCheck size={14} strokeWidth={2} aria-hidden />
+                      <BadgeCheck size={11} strokeWidth={2} aria-hidden />
                     </span>
                   )}
                 </span>
                 {cls.avgRating !== null && cls.avgRating !== undefined && (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                    <Star size={13} fill="var(--rating)" color="var(--rating)" aria-hidden /> {cls.avgRating.toFixed(1)}
+                    <Star size={10} fill="var(--rating)" color="var(--rating)" aria-hidden /> {cls.avgRating.toFixed(1)}
                   </span>
                 )}
               </div>
             )}
 
-            <div style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, borderTop: "1px solid var(--border-light)", paddingTop: isCompact ? 8 : 12 }}>
-              <span style={{ color: price === 0 ? "var(--success)" : "var(--accent)", fontWeight: 900, fontSize: isCompact ? "0.95rem" : "1.2rem" }}>
+            <div style={{ marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, borderTop: "1px solid var(--border-light)", paddingTop: isCompact ? 8 : 7 }}>
+              <span style={{ color: price === 0 ? "var(--success)" : "var(--accent)", fontWeight: 900, fontSize: isCompact ? "0.95rem" : "0.76rem", whiteSpace: "nowrap" }}>
                 {price === 0 ? "Free" : `${price.toLocaleString()} EGP`}
               </span>
-              <span style={{ backgroundColor: "var(--accent)", color: "var(--accent-fg)", borderRadius: 8, padding: isCompact ? "5px 8px" : "7px 16px", fontSize: isCompact ? 11 : 13, fontWeight: 700 }}>
+              <span style={{ backgroundColor: "var(--accent)", color: "var(--accent-fg)", borderRadius: 6, padding: isCompact ? "5px 8px" : "4px 7px", fontSize: isCompact ? 11 : 9, fontWeight: 800 }}>
                 View
               </span>
             </div>

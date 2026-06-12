@@ -6,6 +6,7 @@ import {
   BarChart3, Users, BookOpen, Calendar, GraduationCap, DollarSign, Settings,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useI18n } from "@/app/components/i18n";
 
 const CenterAdminOverview  = dynamic(() => import("./CenterAdminOverview"),  { loading: () => <Spinner />, ssr: false });
 const CenterAdminTutors    = dynamic(() => import("./CenterAdminTutors"),    { loading: () => <Spinner />, ssr: false });
@@ -17,23 +18,24 @@ const CenterAdminSettings  = dynamic(() => import("./CenterAdminSettings"),  { l
 
 function Spinner() {
   return (
-    <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>Loading…</div>
+    <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>…</div>
   );
 }
 
 type TabId = "overview" | "tutors" | "classes" | "bookings" | "students" | "revenue" | "settings";
 
-const TABS: Array<{ id: TabId; label: string; icon: React.ReactNode }> = [
-  { id: "overview",  label: "Overview",  icon: <BarChart3 size={14} strokeWidth={1.8} aria-hidden /> },
-  { id: "tutors",    label: "Tutors",    icon: <Users size={14} strokeWidth={1.8} aria-hidden /> },
-  { id: "classes",   label: "Classes",   icon: <BookOpen size={14} strokeWidth={1.8} aria-hidden /> },
-  { id: "bookings",  label: "Bookings",  icon: <Calendar size={14} strokeWidth={1.8} aria-hidden /> },
-  { id: "students",  label: "Students",  icon: <GraduationCap size={14} strokeWidth={1.8} aria-hidden /> },
-  { id: "revenue",   label: "Revenue",   icon: <DollarSign size={14} strokeWidth={1.8} aria-hidden /> },
-  { id: "settings",  label: "Settings",  icon: <Settings size={14} strokeWidth={1.8} aria-hidden /> },
+const TABS: Array<{ id: TabId; labelKey: string; icon: React.ReactNode }> = [
+  { id: "overview",  labelKey: "centerAdmin.tab.overview",  icon: <BarChart3 size={14} strokeWidth={1.8} aria-hidden /> },
+  { id: "tutors",    labelKey: "centerAdmin.tab.tutors",    icon: <Users size={14} strokeWidth={1.8} aria-hidden /> },
+  { id: "classes",   labelKey: "centerAdmin.tab.classes",   icon: <BookOpen size={14} strokeWidth={1.8} aria-hidden /> },
+  { id: "bookings",  labelKey: "centerAdmin.tab.bookings",  icon: <Calendar size={14} strokeWidth={1.8} aria-hidden /> },
+  { id: "students",  labelKey: "centerAdmin.tab.students",  icon: <GraduationCap size={14} strokeWidth={1.8} aria-hidden /> },
+  { id: "revenue",   labelKey: "centerAdmin.tab.revenue",   icon: <DollarSign size={14} strokeWidth={1.8} aria-hidden /> },
+  { id: "settings",  labelKey: "centerAdmin.tab.settings",  icon: <Settings size={14} strokeWidth={1.8} aria-hidden /> },
 ];
 
 export default function CenterAdminClient({ centerId }: { centerId: string }) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   return (
@@ -60,7 +62,7 @@ export default function CenterAdminClient({ centerId }: { centerId: string }) {
               fontFamily: "inherit",
             }}
           >
-            {tab.icon}{tab.label}
+            {tab.icon}{t(tab.labelKey as Parameters<typeof t>[0])}
           </button>
         ))}
       </div>

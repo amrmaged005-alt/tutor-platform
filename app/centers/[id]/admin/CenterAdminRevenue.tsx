@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DollarSign, TrendingUp, Minus } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 
 interface RevenueData {
   grossRevenue: number;
@@ -61,9 +62,11 @@ const tdS: React.CSSProperties = {
 };
 
 export default function CenterAdminRevenue({ centerId }: { centerId: string }) {
+  const { t, lang } = useI18n();
   const [data, setData] = useState<RevenueData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("month");
+  const numLocale = lang === "ar" ? "ar-EG" : "en-EG";
 
   useEffect(() => {
     setLoading(true);
@@ -74,9 +77,9 @@ export default function CenterAdminRevenue({ centerId }: { centerId: string }) {
   }, [centerId, period]);
 
   const periods: Array<{ key: Period; label: string }> = [
-    { key: "month", label: "This Month" },
-    { key: "quarter", label: "This Quarter" },
-    { key: "year", label: "This Year" },
+    { key: "month", label: t("centerAdmin.revenue.period.month") },
+    { key: "quarter", label: t("centerAdmin.revenue.period.quarter") },
+    { key: "year", label: t("centerAdmin.revenue.period.year") },
   ];
 
   return (
@@ -96,22 +99,22 @@ export default function CenterAdminRevenue({ centerId }: { centerId: string }) {
       </div>
 
       {loading ? (
-        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>Loading revenue…</div>
+        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>{t("centerAdmin.revenue.loading")}</div>
       ) : !data ? (
-        <div style={{ padding: "3rem", textAlign: "center", color: "var(--error)" }}>Failed to load.</div>
+        <div style={{ padding: "3rem", textAlign: "center", color: "var(--error)" }}>{t("centerAdmin.revenue.failed")}</div>
       ) : (
         <>
           {/* KPI cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 24 }}>
-            <StatCard label="Gross Revenue" value={`${data.grossRevenue.toLocaleString()} EGP`} icon={<DollarSign size={16} strokeWidth={1.8} />} accent />
-            <StatCard label="Platform Fee" value={`${data.platformFee.toLocaleString()} EGP`} icon={<Minus size={16} strokeWidth={1.8} />} />
-            <StatCard label="Net Revenue" value={`${data.netRevenue.toLocaleString()} EGP`} icon={<TrendingUp size={16} strokeWidth={1.8} />} />
+            <StatCard label={t("centerAdmin.revenue.gross")} value={t("common.priceEgp", { price: data.grossRevenue.toLocaleString(numLocale) })} icon={<DollarSign size={16} strokeWidth={1.8} />} accent />
+            <StatCard label={t("centerAdmin.revenue.platformFee")} value={t("common.priceEgp", { price: data.platformFee.toLocaleString(numLocale) })} icon={<Minus size={16} strokeWidth={1.8} />} />
+            <StatCard label={t("centerAdmin.revenue.net")} value={t("common.priceEgp", { price: data.netRevenue.toLocaleString(numLocale) })} icon={<TrendingUp size={16} strokeWidth={1.8} />} />
           </div>
 
           {/* Monthly chart */}
           {data.revenueByMonth.length > 0 && (
             <div style={{ borderRadius: 12, border: "1px solid var(--border-light)", padding: "16px", marginBottom: 20 }}>
-              <h3 style={{ margin: "0 0 16px", fontSize: 13, fontWeight: 700, color: "var(--text)" }}>Revenue by Month</h3>
+              <h3 style={{ margin: "0 0 16px", fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{t("centerAdmin.revenue.byMonth")}</h3>
               <BarChart data={data.revenueByMonth} />
             </div>
           )}
@@ -120,14 +123,14 @@ export default function CenterAdminRevenue({ centerId }: { centerId: string }) {
           {data.revenueByClass.length > 0 && (
             <div style={{ borderRadius: 12, border: "1px solid var(--border-light)", overflow: "hidden", marginBottom: 20 }}>
               <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border-light)" }}>
-                <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--text)" }}>Top Classes</h3>
+                <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{t("centerAdmin.revenue.topClasses")}</h3>
               </div>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    <th style={thS}>Class</th>
-                    <th style={{ ...thS, textAlign: "center" }}>Bookings</th>
-                    <th style={{ ...thS, textAlign: "right" }}>Revenue</th>
+                    <th style={thS}>{t("centerAdmin.revenue.col.class")}</th>
+                    <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.revenue.col.bookings")}</th>
+                    <th style={{ ...thS, textAlign: "right" }}>{t("centerAdmin.revenue.col.revenue")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -136,7 +139,7 @@ export default function CenterAdminRevenue({ centerId }: { centerId: string }) {
                       <td style={tdS}>{c.classTitle}</td>
                       <td style={{ ...tdS, textAlign: "center" }}>{c.bookingCount}</td>
                       <td style={{ ...tdS, textAlign: "right", fontWeight: 700, color: "var(--text)" }}>
-                        {c.revenue.toLocaleString()} EGP
+                        {t("common.priceEgp", { price: c.revenue.toLocaleString(numLocale) })}
                       </td>
                     </tr>
                   ))}
@@ -149,23 +152,23 @@ export default function CenterAdminRevenue({ centerId }: { centerId: string }) {
           {data.revenueByTutor.length > 0 && (
             <div style={{ borderRadius: 12, border: "1px solid var(--border-light)", overflow: "hidden" }}>
               <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border-light)" }}>
-                <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--text)" }}>Top Tutors</h3>
+                <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{t("centerAdmin.revenue.topTutors")}</h3>
               </div>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    <th style={thS}>Tutor</th>
-                    <th style={{ ...thS, textAlign: "center" }}>Classes</th>
-                    <th style={{ ...thS, textAlign: "right" }}>Revenue</th>
+                    <th style={thS}>{t("centerAdmin.revenue.col.tutor")}</th>
+                    <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.revenue.col.classes")}</th>
+                    <th style={{ ...thS, textAlign: "right" }}>{t("centerAdmin.revenue.col.revenue")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.revenueByTutor.slice(0, 10).map((t) => (
-                    <tr key={t.tutorId}>
-                      <td style={tdS}>{t.tutorName}</td>
-                      <td style={{ ...tdS, textAlign: "center" }}>{t.classCount}</td>
+                  {data.revenueByTutor.slice(0, 10).map((row) => (
+                    <tr key={row.tutorId}>
+                      <td style={tdS}>{row.tutorName}</td>
+                      <td style={{ ...tdS, textAlign: "center" }}>{row.classCount}</td>
                       <td style={{ ...tdS, textAlign: "right", fontWeight: 700, color: "var(--text)" }}>
-                        {t.revenue.toLocaleString()} EGP
+                        {t("common.priceEgp", { price: row.revenue.toLocaleString(numLocale) })}
                       </td>
                     </tr>
                   ))}
@@ -176,7 +179,7 @@ export default function CenterAdminRevenue({ centerId }: { centerId: string }) {
 
           {data.revenueByClass.length === 0 && (
             <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
-              No revenue data for this period.
+              {t("centerAdmin.revenue.empty")}
             </div>
           )}
         </>

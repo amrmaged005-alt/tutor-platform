@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Users, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/app/components/i18n";
 
 interface EnrolledClass { id: string; title: string; subject: string; }
 
@@ -43,6 +44,7 @@ function Avatar({ name, size = 32 }: { name: string; size?: number }) {
 }
 
 export default function CenterAdminStudents({ centerId }: { centerId: string }) {
+  const { t, lang } = useI18n();
   const [students, setStudents] = useState<StudentEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -71,7 +73,7 @@ export default function CenterAdminStudents({ centerId }: { centerId: string }) 
       <div style={{ marginBottom: 16 }}>
         <input
           type="search"
-          placeholder="Search by name or email…"
+          placeholder={t("centerAdmin.students.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
@@ -83,11 +85,11 @@ export default function CenterAdminStudents({ centerId }: { centerId: string }) 
       </div>
 
       {loading ? (
-        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>Loading students…</div>
+        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>{t("centerAdmin.students.loading")}</div>
       ) : students.length === 0 ? (
         <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
           <Users size={32} strokeWidth={1.2} style={{ opacity: 0.3, display: "block", margin: "0 auto 10px" }} />
-          No students found.
+          {t("centerAdmin.students.empty")}
         </div>
       ) : (
         <div style={{ borderRadius: 12, border: "1px solid var(--border-light)", overflow: "hidden" }}>
@@ -95,17 +97,17 @@ export default function CenterAdminStudents({ centerId }: { centerId: string }) 
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th style={thS}>Student</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Sessions</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Total Spend</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Classes</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Last Active</th>
-                  <th style={{ ...thS, textAlign: "right" }}>Actions</th>
+                  <th style={thS}>{t("centerAdmin.students.col.student")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.students.col.sessions")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.students.col.totalSpend")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.students.col.classes")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.students.col.lastActive")}</th>
+                  <th style={{ ...thS, textAlign: "right" }}>{t("centerAdmin.students.col.actions")}</th>
                 </tr>
               </thead>
               <tbody>
                 {students.map((s) => {
-                  const displayName = s.fullName ?? s.name ?? s.email ?? "Student";
+                  const displayName = s.fullName ?? s.name ?? s.email ?? t("centerAdmin.students.fallbackName");
                   const isOpen = expanded.has(s.id);
                   return (
                     <>
@@ -121,7 +123,7 @@ export default function CenterAdminStudents({ centerId }: { centerId: string }) 
                         </td>
                         <td style={{ ...tdS, textAlign: "center", fontWeight: 700 }}>{s.totalBookings}</td>
                         <td style={{ ...tdS, textAlign: "center", fontWeight: 700 }}>
-                          {s.totalSpend > 0 ? `${s.totalSpend} EGP` : "—"}
+                          {s.totalSpend > 0 ? t("common.priceEgp", { price: s.totalSpend }) : "—"}
                         </td>
                         <td style={{ ...tdS, textAlign: "center" }}>
                           <button
@@ -133,7 +135,7 @@ export default function CenterAdminStudents({ centerId }: { centerId: string }) 
                           </button>
                         </td>
                         <td style={{ ...tdS, textAlign: "center", fontSize: 12 }}>
-                          {new Date(s.lastBookingDate).toLocaleDateString()}
+                          {new Date(s.lastBookingDate).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-EG")}
                         </td>
                         <td style={{ ...tdS, textAlign: "right" }}>
                           <Link href="/messages" style={{
@@ -142,14 +144,14 @@ export default function CenterAdminStudents({ centerId }: { centerId: string }) 
                             border: "1px solid var(--border-light)", background: "var(--bg-alt)",
                             color: "var(--text-muted)", fontSize: 11, fontWeight: 600, textDecoration: "none",
                           }}>
-                            <MessageCircle size={11} strokeWidth={1.8} /> Message
+                            <MessageCircle size={11} strokeWidth={1.8} /> {t("centerAdmin.students.message")}
                           </Link>
                         </td>
                       </tr>
                       {isOpen && (
                         <tr key={`${s.id}-detail`}>
                           <td colSpan={6} style={{ padding: "0 14px 12px 14px", borderBottom: "1px solid var(--border-light)", backgroundColor: "var(--bg-alt)" }}>
-                            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 6, marginTop: 8, fontWeight: 700 }}>ENROLLED CLASSES</div>
+                            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 6, marginTop: 8, fontWeight: 700 }}>{t("centerAdmin.students.enrolledClasses")}</div>
                             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                               {s.enrolledClasses.map((c) => (
                                 <Link key={c.id} href={`/classes/${c.id}`} style={{

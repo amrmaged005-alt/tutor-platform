@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback, useState } from "react";
 import { DollarSign, Users, GraduationCap, BookOpen, CheckCircle, Star } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 
 interface CenterStats {
   totalRevenue: number;
@@ -37,6 +38,7 @@ function StatCard({ label, value, sub, icon }: {
 }
 
 export default function CenterAdminOverview({ centerId }: { centerId: string }) {
+  const { t } = useI18n();
   const [stats, setStats] = useState<CenterStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,34 +52,34 @@ export default function CenterAdminOverview({ centerId }: { centerId: string }) 
 
   useEffect(() => { load(); }, [load]);
 
-  if (loading) return <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>Loading…</div>;
-  if (!stats) return <div style={{ padding: "3rem", textAlign: "center", color: "var(--error)" }}>Failed to load stats.</div>;
+  if (loading) return <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>{t("centerAdmin.loading")}</div>;
+  if (!stats) return <div style={{ padding: "3rem", textAlign: "center", color: "var(--error)" }}>{t("centerAdmin.overview.failed")}</div>;
 
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12, marginBottom: "1.5rem" }}>
-        <StatCard label="Total Revenue" value={`${stats.totalRevenue} EGP`} sub={`${stats.revenueThisMonth} EGP this month`} icon={<DollarSign size={16} strokeWidth={1.8} />} />
-        <StatCard label="Active Tutors" value={stats.activeTutors} icon={<Users size={16} strokeWidth={1.8} />} />
-        <StatCard label="Active Classes" value={stats.activeClasses} icon={<GraduationCap size={16} strokeWidth={1.8} />} />
-        <StatCard label="Total Students" value={stats.totalStudents} icon={<BookOpen size={16} strokeWidth={1.8} />} />
-        <StatCard label="Total Bookings" value={stats.totalBookings} icon={<CheckCircle size={16} strokeWidth={1.8} />} />
+        <StatCard label={t("centerAdmin.overview.totalRevenue")} value={t("common.priceEgp", { price: stats.totalRevenue })} sub={t("centerAdmin.overview.thisMonth", { amount: stats.revenueThisMonth })} icon={<DollarSign size={16} strokeWidth={1.8} />} />
+        <StatCard label={t("centerAdmin.overview.activeTutors")} value={stats.activeTutors} icon={<Users size={16} strokeWidth={1.8} />} />
+        <StatCard label={t("centerAdmin.overview.activeClasses")} value={stats.activeClasses} icon={<GraduationCap size={16} strokeWidth={1.8} />} />
+        <StatCard label={t("centerAdmin.overview.totalStudents")} value={stats.totalStudents} icon={<BookOpen size={16} strokeWidth={1.8} />} />
+        <StatCard label={t("centerAdmin.overview.totalBookings")} value={stats.totalBookings} icon={<CheckCircle size={16} strokeWidth={1.8} />} />
         {stats.avgRating !== null && (
-          <StatCard label="Avg Rating" value={stats.avgRating} icon={<Star size={16} strokeWidth={1.8} />} />
+          <StatCard label={t("centerAdmin.overview.avgRating")} value={stats.avgRating} icon={<Star size={16} strokeWidth={1.8} />} />
         )}
       </div>
 
       {stats.topTutor && (
         <div style={{ padding: "1rem 1.25rem", borderRadius: 12, border: "1px solid var(--border-light)", backgroundColor: "var(--bg-card)", marginBottom: "1.25rem" }}>
-          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Top Tutor</p>
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{t("centerAdmin.overview.topTutor")}</p>
           <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: "var(--text)" }}>{stats.topTutor.name}</p>
-          <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-muted)" }}>{stats.topTutor.bookings} bookings</p>
+          <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-muted)" }}>{t("centerAdmin.overview.bookingsCount", { n: stats.topTutor.bookings })}</p>
         </div>
       )}
 
       {stats.revenueByTutor.length > 0 && (
         <div style={{ borderRadius: 12, border: "1px solid var(--border-light)", overflow: "hidden" }}>
           <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border-light)" }}>
-            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Revenue by Tutor</h3>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{t("centerAdmin.overview.revenueByTutor")}</h3>
           </div>
           {stats.revenueByTutor.map((row, i) => {
             const max = stats.revenueByTutor[0].amount || 1;
@@ -88,7 +90,7 @@ export default function CenterAdminOverview({ centerId }: { centerId: string }) 
                 <div style={{ flex: 3, height: 6, borderRadius: 99, backgroundColor: "var(--border-light)", overflow: "hidden" }}>
                   <div style={{ width: `${pct}%`, height: "100%", borderRadius: 99, backgroundColor: "var(--accent)", transition: "width 0.4s ease" }} />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", minWidth: 80, textAlign: "right" }}>{row.amount} EGP</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", minWidth: 80, textAlign: "right" }}>{t("common.priceEgp", { price: row.amount })}</span>
               </div>
             );
           })}

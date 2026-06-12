@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 
 interface BookingEntry {
   id: string;
@@ -26,13 +27,21 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   CANCELLED: { bg: "var(--error-bg)",   color: "var(--error)" },
 };
 
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  PENDING: "centerAdmin.bookings.status.PENDING",
+  CONFIRMED: "centerAdmin.bookings.status.CONFIRMED",
+  CANCELLED: "centerAdmin.bookings.status.CANCELLED",
+};
+
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useI18n();
   const s = STATUS_COLORS[status] ?? { bg: "var(--bg-alt)", color: "var(--text-muted)" };
+  const label = STATUS_LABEL_KEYS[status] ? t(STATUS_LABEL_KEYS[status] as Parameters<typeof t>[0]) : status;
   return (
     <span style={{
       fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99,
       backgroundColor: s.bg, color: s.color,
-    }}>{status}</span>
+    }}>{label}</span>
   );
 }
 
@@ -48,6 +57,7 @@ const tdS: React.CSSProperties = {
 };
 
 export default function CenterAdminBookings({ centerId }: { centerId: string }) {
+  const { t, lang } = useI18n();
   const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -98,35 +108,35 @@ export default function CenterAdminBookings({ centerId }: { centerId: string }) 
       {/* Filters */}
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
         <div>
-          <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Status</label>
+          <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.bookings.filter.status")}</label>
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
             style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid var(--border-light)", backgroundColor: "var(--bg-alt)", color: "var(--text)", fontSize: 13 }}
           >
-            <option value="all">All</option>
-            <option value="PENDING">Pending</option>
-            <option value="CONFIRMED">Confirmed</option>
-            <option value="CANCELLED">Cancelled</option>
+            <option value="all">{t("centerAdmin.bookings.filter.all")}</option>
+            <option value="PENDING">{t("centerAdmin.bookings.filter.pending")}</option>
+            <option value="CONFIRMED">{t("centerAdmin.bookings.filter.confirmed")}</option>
+            <option value="CANCELLED">{t("centerAdmin.bookings.filter.cancelled")}</option>
           </select>
         </div>
         <div>
-          <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Class</label>
+          <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.bookings.filter.class")}</label>
           <select
             value={classFilter}
             onChange={(e) => { setClassFilter(e.target.value); setPage(1); }}
             style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid var(--border-light)", backgroundColor: "var(--bg-alt)", color: "var(--text)", fontSize: 13, maxWidth: 200 }}
           >
-            <option value="all">All Classes</option>
+            <option value="all">{t("centerAdmin.bookings.filter.allClasses")}</option>
             {classes.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>Loading bookings…</div>
+        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>{t("centerAdmin.bookings.loading")}</div>
       ) : bookings.length === 0 ? (
-        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>No bookings found.</div>
+        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>{t("centerAdmin.bookings.empty")}</div>
       ) : (
         <>
           <div style={{ borderRadius: 12, border: "1px solid var(--border-light)", overflow: "hidden" }}>
@@ -134,13 +144,13 @@ export default function CenterAdminBookings({ centerId }: { centerId: string }) 
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    <th style={thS}>Student</th>
-                    <th style={thS}>Class</th>
-                    <th style={thS}>Tutor</th>
-                    <th style={{ ...thS, textAlign: "center" }}>Amount</th>
-                    <th style={{ ...thS, textAlign: "center" }}>Status</th>
-                    <th style={{ ...thS, textAlign: "center" }}>Date</th>
-                    <th style={{ ...thS, textAlign: "right" }}>Actions</th>
+                    <th style={thS}>{t("centerAdmin.bookings.col.student")}</th>
+                    <th style={thS}>{t("centerAdmin.bookings.col.class")}</th>
+                    <th style={thS}>{t("centerAdmin.bookings.col.tutor")}</th>
+                    <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.bookings.col.amount")}</th>
+                    <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.bookings.col.status")}</th>
+                    <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.bookings.col.date")}</th>
+                    <th style={{ ...thS, textAlign: "right" }}>{t("centerAdmin.bookings.col.actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -156,11 +166,11 @@ export default function CenterAdminBookings({ centerId }: { centerId: string }) 
                       </td>
                       <td style={tdS}>{b.tutorName ?? <span style={{ color: "var(--text-muted)" }}>—</span>}</td>
                       <td style={{ ...tdS, textAlign: "center", fontWeight: 700 }}>
-                        {b.amountEgp != null ? `${b.amountEgp} EGP` : "—"}
+                        {b.amountEgp != null ? t("common.priceEgp", { price: b.amountEgp }) : "—"}
                       </td>
                       <td style={{ ...tdS, textAlign: "center" }}><StatusBadge status={b.status} /></td>
                       <td style={{ ...tdS, textAlign: "center", fontSize: 12 }}>
-                        {new Date(b.createdAt).toLocaleDateString()}
+                        {new Date(b.createdAt).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-EG")}
                       </td>
                       <td style={{ ...tdS, textAlign: "right" }}>
                         <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
@@ -170,16 +180,16 @@ export default function CenterAdminBookings({ centerId }: { centerId: string }) 
                               disabled={updating === b.id}
                               style={{ padding: "4px 10px", borderRadius: 6, border: "none", background: "var(--success)", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
                             >
-                              Confirm
+                              {t("centerAdmin.bookings.confirm")}
                             </button>
                           )}
                           {b.status !== "CANCELLED" && (
                             <button
-                              onClick={() => { if (confirm("Cancel this booking?")) updateStatus(b.id, "CANCELLED"); }}
+                              onClick={() => { if (confirm(t("centerAdmin.bookings.cancelConfirm"))) updateStatus(b.id, "CANCELLED"); }}
                               disabled={updating === b.id}
                               style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid var(--error-border, rgba(220,38,38,0.3))", background: "var(--error-bg)", color: "var(--error)", fontSize: 11, fontWeight: 700, cursor: "pointer" }}
                             >
-                              Cancel
+                              {t("centerAdmin.bookings.cancel")}
                             </button>
                           )}
                         </div>
@@ -199,7 +209,7 @@ export default function CenterAdminBookings({ centerId }: { centerId: string }) 
                 <ChevronLeft size={14} />
               </button>
               <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                Page {page} of {totalPages} · {total} total
+                {t("centerAdmin.bookings.pagination", { page, totalPages, total })}
               </span>
               <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
                 style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid var(--border-light)", background: "var(--bg-alt)", color: "var(--text-muted)", cursor: page === totalPages ? "not-allowed" : "pointer", display: "inline-flex" }}>

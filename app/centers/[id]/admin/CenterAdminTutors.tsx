@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Users, UserPlus, Trash2, ShieldCheck, Star } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 
 type AccessLevel = "FULL" | "LIMITED" | "VIEW_ONLY";
 
@@ -17,10 +18,10 @@ interface TutorEntry {
   avgRating: number | null;
 }
 
-const ACCESS_OPTIONS: Array<{ value: AccessLevel; label: string; hint: string }> = [
-  { value: "FULL", label: "Full Access", hint: "Sees all bookings for their classes, manages students, accepts/declines bookings" },
-  { value: "LIMITED", label: "Limited", hint: "Sees their class schedule only; no revenue or other students" },
-  { value: "VIEW_ONLY", label: "View Only", hint: "Sees their class info; cannot make changes" },
+const ACCESS_OPTIONS: Array<{ value: AccessLevel; labelKey: string; hintKey: string }> = [
+  { value: "FULL", labelKey: "centerAdmin.access.full", hintKey: "centerAdmin.access.full.hint" },
+  { value: "LIMITED", labelKey: "centerAdmin.access.limited", hintKey: "centerAdmin.access.limited.hint" },
+  { value: "VIEW_ONLY", labelKey: "centerAdmin.access.viewOnly", hintKey: "centerAdmin.access.viewOnly.hint" },
 ];
 
 const thS: React.CSSProperties = {
@@ -35,6 +36,7 @@ const tdS: React.CSSProperties = {
 };
 
 export default function CenterAdminTutors({ centerId }: { centerId: string }) {
+  const { t: tr } = useI18n();
   const [tutors, setTutors] = useState<TutorEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -62,13 +64,13 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
         body: JSON.stringify({ email: inviteEmail.trim() }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { setInviteError(data.error ?? "Failed to add tutor"); }
+      if (!res.ok) { setInviteError(data.error ?? tr("centerAdmin.tutors.addFailed")); }
       else {
         setInviteEmail("");
-        setInviteSuccess(`${data.tutor?.fullName ?? data.tutor?.name ?? "Tutor"} added to center.`);
+        setInviteSuccess(tr("centerAdmin.tutors.added", { name: data.tutor?.fullName ?? data.tutor?.name ?? tr("centerAdmin.tutors.addedFallbackName") }));
         load();
       }
-    } catch { setInviteError("Network error"); }
+    } catch { setInviteError(tr("common.networkError")); }
     finally { setInviting(false); }
   };
 
@@ -93,7 +95,7 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
   };
 
   const handleRemove = async (tutorId: string) => {
-    if (!confirm("Remove this tutor from the center?")) return;
+    if (!confirm(tr("centerAdmin.tutors.removeConfirm"))) return;
     setRemoving(tutorId);
     try {
       await fetch(`/api/centers/${centerId}/tutors`, {
@@ -109,10 +111,10 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
     <div>
       {/* Invite form */}
       <div style={{ padding: "1rem 1.25rem", borderRadius: 12, border: "1px solid var(--border-light)", backgroundColor: "var(--bg-card)", marginBottom: "1.25rem" }}>
-        <h3 style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Add Tutor by Email</h3>
+        <h3 style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{tr("centerAdmin.tutors.addByEmail")}</h3>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <input
-            type="email" value={inviteEmail} placeholder="tutor@example.com"
+            type="email" value={inviteEmail} placeholder={tr("centerAdmin.tutors.emailPlaceholder")}
             onChange={(e) => setInviteEmail(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleInvite(); }}
             style={{ flex: 1, minWidth: 220, padding: "8px 12px", borderRadius: 8, border: `1px solid ${inviteError ? "var(--error)" : "var(--border-light)"}`, backgroundColor: "var(--bg-alt)", color: "var(--text)", fontSize: 13 }}
@@ -120,7 +122,7 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
           <button onClick={handleInvite} disabled={inviting || !inviteEmail.trim()}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", background: "var(--accent)", color: "var(--accent-fg)", fontSize: 13, fontWeight: 700, cursor: inviting ? "wait" : "pointer" }}>
             <UserPlus size={14} strokeWidth={2} aria-hidden />
-            {inviting ? "Adding…" : "Add"}
+            {inviting ? tr("centerAdmin.tutors.adding") : tr("centerAdmin.tutors.add")}
           </button>
         </div>
         {inviteError && <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--error)" }}>{inviteError}</p>}
@@ -129,11 +131,11 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
 
       {/* Table */}
       {loading ? (
-        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>Loading tutors…</div>
+        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>{tr("centerAdmin.tutors.loading")}</div>
       ) : tutors.length === 0 ? (
         <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
           <Users size={32} strokeWidth={1.2} style={{ opacity: 0.3, display: "block", margin: "0 auto 10px" }} aria-hidden />
-          No tutors yet. Add one above.
+          {tr("centerAdmin.tutors.empty")}
         </div>
       ) : (
         <div style={{ borderRadius: 12, border: "1px solid var(--border-light)", overflow: "hidden" }}>
@@ -141,12 +143,12 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th style={thS}>Tutor</th>
-                  <th style={thS}>Subjects</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Classes</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Rating</th>
-                  <th style={thS}>Access Level</th>
-                  <th style={{ ...thS, textAlign: "right" }}>Actions</th>
+                  <th style={thS}>{tr("centerAdmin.tutors.col.tutor")}</th>
+                  <th style={thS}>{tr("centerAdmin.tutors.col.subjects")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{tr("centerAdmin.tutors.col.classes")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{tr("centerAdmin.tutors.col.rating")}</th>
+                  <th style={thS}>{tr("centerAdmin.tutors.col.accessLevel")}</th>
+                  <th style={{ ...thS, textAlign: "right" }}>{tr("centerAdmin.tutors.col.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -160,7 +162,7 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
                         <div>
                           <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 13, display: "flex", alignItems: "center", gap: 4 }}>
                             {t.fullName ?? t.name ?? "—"}
-                            {t.isVerified && <ShieldCheck size={12} strokeWidth={2} style={{ color: "var(--accent)" }} aria-label="Verified" />}
+                            {t.isVerified && <ShieldCheck size={12} strokeWidth={2} style={{ color: "var(--accent)" }} aria-label={tr("centerAdmin.tutors.verified")} />}
                           </div>
                           {t.email && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t.email}</div>}
                         </div>
@@ -187,19 +189,19 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
                         value={t.accessLevel}
                         disabled={savingAccess === t.id}
                         onChange={(e) => handleAccessChange(t.id, e.target.value as AccessLevel)}
-                        aria-label={`Access level for ${t.fullName ?? t.name ?? "tutor"}`}
-                        title={ACCESS_OPTIONS.find((o) => o.value === t.accessLevel)?.hint}
+                        aria-label={tr("centerAdmin.tutors.accessFor", { name: t.fullName ?? t.name ?? tr("centerAdmin.tutors.fallbackTutor") })}
+                        title={(() => { const o = ACCESS_OPTIONS.find((o) => o.value === t.accessLevel); return o ? tr(o.hintKey as Parameters<typeof tr>[0]) : undefined; })()}
                         style={{ padding: "5px 8px", borderRadius: 7, border: "1px solid var(--border-light)", backgroundColor: "var(--bg-alt)", color: "var(--text)", fontSize: 12, fontWeight: 600, cursor: savingAccess === t.id ? "wait" : "pointer" }}
                       >
                         {ACCESS_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>{o.label}</option>
+                          <option key={o.value} value={o.value}>{tr(o.labelKey as Parameters<typeof tr>[0])}</option>
                         ))}
                       </select>
                     </td>
                     <td style={{ ...tdS, textAlign: "right" }}>
-                      <button onClick={() => handleRemove(t.id)} disabled={removing === t.id} title="Remove from center"
+                      <button onClick={() => handleRemove(t.id)} disabled={removing === t.id} title={tr("centerAdmin.tutors.removeTitle")}
                         style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 7, border: "1px solid var(--error-border, rgba(220,38,38,0.3))", background: "var(--error-bg)", color: "var(--error)", fontSize: 12, cursor: removing === t.id ? "wait" : "pointer" }}>
-                        <Trash2 size={12} strokeWidth={1.8} aria-hidden /> Remove
+                        <Trash2 size={12} strokeWidth={1.8} aria-hidden /> {tr("centerAdmin.tutors.remove")}
                       </button>
                     </td>
                   </tr>

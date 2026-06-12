@@ -2,39 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
-import Link from "next/link";
-import { ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
-import { useI18n } from "../components/i18n";
+import { BookOpenCheck, Flame, RotateCcw, Search, SlidersHorizontal, X } from "lucide-react";
 import { useFilterParams } from "../hooks/useFilterParams";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useIsMobile } from "../hooks/useIsMobile";
 import ClassFilterBottomSheet from "./components/ClassFilterBottomSheet";
 import ClassFilters, { type ClassFilterState } from "./components/ClassFilters";
 import ClassCard, { type ClassCardData } from "./components/ClassCard";
-import TrendingClassesRow from "./components/TrendingClassesRow";
 import { DEFAULT_CLASS_FILTERS, filterClasses, getActiveClassFilterCount } from "./components/classFiltering";
-
-const SUBJECTS = [
-  "Math", "Physics", "Chemistry", "Biology", "English", "Arabic", "History",
-  "Geography", "French", "Computer Science", "Science", "Economics",
-  "Accounting", "Business",
-];
-
-function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--text)", margin: "0 0 4px" }}>
-        {title}
-      </h2>
-      {subtitle && <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>{subtitle}</p>}
-    </div>
-  );
-}
 
 function ResultsGrid({ classes }: { classes: ClassCardData[] }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 18 }}>
+    <div className="classes-results-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10 }}>
       {classes.map((cls, index) => <ClassCard key={cls.id} cls={cls} index={index} />)}
     </div>
   );
@@ -48,9 +27,124 @@ function mobileGrid(classes: ClassCardData[]) {
   );
 }
 
+function TrendingPills({ classes, activeSubject, onSelect }: { classes: ClassCardData[]; activeSubject: string; onSelect: (subject: string) => void }) {
+  const subjects = useMemo(() => {
+    const seen = new Set<string>();
+    return classes.filter((cls) => {
+      if (seen.has(cls.subject)) return false;
+      seen.add(cls.subject);
+      return true;
+    }).slice(0, 6);
+  }, [classes]);
+
+  if (subjects.length === 0) return null;
+
+  return (
+    <section style={{ marginBlock: "10px 12px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--bronze)", fontSize: 11, fontWeight: 850, marginBottom: 7 }}>
+        <Flame size={12} strokeWidth={2} aria-hidden />
+        Trending now
+      </div>
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
+        {subjects.map((cls) => {
+          const active = activeSubject === cls.subject;
+          return (
+            <button
+              key={cls.subject}
+              type="button"
+              onClick={() => onSelect(active ? "" : cls.subject)}
+              style={{
+                minWidth: 98,
+                maxWidth: 118,
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                border: `1px solid ${active ? "var(--accent-border)" : "var(--border-light)"}`,
+                background: active ? "var(--accent-bg)" : "var(--bg-card)",
+                color: "var(--text)",
+                borderRadius: 9,
+                padding: "7px 8px",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <span style={{ width: 28, height: 28, borderRadius: 999, display: "grid", placeItems: "center", flexShrink: 0, background: active ? "var(--accent)" : "var(--accent-bg)", color: active ? "var(--accent-fg)" : "var(--accent)", fontSize: 11, fontWeight: 900 }}>
+                {cls.subject.slice(0, 2).toUpperCase()}
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 11, fontWeight: 850 }}>{cls.subject}</span>
+                <span style={{ display: "block", color: "var(--text-muted)", fontSize: 9 }}>{cls.bookingsCount ?? 0} bookings</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function LoadingPatternPanel() {
+  return (
+    <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 11, padding: 12 }}>
+      <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 800, marginBottom: 10 }}>Loading skeleton pattern</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} style={{ display: "grid", gap: 5 }}>
+            <div className="skeleton" style={{ height: 44, borderRadius: 7 }} />
+            <div className="skeleton" style={{ height: 7, width: "82%" }} />
+            <div className="skeleton" style={{ height: 7, width: "55%" }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RightRail({ resultCount, activeCount, onReset }: { resultCount: number; activeCount: number; onReset: () => void }) {
+  return (
+    <aside className="classes-right-rail" style={{ width: 216, flexShrink: 0, display: "grid", gap: 14, position: "sticky", top: 80 }}>
+      <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 800 }}>No results state</div>
+      <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 11, padding: "19px 16px", textAlign: "center" }}>
+        <div style={{ width: 64, height: 64, margin: "0 auto 10px", borderRadius: 999, display: "grid", placeItems: "center", color: "var(--accent)", background: "var(--accent-bg)" }}>
+          <BookOpenCheck size={32} strokeWidth={1.7} aria-hidden />
+        </div>
+        <div style={{ color: "var(--text)", fontSize: 14, fontWeight: 900, marginBottom: 4 }}>
+          {resultCount === 0 ? "No classes found" : `${resultCount} classes found`}
+        </div>
+        <p style={{ color: "var(--text-muted)", fontSize: 11, lineHeight: 1.45, margin: "0 0 13px" }}>
+          {resultCount === 0 ? "We couldn't find any classes matching your search." : "Refine filters or open a class to compare details."}
+        </p>
+        <button
+          type="button"
+          onClick={onReset}
+          disabled={activeCount === 0}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            minHeight: 30,
+            padding: "0 14px",
+            borderRadius: 7,
+            border: "1px solid var(--accent)",
+            background: activeCount > 0 ? "var(--accent)" : "var(--accent-bg)",
+            color: activeCount > 0 ? "var(--accent-fg)" : "var(--accent)",
+            fontSize: 11,
+            fontWeight: 850,
+            cursor: activeCount > 0 ? "pointer" : "default",
+          }}
+        >
+          <RotateCcw size={12} strokeWidth={2} aria-hidden />
+          Reset filters
+        </button>
+      </div>
+      <LoadingPatternPanel />
+    </aside>
+  );
+}
+
 export default function ClassesClient({ classes }: { classes: ClassCardData[] }) {
   const isMobile = useIsMobile();
-  const { t } = useI18n();
   const { filters, setFilter, resetFilters } = useFilterParams(DEFAULT_CLASS_FILTERS);
   const typedFilters = filters as ClassFilterState;
   const [items, setItems] = useState(classes);
@@ -135,7 +229,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
   const { sentinelRef, isLoading } = useInfiniteScroll(loadMore, hasMore);
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-alt)", color: "var(--text)" }}>
+    <div style={{ minHeight: "calc(100vh - 64px)", backgroundColor: "var(--bg)", color: "var(--text)" }}>
       <ClassFilterBottomSheet
         open={mobileFiltersOpen}
         filters={draftFilters}
@@ -149,50 +243,43 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
       />
 
       <div
+        className="mobile-only"
         style={{
-          backgroundColor: "var(--bg-card)",
-          borderBottom: "1px solid var(--border-light)",
-          padding: isMobile ? "10px 14px 12px" : "32px 24px 28px",
-          position: "relative",
-          overflow: "hidden",
+          padding: "10px 14px 0",
+          flexDirection: "column",
+          gap: 8,
         }}
       >
-        <div
-            className="desktop-only"
-            style={{
-              position: "absolute",
-              top: 0,
-              bottom: 0,
-              insetInlineEnd: 0,
-              width: "min(44%, 520px)",
-              opacity: 0.5,
-              pointerEvents: "none",
-              maskImage: "linear-gradient(90deg, transparent 0%, black 35%)",
-              WebkitMaskImage: "linear-gradient(90deg, transparent 0%, black 35%)",
-            }}
-            aria-hidden="true"
-          >
-            <Image src="/higgsfield/group-study.webp" alt="" fill priority sizes="520px" style={{ objectFit: "cover" }} />
+        <h1 style={{ fontSize: 20, fontWeight: 900, color: "var(--text)", margin: 0, letterSpacing: 0 }}>Browse Classes</h1>
+      </div>
+
+      <div className="classes-marketplace-shell" style={{ maxWidth: 1180, margin: "0 auto", display: "flex", alignItems: "flex-start" }}>
+        <div className="desktop-only" style={{ flexDirection: "column", flexShrink: 0 }}>
+          <ClassFilters
+            filters={typedFilters}
+            onChange={updateFilter}
+            onReset={resetFilters}
+            activeCount={activeFilterCount}
+          />
         </div>
 
-        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
-          <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: 6, marginBottom: 16, color: "var(--text-muted)", fontSize: 13 }}>
-            <Link href="/" style={{ color: "var(--text-muted)", textDecoration: "none" }}>{t("common.home")}</Link>
-            <ChevronRight size={12} strokeWidth={2} aria-hidden />
-            <span style={{ color: "var(--text)" }}>Classes</span>
-          </div>
-
-          <h1 style={{ fontSize: isMobile ? 20 : "clamp(22px, 3.5vw, 32px)", fontWeight: 900, color: "var(--text)", margin: "0 0 6px", letterSpacing: 0 }}>
-            Find Your Perfect Class
-          </h1>
-          {!isMobile && (
-            <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: "0 0 24px" }}>
-              {items.length} verified classes across Egypt - filter by subject, city, price, and format.
+        <main style={{ flex: 1, minWidth: 0, padding: isMobile ? "8px 14px 64px" : "22px 14px 80px" }}>
+          <div style={{ marginBottom: 4 }}>
+            <div className="desktop-only" style={{ alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: 10, fontWeight: 700, marginBottom: 2 }}>
+              <span>IT</span>
+              <span>/</span>
+              <span>Students</span>
+            </div>
+            <h1 className="desktop-only" style={{ fontFamily: "var(--font-serif)", fontSize: 35, lineHeight: 1.02, fontWeight: 800, color: "var(--accent)", margin: "0 0 3px", letterSpacing: 0 }}>
+              Browse Classes
+            </h1>
+            <p className="desktop-only" style={{ color: "var(--text-secondary)", fontSize: 11, margin: "0 0 11px" }}>
+              Find the right class, with the right tutor, at the right time.
             </p>
-          )}
 
-          <div style={{ position: "relative", maxWidth: isMobile ? 420 : 520 }}>
-            <span style={{ position: "absolute", insetInlineStart: isMobile ? 10 : 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)", display: "inline-flex" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+              <div style={{ position: "relative", flex: 1, maxWidth: isMobile ? "none" : 520 }}>
+                <span style={{ position: "absolute", insetInlineStart: isMobile ? 10 : 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--text-muted)", display: "inline-flex" }}>
               <Search size={16} strokeWidth={2} aria-hidden />
             </span>
             <input
@@ -204,18 +291,18 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
               onChange={(event) => updateFilter("q", event.target.value)}
               style={{
                 width: "100%",
-                backgroundColor: "var(--bg-alt)",
+                backgroundColor: "var(--bg-card)",
                 border: "1px solid var(--border-light)",
-                borderRadius: 10,
-                padding: isMobile ? "8px 12px" : "11px 14px",
-                paddingInlineStart: isMobile ? 34 : 42,
-                paddingInlineEnd: typedFilters.q ? 42 : 14,
+                borderRadius: 999,
+                padding: isMobile ? "8px 12px" : "7px 12px",
+                paddingInlineStart: isMobile ? 34 : 36,
+                paddingInlineEnd: typedFilters.q ? 36 : 14,
                 color: "var(--text)",
-                fontSize: isMobile ? 13 : 14,
+                fontSize: isMobile ? 13 : 11,
                 outline: "none",
                 boxSizing: "border-box",
                 fontFamily: "inherit",
-                minHeight: isMobile ? 38 : 46,
+                minHeight: isMobile ? 38 : 32,
               }}
             />
             <AnimatePresence>
@@ -227,69 +314,25 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                   initial={{ opacity: 0, scale: 0.82 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.82 }}
-                  style={{ position: "absolute", insetInlineEnd: 8, top: "50%", display: "inline-flex", padding: 6, color: "var(--text-muted)", background: "transparent", border: 0, cursor: "pointer", transform: "translateY(-50%)" }}
+                  style={{ position: "absolute", insetInlineEnd: 7, top: "50%", display: "inline-flex", padding: 5, color: "var(--text-muted)", background: "transparent", border: 0, cursor: "pointer", transform: "translateY(-50%)" }}
                 >
                   <X size={15} aria-hidden />
                 </motion.button>
               )}
             </AnimatePresence>
+              </div>
+              <select name="class-sort" aria-label="Sort classes" value={typedFilters.sort} onChange={(event) => updateFilter("sort", event.target.value)} style={{ backgroundColor: "var(--bg-card)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 8, padding: isMobile ? "8px 10px" : "7px 9px", minHeight: isMobile ? 38 : 32, fontSize: isMobile ? 13 : 11, fontFamily: "inherit", flexShrink: 0 }}>
+                <option value="popular">Sort: Popular</option>
+                <option value="newest">Sort: Newest</option>
+                <option value="price_asc">Price low-high</option>
+                <option value="price_desc">Price high-low</option>
+              </select>
+            </div>
           </div>
 
-          <div style={{ display: isMobile ? "none" : "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
-            {SUBJECTS.map((subject) => {
-              const active = typedFilters.subject === subject;
-              return (
-                <button
-                  key={subject}
-                  type="button"
-                  onClick={() => toggleSubject(subject)}
-                  style={{
-                    padding: "5px 14px",
-                    borderRadius: 999,
-                    fontSize: 13,
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    border: `1px solid ${active ? "var(--accent-border)" : "var(--border-light)"}`,
-                    backgroundColor: active ? "var(--accent-bg)" : "var(--bg-card)",
-                    color: active ? "var(--accent)" : "var(--text-secondary)",
-                    transition: "background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast)",
-                  }}
-                >
-                  {subject}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+          {!isFiltering && <TrendingPills classes={items} activeSubject={typedFilters.subject} onSelect={toggleSubject} />}
 
-      {!isFiltering && (
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "16px 14px 0" : "28px 24px 0" }}>
-          <TrendingClassesRow isMobile={isMobile} />
-        </div>
-      )}
-
-      <div
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          padding: isMobile ? "14px 14px 64px" : "32px 24px 80px",
-          display: "flex",
-          gap: 28,
-          alignItems: "flex-start",
-        }}
-      >
-        <div className="desktop-only" style={{ flexDirection: "column", flexShrink: 0 }}>
-          <ClassFilters
-            filters={typedFilters}
-            onChange={updateFilter}
-            onReset={resetFilters}
-            activeCount={activeFilterCount}
-          />
-        </div>
-
-        <main style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ marginBottom: 9, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <button
                 className="mobile-only"
@@ -317,7 +360,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                   </span>
                 )}
               </button>
-              <span style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+              <span style={{ color: "var(--text-secondary)", fontSize: isMobile ? 14 : 11 }}>
                 <strong style={{ color: "var(--text)" }}>{filtered.length}</strong> classes {isFiltering ? "match your filters" : "available"}
               </span>
             </div>
@@ -328,12 +371,6 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                   <X size={13} strokeWidth={2} aria-hidden /> Clear all
                 </button>
               )}
-              <select name="class-sort" aria-label="Sort classes" value={typedFilters.sort} onChange={(event) => updateFilter("sort", event.target.value)} style={{ backgroundColor: "var(--bg-card)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "7px 10px", fontSize: 13, fontFamily: "inherit" }}>
-                <option value="popular">Most popular</option>
-                <option value="newest">Newest</option>
-                <option value="price_asc">Price low-high</option>
-                <option value="price_desc">Price high-low</option>
-              </select>
             </div>
           </div>
 
@@ -345,16 +382,9 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
                 <div style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>Try another subject, city, price, or class format.</div>
                 <button type="button" onClick={resetFilters} className="btn-primary">Clear filters</button>
               </motion.div>
-            ) : isFiltering ? (
-              <motion.div key="filtered" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                {isMobile ? mobileGrid(filtered) : <ResultsGrid classes={filtered} />}
-              </motion.div>
             ) : (
-              <motion.div key="segments" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: "flex", flexDirection: "column", gap: 40 }}>
-                <section>
-                  <SectionTitle title="New on Coursaty" subtitle="Recently published, ready to book" />
-                  {isMobile ? mobileGrid(filtered) : <ResultsGrid classes={filtered} />}
-                </section>
+              <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                {isMobile ? mobileGrid(filtered) : <ResultsGrid classes={filtered.slice(0, 12)} />}
               </motion.div>
             )}
           </AnimatePresence>
@@ -362,8 +392,24 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
           <div ref={sentinelRef} style={{ minHeight: 56, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: 13, marginTop: 18 }}>
             {isLoading ? <span style={{ width: 20, height: 20, border: "2px solid var(--border-light)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> : !hasMore && items.length > 0 ? "You've seen all classes" : null}
           </div>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <style>{`
+            @keyframes spin { to { transform: rotate(360deg); } }
+            @media (max-width: 1120px) {
+              .classes-right-rail { width: 188px !important; }
+            }
+            @media (max-width: 980px) {
+              .classes-results-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+            }
+            @media (max-width: 900px) {
+              .classes-marketplace-shell { display: block !important; }
+              .classes-results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            }
+          `}</style>
         </main>
+
+        <div className="desktop-only" style={{ flexShrink: 0, paddingBlockStart: 22 }}>
+          <RightRail resultCount={filtered.length} activeCount={activeFilterCount} onReset={resetFilters} />
+        </div>
       </div>
     </div>
   );

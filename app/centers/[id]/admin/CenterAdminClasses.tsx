@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { BookOpen, Plus, Edit2, X, CheckCircle } from "lucide-react";
+import { useI18n } from "@/app/components/i18n";
 
 interface ClassEntry {
   id: string;
@@ -21,8 +22,10 @@ interface ClassEntry {
 
 interface TutorOption { id: string; fullName: string | null; name: string | null; }
 
-const FORMAT_LABELS: Record<string, string> = {
-  IN_PERSON: "In-Person", ONLINE: "Online", HYBRID: "Hybrid",
+const FORMAT_LABEL_KEYS: Record<string, string> = {
+  IN_PERSON: "centerAdmin.classes.format.inPerson",
+  ONLINE: "centerAdmin.classes.format.online",
+  HYBRID: "centerAdmin.classes.format.hybrid",
 };
 
 const thS: React.CSSProperties = {
@@ -37,6 +40,7 @@ const tdS: React.CSSProperties = {
 };
 
 function StatusBadge({ isActive }: { isActive: boolean }) {
+  const { t } = useI18n();
   return (
     <span style={{
       fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99,
@@ -44,7 +48,7 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
       color: isActive ? "var(--success)" : "var(--text-muted)",
       border: `1px solid ${isActive ? "var(--success-border, rgba(22,163,74,0.25))" : "var(--border-light)"}`,
     }}>
-      {isActive ? "Active" : "Inactive"}
+      {isActive ? t("centerAdmin.classes.status.active") : t("centerAdmin.classes.status.inactive")}
     </span>
   );
 }
@@ -62,6 +66,7 @@ const EMPTY_FORM: AddFormState = {
 };
 
 export default function CenterAdminClasses({ centerId }: { centerId: string }) {
+  const { t } = useI18n();
   const [classes, setClasses] = useState<ClassEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [tutors, setTutors] = useState<TutorOption[]>([]);
@@ -93,7 +98,7 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
 
   const handleSave = async () => {
     if (!form.title.trim() || !form.subject.trim()) {
-      setFormError("Title and subject are required."); return;
+      setFormError(t("centerAdmin.classes.titleRequired")); return;
     }
     setSaving(true); setFormError(null);
     try {
@@ -119,7 +124,7 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { setFormError(data.error ?? "Failed to save"); return; }
+      if (!res.ok) { setFormError(data.error ?? t("centerAdmin.classes.saveFailed")); return; }
       setShowForm(false);
       load();
     } finally {
@@ -137,11 +142,11 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
   };
 
   const handleCancel = async (cls: ClassEntry) => {
-    if (!confirm(`Deactivate "${cls.title}"? This will mark it inactive.`)) return;
+    if (!confirm(t("centerAdmin.classes.deactivateConfirm", { title: cls.title }))) return;
     const res = await fetch(`/api/centers/${centerId}/classes/${cls.id}`, { method: "DELETE" });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
-      alert(d.error ?? "Cannot cancel class.");
+      alert(d.error ?? t("centerAdmin.classes.cancelFailed"));
       return;
     }
     load();
@@ -158,14 +163,14 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
       {/* Toolbar */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
         <div style={{ display: "flex", gap: 6 }}>
-          {["all", "active", "inactive"].map((s) => (
+          {(["all", "active", "inactive"] as const).map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)} style={{
               padding: "5px 12px", borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: "pointer",
               border: "1px solid var(--border-light)",
               background: statusFilter === s ? "var(--accent)" : "var(--bg-alt)",
               color: statusFilter === s ? "var(--accent-fg)" : "var(--text-muted)",
             }}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+              {s === "all" ? t("centerAdmin.classes.filter.all") : s === "active" ? t("centerAdmin.classes.filter.active") : t("centerAdmin.classes.filter.inactive")}
             </button>
           ))}
         </div>
@@ -174,7 +179,7 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
           padding: "7px 14px", borderRadius: 8, border: "none",
           background: "var(--accent)", color: "var(--accent-fg)", fontSize: 13, fontWeight: 700, cursor: "pointer",
         }}>
-          <Plus size={14} strokeWidth={2} /> Add Class
+          <Plus size={14} strokeWidth={2} /> {t("centerAdmin.classes.add")}
         </button>
       </div>
 
@@ -183,7 +188,7 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
         <div style={{ border: "1px solid var(--border-light)", borderRadius: 12, padding: "1rem", marginBottom: 16, backgroundColor: "var(--bg-alt)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
             <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
-              {editingId ? "Edit Class" : "New Class"}
+              {editingId ? t("centerAdmin.classes.edit") : t("centerAdmin.classes.new")}
             </h3>
             <button onClick={() => setShowForm(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
               <X size={16} />
@@ -191,50 +196,50 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {[
-              { label: "Title *", key: "title" as const, type: "text" },
-              { label: "Subject *", key: "subject" as const, type: "text" },
-            ].map(({ label, key, type }) => (
+              { labelKey: "centerAdmin.classes.field.title", key: "title" as const, type: "text" },
+              { labelKey: "centerAdmin.classes.field.subject", key: "subject" as const, type: "text" },
+            ].map(({ labelKey, key, type }) => (
               <div key={key}>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{label}</label>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t(labelKey as Parameters<typeof t>[0])}</label>
                 <input type={type} value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={inputS} />
               </div>
             ))}
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Tutor</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.classes.field.tutor")}</label>
               <select value={form.ownerId} onChange={(e) => setForm((f) => ({ ...f, ownerId: e.target.value }))} style={inputS}>
-                <option value="">— Select tutor —</option>
-                {tutors.map((t) => <option key={t.id} value={t.id}>{t.fullName ?? t.name}</option>)}
+                <option value="">{t("centerAdmin.classes.field.selectTutor")}</option>
+                {tutors.map((opt) => <option key={opt.id} value={opt.id}>{opt.fullName ?? opt.name}</option>)}
               </select>
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Format</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.classes.field.format")}</label>
               <select value={form.format} onChange={(e) => setForm((f) => ({ ...f, format: e.target.value }))} style={inputS}>
-                {Object.entries(FORMAT_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                {Object.entries(FORMAT_LABEL_KEYS).map(([v, k]) => <option key={v} value={v}>{t(k as Parameters<typeof t>[0])}</option>)}
               </select>
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Price (EGP)</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.classes.field.price")}</label>
               <input type="number" min="0" value={form.priceEgp} onChange={(e) => setForm((f) => ({ ...f, priceEgp: e.target.value }))} style={inputS} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Capacity</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.classes.field.capacity")}</label>
               <input type="number" min="1" value={form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))} style={inputS} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Start Date</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.classes.field.startDate")}</label>
               <input type="date" value={form.startDate} onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))} style={inputS} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Time From</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.classes.field.timeFrom")}</label>
               <input type="time" value={form.sessionTimeFrom} onChange={(e) => setForm((f) => ({ ...f, sessionTimeFrom: e.target.value }))} style={inputS} />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Time To</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.classes.field.timeTo")}</label>
               <input type="time" value={form.sessionTimeTo} onChange={(e) => setForm((f) => ({ ...f, sessionTimeTo: e.target.value }))} style={inputS} />
             </div>
           </div>
           <div style={{ marginTop: 10 }}>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>Description</label>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>{t("centerAdmin.classes.field.description")}</label>
             <textarea rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} style={{ ...inputS, resize: "vertical" }} />
           </div>
           {formError && <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--error)" }}>{formError}</p>}
@@ -243,23 +248,23 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
               padding: "7px 18px", borderRadius: 8, border: "none",
               background: "var(--accent)", color: "var(--accent-fg)", fontSize: 13, fontWeight: 700, cursor: "pointer",
             }}>
-              {saving ? "Saving…" : "Save"}
+              {saving ? t("centerAdmin.classes.saving") : t("centerAdmin.classes.save")}
             </button>
             <button onClick={() => setShowForm(false)} style={{
               padding: "7px 14px", borderRadius: 8, border: "1px solid var(--border-light)",
               background: "var(--bg-alt)", color: "var(--text-muted)", fontSize: 13, cursor: "pointer",
-            }}>Cancel</button>
+            }}>{t("centerAdmin.classes.cancel")}</button>
           </div>
         </div>
       )}
 
       {/* Table */}
       {loading ? (
-        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>Loading classes…</div>
+        <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>{t("centerAdmin.classes.loading")}</div>
       ) : classes.length === 0 ? (
         <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
           <BookOpen size={32} strokeWidth={1.2} style={{ opacity: 0.3, display: "block", margin: "0 auto 10px" }} />
-          No classes yet. Add one above.
+          {t("centerAdmin.classes.empty")}
         </div>
       ) : (
         <div style={{ borderRadius: 12, border: "1px solid var(--border-light)", overflow: "hidden" }}>
@@ -267,13 +272,13 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th style={thS}>Title</th>
-                  <th style={thS}>Tutor</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Bookings</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Seats Left</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Price</th>
-                  <th style={{ ...thS, textAlign: "center" }}>Status</th>
-                  <th style={{ ...thS, textAlign: "right" }}>Actions</th>
+                  <th style={thS}>{t("centerAdmin.classes.col.title")}</th>
+                  <th style={thS}>{t("centerAdmin.classes.col.tutor")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.classes.col.bookings")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.classes.col.seatsLeft")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.classes.col.price")}</th>
+                  <th style={{ ...thS, textAlign: "center" }}>{t("centerAdmin.classes.col.status")}</th>
+                  <th style={{ ...thS, textAlign: "right" }}>{t("centerAdmin.classes.col.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -281,7 +286,7 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
                   <tr key={c.id}>
                     <td style={tdS}>
                       <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 13 }}>{c.title}</div>
-                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{c.subject} · {FORMAT_LABELS[c.format] ?? c.format}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{c.subject} · {FORMAT_LABEL_KEYS[c.format] ? t(FORMAT_LABEL_KEYS[c.format] as Parameters<typeof t>[0]) : c.format}</div>
                     </td>
                     <td style={tdS}>{c.ownerName ?? <span style={{ color: "var(--text-muted)" }}>—</span>}</td>
                     <td style={{ ...tdS, textAlign: "center", fontWeight: 700 }}>{c.bookingCount}</td>
@@ -290,7 +295,7 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
                         <span style={{ color: c.seatsLeft <= 3 ? "var(--warning, #f59e0b)" : "var(--text)" }}>{c.seatsLeft}</span>
                       ) : "—"}
                     </td>
-                    <td style={{ ...tdS, textAlign: "center" }}>{c.priceEgp === 0 ? "Free" : `${c.priceEgp} EGP`}</td>
+                    <td style={{ ...tdS, textAlign: "center" }}>{c.priceEgp === 0 ? t("common.free") : t("common.priceEgp", { price: c.priceEgp })}</td>
                     <td style={{ ...tdS, textAlign: "center" }}><StatusBadge isActive={c.isActive} /></td>
                     <td style={{ ...tdS, textAlign: "right" }}>
                       <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
@@ -305,20 +310,20 @@ export default function CenterAdminClasses({ centerId }: { centerId: string }) {
                             recurrence: "weekly",
                           });
                           setEditingId(c.id); setFormError(null); setShowForm(true);
-                        }} title="Edit" style={{
+                        }} title={t("centerAdmin.classes.editTitle")} style={{
                           padding: "4px 8px", borderRadius: 6, border: "1px solid var(--border-light)",
                           background: "var(--bg-alt)", color: "var(--text-muted)", cursor: "pointer", display: "inline-flex",
                         }}>
                           <Edit2 size={12} strokeWidth={1.8} />
                         </button>
-                        <button onClick={() => handleToggle(c)} title={c.isActive ? "Deactivate" : "Activate"} style={{
+                        <button onClick={() => handleToggle(c)} title={c.isActive ? t("centerAdmin.classes.deactivate") : t("centerAdmin.classes.activate")} style={{
                           padding: "4px 8px", borderRadius: 6, border: "1px solid var(--border-light)",
                           background: "var(--bg-alt)", color: c.isActive ? "var(--warning, #f59e0b)" : "var(--success)", cursor: "pointer", display: "inline-flex",
                         }}>
                           <CheckCircle size={12} strokeWidth={1.8} />
                         </button>
                         {c.isActive && (
-                          <button onClick={() => handleCancel(c)} title="Cancel class" style={{
+                          <button onClick={() => handleCancel(c)} title={t("centerAdmin.classes.cancelClass")} style={{
                             padding: "4px 8px", borderRadius: 6, border: "1px solid var(--error-border, rgba(220,38,38,0.3))",
                             background: "var(--error-bg)", color: "var(--error)", cursor: "pointer", display: "inline-flex",
                           }}>
