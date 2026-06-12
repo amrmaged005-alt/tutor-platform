@@ -1026,6 +1026,23 @@ const DICT = {
   "centerAdmin.tutors.fill.full": { en: "Full", ar: "مكتمل" },
   "centerAdmin.tutors.fill.limited": { en: "Limited", ar: "محدود" },
   "centerAdmin.tutors.fill.open": { en: "Open", ar: "متاح" },
+
+  // ── Profile ───────────────────────────────────────────────────────────────────
+  "profile.title": { en: "Your profile", ar: "ملفك الشخصي" },
+  "profile.subtitle": { en: "Update your photo, contact details, and the subjects you teach or learn.", ar: "حدّث صورتك وبيانات التواصل والمواد التي تدرّسها أو تتعلّمها." },
+  "profile.changePhoto": { en: "Change photo", ar: "تغيير الصورة" },
+  "profile.photoHint": { en: "JPEG, PNG, or WebP — up to 2 MB.", ar: "JPEG أو PNG أو WebP — حتى 2 ميجابايت." },
+  "profile.fullName": { en: "Full name", ar: "الاسم الكامل" },
+  "profile.phone": { en: "Phone", ar: "رقم الهاتف" },
+  "profile.bio": { en: "Bio", ar: "نبذة" },
+  "profile.subjects": { en: "Subjects", ar: "المواد" },
+  "profile.save": { en: "Save changes", ar: "حفظ التغييرات" },
+  "profile.saving": { en: "Saving...", ar: "جارٍ الحفظ..." },
+  "profile.saved": { en: "Profile saved", ar: "تم حفظ الملف" },
+  "profile.error.fileType": { en: "Only JPEG, PNG, or WebP images are allowed.", ar: "يُسمح فقط بصور JPEG أو PNG أو WebP." },
+  "profile.error.fileSize": { en: "Image must be 2 MB or smaller.", ar: "يجب ألا يتجاوز حجم الصورة 2 ميجابايت." },
+  "profile.error.upload": { en: "Could not upload the image.", ar: "تعذّر رفع الصورة." },
+  "profile.error.save": { en: "Could not save your profile.", ar: "تعذّر حفظ ملفك." },
 } as const;
 
 type DictKey = keyof typeof DICT;

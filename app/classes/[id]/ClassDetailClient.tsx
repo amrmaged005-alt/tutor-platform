@@ -331,16 +331,39 @@ function MaterialsPanel({ classId, hasAccess }: { classId: string; hasAccess: bo
   );
 }
 
-function MiniDateSelector() {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu"];
+type ScheduleOption = {
+  day: string;
+  date: number;
+  value: string;
+};
+
+const SCHEDULE_OPTIONS: ScheduleOption[] = [
+  { day: "Sun", date: 7, value: "sun-7" },
+  { day: "Mon", date: 8, value: "mon-8" },
+  { day: "Tue", date: 9, value: "tue-9" },
+  { day: "Wed", date: 10, value: "wed-10" },
+  { day: "Thu", date: 11, value: "thu-11" },
+];
+
+const TIME_OPTIONS = ["08:00 AM", "10:30 AM", "06:00 PM", "08:30 PM"];
+
+function MiniDateSelector({
+  selected,
+  onSelect,
+}: {
+  selected: string;
+  onSelect: (value: string) => void;
+}) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 5 }}>
-      {days.map((day, index) => {
-        const active = index === 1;
+      {SCHEDULE_OPTIONS.map((option) => {
+        const active = selected === option.value;
         return (
           <button
-            key={day}
+            key={option.value}
             type="button"
+            aria-pressed={active}
+            onClick={() => onSelect(option.value)}
             style={{
               minHeight: 42,
               border: `1px solid ${active ? "var(--accent)" : "var(--border-light)"}`,
@@ -352,8 +375,8 @@ function MiniDateSelector() {
               cursor: "pointer",
             }}
           >
-            <span style={{ display: "block" }}>{day}</span>
-            <span style={{ display: "block", marginTop: 2 }}>{index + 7}</span>
+            <span style={{ display: "block" }}>{option.day}</span>
+            <span style={{ display: "block", marginTop: 2 }}>{option.date}</span>
           </button>
         );
       })}
@@ -386,6 +409,11 @@ function BookingCard({
   onFavorite: () => void;
   saved: boolean;
 }) {
+  const [selectedSchedule, setSelectedSchedule] = useState(SCHEDULE_OPTIONS[1].value);
+  const [selectedTime, setSelectedTime] = useState(TIME_OPTIONS[0]);
+  const selectedScheduleLabel = SCHEDULE_OPTIONS.find((option) => option.value === selectedSchedule);
+  const bookingHref = `/classes/${cls.id}/book?day=${encodeURIComponent(selectedSchedule)}&time=${encodeURIComponent(selectedTime)}`;
+
   function cta() {
     if (isFull) {
       return (
@@ -404,7 +432,7 @@ function BookingCard({
     if (alreadyBooked) {
       return <div style={{ padding: "9px 10px", borderRadius: 8, border: "1px solid var(--accent-border)", color: "var(--accent)", background: "var(--accent-bg)", textAlign: "center", fontSize: 11, fontWeight: 850 }}>Already booked</div>;
     }
-    return <Link href={`/classes/${cls.id}/book`} className="btn-primary" style={{ width: "100%", justifyContent: "center", minHeight: 34, fontSize: 12, textDecoration: "none" }}>Book this class</Link>;
+    return <Link href={bookingHref} className="btn-primary" style={{ width: "100%", justifyContent: "center", minHeight: 34, fontSize: 12, textDecoration: "none" }}>Book this class</Link>;
   }
 
   const finalPrice = cls.priceEgp;
@@ -436,16 +464,32 @@ function BookingCard({
             <span>Select your schedule</span>
             <span>{cls.spotsLeft ?? "Many"} seats</span>
           </div>
-          <MiniDateSelector />
+          <MiniDateSelector selected={selectedSchedule} onSelect={setSelectedSchedule} />
         </div>
 
         <div style={{ marginBottom: 10 }}>
           <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 800, marginBottom: 6 }}>Available times</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 5 }}>
-            {["08:00 AM", "10:30 AM", "06:00 PM", "08:30 PM"].map((time, index) => (
-              <button key={time} type="button" style={{ minHeight: 28, border: `1px solid ${index === 0 ? "var(--accent)" : "var(--border-light)"}`, background: index === 0 ? "var(--accent)" : "var(--bg)", color: index === 0 ? "var(--accent-fg)" : "var(--text-secondary)", borderRadius: 7, fontSize: 10, fontWeight: 850, cursor: "pointer" }}>{time}</button>
-            ))}
+            {TIME_OPTIONS.map((time) => {
+              const active = selectedTime === time;
+              return (
+                <button
+                  key={time}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setSelectedTime(time)}
+                  style={{ minHeight: 28, border: `1px solid ${active ? "var(--accent)" : "var(--border-light)"}`, background: active ? "var(--accent)" : "var(--bg)", color: active ? "var(--accent-fg)" : "var(--text-secondary)", borderRadius: 7, fontSize: 10, fontWeight: 850, cursor: "pointer" }}
+                >
+                  {time}
+                </button>
+              );
+            })}
           </div>
+        </div>
+
+        <div aria-live="polite" style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10, padding: "8px 9px", borderRadius: 8, background: "var(--accent-bg)", color: "var(--accent)", fontSize: 10, fontWeight: 850 }}>
+          <CalendarDays size={12} strokeWidth={2} aria-hidden />
+          Selected: {selectedScheduleLabel ? `${selectedScheduleLabel.day} ${selectedScheduleLabel.date}` : "Schedule"} at {selectedTime}
         </div>
 
         <div style={{ display: "grid", gap: 5, paddingTop: 9, borderTop: "1px solid var(--border-light)", marginBottom: 10 }}>
@@ -560,16 +604,16 @@ export default function ClassDetailClient({
 
         <section style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 278px", gap: 12, alignItems: "start" }} className="class-detail-shell">
           <div style={{ minWidth: 0 }}>
-            <section style={{ position: "relative", minHeight: isMobile ? 230 : 258, overflow: "hidden", borderRadius: 11, background: accent, border: "1px solid var(--border-light)" }}>
+            <section style={{ position: "relative", minHeight: isMobile ? 210 : 198, overflow: "hidden", borderRadius: 11, background: accent, border: "1px solid var(--border-light)" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={bannerSrc} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.62, mixBlendMode: "luminosity" }} />
               <span aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(24,23,21,0.84), rgba(24,23,21,0.46) 50%, rgba(24,23,21,0.14))" }} />
-              <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", minHeight: isMobile ? 230 : 258, padding: isMobile ? 16 : 20, color: "var(--accent-fg)" }}>
+              <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", minHeight: isMobile ? 210 : 198, padding: isMobile ? 16 : 18, color: "var(--accent-fg)" }}>
                 <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 8 }}>
                   <Pill tone="accent">{cls.subject}</Pill>
                   <Pill>{cls.curriculum}</Pill>
                 </div>
-                <h1 style={{ maxWidth: 650, margin: "0 0 6px", fontFamily: "var(--font-serif)", fontSize: isMobile ? 28 : 33, lineHeight: 1.04, fontWeight: 850, color: "var(--accent-fg)", letterSpacing: 0 }}>
+                <h1 style={{ maxWidth: 650, margin: "0 0 6px", fontFamily: "var(--font-serif)", fontSize: isMobile ? 26 : 28, lineHeight: 1.04, fontWeight: 850, color: "var(--accent-fg)", letterSpacing: 0 }}>
                   {cls.title}
                 </h1>
                 <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap", color: "rgba(251,250,246,0.86)", fontSize: 11, fontWeight: 750 }}>
