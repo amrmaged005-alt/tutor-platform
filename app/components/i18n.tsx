@@ -89,7 +89,7 @@ const DICT = {
   "footer.trust.booking":    { en: "Instant booking",         ar: "حجز فوري" },
 
   // ── Auth — login ──────────────────────────────────────────────────────────────
-  "auth.welcome":         { en: "Welcome back — sign in to continue", ar: "أهلاً بعودتك — سجّل الدخول للمتابعة" },
+  "auth.welcome":         { en: "Log in to continue your learning journey.", ar: "سجّل الدخول لمواصلة رحلتك التعليمية." },
   "auth.email":           { en: "Email address",              ar: "البريد الإلكتروني" },
   "auth.password":        { en: "Password",                   ar: "كلمة المرور" },
   "auth.passwordPlaceholder": { en: "Your password",          ar: "كلمة مرورك" },
@@ -104,6 +104,20 @@ const DICT = {
   "auth.trust.verified":  { en: "Verified Tutors",            ar: "مدرّسون موثّقون" },
   "auth.trust.free":      { en: "Free to Browse",             ar: "تصفح مجاني" },
   "auth.trust.secure":    { en: "Secure Login",               ar: "تسجيل دخول آمن" },
+  "auth.shell.about":     { en: "About Coursaty",             ar: "عن كورساتي" },
+  "auth.shell.heading":   { en: "Learning today, achieving tomorrow.", ar: "نتعلم اليوم، ونحقق النجاح غدًا." },
+  "auth.shell.description": { en: "Coursaty connects you with trusted tutors across Egypt to help you reach your goals.", ar: "تربطك كورساتي بمدرسين موثوقين في جميع أنحاء مصر لتحقيق أهدافك." },
+  "auth.shell.proof1":    { en: "The tutor profile made the choice feel clear before we booked.", ar: "ملف المدرّس جعل الاختيار واضحًا قبل الحجز." },
+  "auth.shell.author1":   { en: "Mona, parent in Cairo",      ar: "منى، ولية أمر من القاهرة" },
+  "auth.shell.proof2":    { en: "I found an IGCSE Physics class without chasing messages for days.", ar: "وجدت فصل فيزياء IGCSE دون متابعة الرسائل لأيام." },
+  "auth.shell.author2":   { en: "Youssef, student in Giza",   ar: "يوسف، طالب من الجيزة" },
+  "auth.shell.proof3":    { en: "Clear schedules and reviews helped us decide with confidence.", ar: "المواعيد والتقييمات الواضحة ساعدتنا على القرار بثقة." },
+  "auth.shell.author3":   { en: "Nour, parent in Alexandria", ar: "نور، ولية أمر من الإسكندرية" },
+  "auth.login.kicker":    { en: "Welcome back",               ar: "مرحبًا بعودتك" },
+  "auth.login.title":     { en: "Welcome back",               ar: "مرحبًا بعودتك" },
+  "auth.login.google":    { en: "Continue with Google",       ar: "المتابعة باستخدام Google" },
+  "auth.login.orEmail":   { en: "or use email",               ar: "أو استخدم البريد الإلكتروني" },
+  "auth.login.verified":  { en: "Email verified. You can sign in.", ar: "تم توثيق بريدك الإلكتروني. يمكنك تسجيل الدخول." },
 
   // ── Auth — signup ─────────────────────────────────────────────────────────────
   "signup.tagline":       { en: "Join Egypt's tutoring marketplace — free forever", ar: "انضم إلى سوق المدرسين في مصر — مجانًا للأبد" },
@@ -121,6 +135,59 @@ const DICT = {
   "signup.trust.instant": { en: "Instant access",             ar: "وصول فوري" },
   "signup.error.generic": { en: "Something went wrong",       ar: "حدث خطأ ما" },
   "signup.minPassword":   { en: "Min 8 characters",           ar: "8 أحرف على الأقل" },
+  "signup.shell.heading": { en: "Start with the details that matter.", ar: "ابدأ بالتفاصيل المهمة." },
+  "signup.shell.description": { en: "Create your account, then compare verified tutors, curricula, formats, and schedules in one calm place.", ar: "أنشئ حسابك ثم قارن المدرّسين الموثّقين والمناهج وأنماط الحضور والمواعيد بسهولة." },
+  "signup.kicker":        { en: "Join Coursaty",               ar: "انضم إلى كورساتي" },
+  "signup.title":         { en: "Create your account",        ar: "أنشئ حسابك" },
+  "signup.body":          { en: "A few details, then you can start comparing classes.", ar: "بضع تفاصيل ثم يمكنك بدء مقارنة الفصول." },
+  "signup.phone":         { en: "Phone number (optional)",    ar: "رقم الهاتف (اختياري)" },
+  "signup.role":          { en: "I am joining as",            ar: "أنضم بصفتي" },
+  "signup.private":       { en: "Your details stay private and secure.", ar: "تظل بياناتك خاصة وآمنة." },
+  "signup.checkEmail":    { en: "Check your email",           ar: "راجع بريدك الإلكتروني" },
+  "signup.verificationBody": { en: "We sent a verification link to {email}. Open it to activate your account.", ar: "أرسلنا رابط توثيق إلى {email}. افتحه لتفعيل حسابك." },
+  "signup.verificationSent": { en: "Verification email sent", ar: "تم إرسال رسالة التوثيق" },
+  "signup.sending":       { en: "Sending...",                 ar: "جارٍ الإرسال..." },
+  "signup.resend":        { en: "Resend verification email",  ar: "إعادة إرسال رسالة التوثيق" },
+  "signup.goSignIn":      { en: "Go to sign in",              ar: "الانتقال إلى تسجيل الدخول" },
+
+  "forgot.shell.heading": { en: "One small reset, then you are back on track.", ar: "إعادة ضبط بسيطة ثم تعود إلى مسارك." },
+  "forgot.shell.description": { en: "We keep account recovery short and clear so you can return to the class or tutor you were considering.", ar: "نجعل استعادة الحساب قصيرة وواضحة لتعود إلى الفصل أو المدرّس الذي كنت تفكر فيه." },
+  "forgot.title":         { en: "Reset your password",        ar: "إعادة ضبط كلمة المرور" },
+  "forgot.body":          { en: "Enter your email and we will send a secure reset link.", ar: "أدخل بريدك الإلكتروني وسنرسل رابطًا آمنًا لإعادة الضبط." },
+  "forgot.sentTitle":     { en: "Check your email",           ar: "راجع بريدك الإلكتروني" },
+  "forgot.sentBody":      { en: "If an account exists for {email}, a reset link is on its way. It expires in one hour.", ar: "إذا كان هناك حساب للبريد {email} فسيصلك رابط إعادة الضبط. تنتهي صلاحيته خلال ساعة." },
+  "forgot.back":          { en: "Back to sign in",            ar: "العودة إلى تسجيل الدخول" },
+  "forgot.remembered":    { en: "Remembered it?",             ar: "تذكرتها؟" },
+  "forgot.send":          { en: "Send reset link",            ar: "إرسال رابط إعادة الضبط" },
+  "forgot.sending":       { en: "Sending reset link...",     ar: "جارٍ إرسال رابط إعادة الضبط..." },
+
+  "reset.shell.heading":  { en: "Choose a password you can rely on.", ar: "اختر كلمة مرور يمكنك الاعتماد عليها." },
+  "reset.shell.description": { en: "A clear recovery path keeps your bookings, tutor messages, and account details within reach.", ar: "مسار الاستعادة الواضح يبقي حجوزاتك ورسائل المدرّسين وبيانات حسابك في متناولك." },
+  "reset.checking":       { en: "Checking your link",         ar: "جارٍ فحص الرابط" },
+  "reset.moment":         { en: "This will only take a moment.", ar: "لن يستغرق هذا سوى لحظة." },
+  "reset.expired":        { en: "Link expired",               ar: "انتهت صلاحية الرابط" },
+  "reset.expiredBody":    { en: "This reset link is invalid or has expired. Request a fresh one.", ar: "رابط إعادة الضبط غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا." },
+  "reset.request":        { en: "Request new link",           ar: "طلب رابط جديد" },
+  "reset.success":        { en: "Password updated",           ar: "تم تحديث كلمة المرور" },
+  "reset.successBody":    { en: "You can sign in with your new password.", ar: "يمكنك تسجيل الدخول بكلمة المرور الجديدة." },
+  "reset.title":          { en: "Set a new password",         ar: "تعيين كلمة مرور جديدة" },
+  "reset.body":           { en: "Use at least 8 characters, one uppercase letter, and one number.", ar: "استخدم 8 أحرف على الأقل وحرفًا كبيرًا ورقمًا واحدًا." },
+  "reset.newPassword":    { en: "New password",               ar: "كلمة المرور الجديدة" },
+  "reset.confirm":        { en: "Confirm password",           ar: "تأكيد كلمة المرور" },
+  "reset.mismatch":       { en: "Passwords do not match.",    ar: "كلمتا المرور غير متطابقتين." },
+  "reset.updating":       { en: "Updating password...",       ar: "جارٍ تحديث كلمة المرور..." },
+  "reset.update":         { en: "Update password",            ar: "تحديث كلمة المرور" },
+
+  "verify.shell.heading": { en: "A quick check before you continue.", ar: "فحص سريع قبل المتابعة." },
+  "verify.shell.description": { en: "Email verification helps keep tutor, student, and parent accounts trustworthy.", ar: "يساعد توثيق البريد الإلكتروني في الحفاظ على موثوقية حسابات المدرّسين والطلاب وأولياء الأمور." },
+  "verify.loading":       { en: "Verifying your email",       ar: "جارٍ توثيق بريدك الإلكتروني" },
+  "verify.success":       { en: "You are all set",            ar: "كل شيء جاهز" },
+  "verify.failed":        { en: "Verification failed",        ar: "تعذر التوثيق" },
+  "verify.invalid":       { en: "This verification link is invalid or has expired.", ar: "رابط التوثيق غير صالح أو انتهت صلاحيته." },
+  "verify.already":       { en: "Your email is already verified. You can sign in.", ar: "بريدك الإلكتروني موثّق بالفعل. يمكنك تسجيل الدخول." },
+  "verify.done":          { en: "Your email is verified. You can now sign in.", ar: "تم توثيق بريدك الإلكتروني. يمكنك الآن تسجيل الدخول." },
+  "verify.error":         { en: "We could not verify your email.", ar: "تعذر توثيق بريدك الإلكتروني." },
+  "verify.network":       { en: "Network error. Please try again.", ar: "حدث خطأ في الشبكة. حاول مرة أخرى." },
 
   // ── Booking modal ─────────────────────────────────────────────────────────────
   "modal.signInRequired.title":  { en: "Sign in to book this class", ar: "سجّل الدخول لحجز هذا الفصل" },
@@ -198,6 +265,9 @@ const DICT = {
   "tutor.lastBookedHours": { en: "Last booked {n}h ago",      ar: "آخر حجز منذ {n} س" },
   "tutor.lastBookedDays": { en: "Last booked {n}d ago",       ar: "آخر حجز منذ {n} ي" },
 
+  "tutor.viewClass":      { en: "View class",                 ar: "عرض الفصل" },
+  "tutor.confirmAvailability": { en: "Message the tutor to confirm current availability.", ar: "راسل المدرّس لتأكيد المواعيد المتاحة حاليًا." },
+
   // ── Booking confirmed ─────────────────────────────────────────────────────────
   "booking.confirmed":    { en: "Booking Confirmed",          ar: "تم تأكيد الحجز" },
   "booking.received":     { en: "Booking Received",           ar: "تم استلام الحجز" },
@@ -224,6 +294,45 @@ const DICT = {
   "booking.tryAgain":     { en: "Try Booking Again",          ar: "المحاولة مجددًا" },
   "booking.whatsapp":     { en: "Message {name} on WhatsApp", ar: "راسل {name} على واتساب" },
   "booking.whatsappMsg":  { en: "Hi {name}, I just booked your class \"{title}\" on Coursaty. Looking forward to it!", ar: "مرحبًا {name}، لقد حجزت للتو فصل \"{title}\" على كورساتي. أتطلع للقائك!" },
+
+  "booking.checkout.backToClass": { en: "Back to class", ar: "العودة إلى الفصل" },
+  "booking.checkout.step.schedule": { en: "Schedule", ar: "الجدول" },
+  "booking.checkout.step.details": { en: "Details", ar: "التفاصيل" },
+  "booking.checkout.step.pay": { en: "Pay", ar: "الدفع" },
+  "booking.checkout.received": { en: "Booking received", ar: "تم استلام الحجز" },
+  "booking.checkout.openingConfirmation": { en: "Opening your confirmation...", ar: "جارٍ فتح تأكيد الحجز..." },
+  "booking.checkout.continue": { en: "Continue", ar: "متابعة" },
+  "booking.checkout.back": { en: "Back", ar: "رجوع" },
+  "booking.checkout.confirm": { en: "Confirm booking", ar: "تأكيد الحجز" },
+  "booking.checkout.bookFree": { en: "Book for free", ar: "احجز مجانًا" },
+  "booking.checkout.confirming": { en: "Confirming...", ar: "جارٍ التأكيد..." },
+  "booking.checkout.processing": { en: "Processing your booking...", ar: "جارٍ معالجة الحجز..." },
+  "booking.checkout.secure": { en: "Secure booking", ar: "حجز آمن" },
+  "booking.checkout.scheduleTitle": { en: "Review the class schedule", ar: "راجع جدول الفصل" },
+  "booking.checkout.scheduleBody": { en: "This booking reserves your place in the class. Your tutor will confirm the exact session time after booking.", ar: "يضمن هذا الحجز مكانك في الفصل. سيؤكد المدرّس موعد الحصة الدقيق بعد الحجز." },
+  "booking.checkout.scheduleMissing": { en: "Schedule to be confirmed by your tutor", ar: "سيؤكد المدرّس الجدول" },
+  "booking.checkout.whatNext": { en: "What happens next", ar: "ماذا يحدث بعد ذلك" },
+  "booking.checkout.whatNextBody": { en: "Coursaty will attach this booking to your account and keep the class details in your dashboard.", ar: "ستضيف كورساتي هذا الحجز إلى حسابك وتحتفظ بتفاصيل الفصل في لوحة التحكم." },
+  "booking.checkout.nextDashboard": { en: "Your booking appears in My bookings.", ar: "سيظهر حجزك في حجوزاتي." },
+  "booking.checkout.nextTutor": { en: "{name} receives your reservation.", ar: "سيستلم {name} حجزك." },
+  "booking.checkout.nextMessages": { en: "You can use Coursaty messages for class questions.", ar: "يمكنك استخدام رسائل كورساتي للاستفسار عن الفصل." },
+  "booking.checkout.paymentTitle": { en: "Confirm payment details", ar: "أكد تفاصيل الدفع" },
+  "booking.checkout.paymentOnline": { en: "You will continue to Paymob's secure payment page after confirming.", ar: "ستنتقل إلى صفحة الدفع الآمنة من بيموب بعد التأكيد." },
+  "booking.checkout.paymentCash": { en: "Payment is collected in person. Apply a promo code before confirming.", ar: "سيتم تحصيل الدفع حضوريًا. يمكنك تطبيق رمز خصم قبل التأكيد." },
+  "booking.checkout.promoApplied": { en: "Promo applied: save {amount} EGP.", ar: "تم تطبيق الخصم: وفّر {amount} جنيه." },
+  "booking.checkout.withTutor": { en: "with {name}", ar: "مع {name}" },
+  "booking.checkout.onlineSession": { en: "Online session", ar: "حصة أونلاين" },
+  "booking.checkout.inPerson": { en: "In person", ar: "حضوري" },
+  "booking.checkout.seatsLeft": { en: "{count} seats left", ar: "{count} مقاعد متبقية" },
+  "booking.checkout.classPrice": { en: "Class price", ar: "سعر الفصل" },
+  "booking.checkout.discount": { en: "Discount ({amount}%)", ar: "خصم ({amount}%)" },
+  "booking.checkout.total": { en: "Total", ar: "الإجمالي" },
+  "booking.checkout.alreadyTitle": { en: "You're already booked for this class", ar: "أنت مسجل بالفعل في هذا الفصل" },
+  "booking.checkout.alreadyBody": { en: "Your reservation is active. Open your booking details or message your tutor if you have a question.", ar: "حجزك نشط. افتح تفاصيل الحجز أو راسل المدرّس إذا كان لديك استفسار." },
+  "booking.checkout.viewBooking": { en: "View booking", ar: "عرض الحجز" },
+  "booking.checkout.goDashboard": { en: "Go to dashboard", ar: "الذهاب إلى لوحة التحكم" },
+  "booking.checkout.messageTutor": { en: "Message tutor", ar: "مراسلة المدرّس" },
+  "booking.checkout.openingMessages": { en: "Opening messages...", ar: "جارٍ فتح الرسائل..." },
 
   // ── Dashboard — tabs ──────────────────────────────────────────────────────────
   "dash.tab.overview":    { en: "Overview",                   ar: "نظرة عامة" },
@@ -464,21 +573,27 @@ interface I18nContextValue {
   dir: "ltr" | "rtl";
 }
 
+function translate(lang: Lang, key: DictKey, vars?: Record<string, string | number>) {
+  const entry = DICT[key];
+  if (!entry) return String(key);
+  let text: string = entry[lang] ?? entry.en;
+  if (vars) {
+    for (const [name, value] of Object.entries(vars)) {
+      text = text.replace(new RegExp(`\\{${name}\\}`, "g"), String(value));
+    }
+  }
+  return text;
+}
+
 const I18nContext = createContext<I18nContextValue>({
   lang: "en",
   setLang: () => {},
-  t: (k) => DICT[k as DictKey]?.en ?? String(k),
+  t: (key, vars) => translate("en", key, vars),
   dir: "ltr",
 });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(() => {
-    if (typeof document === "undefined") return "en";
-    const stored = typeof window !== "undefined" ? localStorage.getItem("coursaty-lang") : null;
-    if (stored === "ar" || stored === "en") return stored;
-    const current = document.documentElement.lang;
-    return current === "ar" ? "ar" : "en";
-  });
+  const [lang, setLangState] = useState<Lang>("en");
 
   const apply = useCallback((l: Lang) => {
     setLangState(l);
@@ -496,18 +611,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     html.dir = lang === "ar" ? "rtl" : "ltr";
   }, [lang]);
 
+  useEffect(() => {
+    if (localStorage.getItem("coursaty-lang") === "ar") {
+      queueMicrotask(() => setLangState("ar"));
+    }
+  }, []);
+
   const t = useCallback(
-    (key: DictKey, vars?: Record<string, string | number>): string => {
-      const entry = DICT[key];
-      if (!entry) return String(key);
-      let s: string = entry[lang] ?? entry.en;
-      if (vars) {
-        for (const [k, v] of Object.entries(vars)) {
-          s = s.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
-        }
-      }
-      return s;
-    },
+    (key: DictKey, vars?: Record<string, string | number>): string => translate(lang, key, vars),
     [lang]
   );
 

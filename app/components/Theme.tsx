@@ -17,18 +17,23 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Initial value is read from <html data-theme="..."> which the inline init
-  // script in layout.tsx sets before hydration to avoid flash-of-wrong-theme.
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof document === "undefined") return "light";
-    return (document.documentElement.getAttribute("data-theme") as Theme) || "light";
-  });
+  // Keep the first React render identical on the server and client. The inline
+  // script in layout.tsx paints the saved theme before hydration; this state
+  // catches up immediately after mount so consumers can render the right icon.
+  const [theme, setThemeState] = useState<Theme>("light");
 
   const apply = useCallback((t: Theme) => {
     setThemeState(t);
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-theme", t);
       try { localStorage.setItem("coursaty-theme", t); } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    const bootstrapped = document.documentElement.getAttribute("data-theme");
+    if (bootstrapped === "light" || bootstrapped === "dark") {
+      setThemeState(bootstrapped);
     }
   }, []);
 

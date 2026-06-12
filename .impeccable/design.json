@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-31T00:00:00Z",
+  "title": "Design System: Coursaty",
+  "extensions": {
+    "colorMeta": {
+      "emerald": {
+        "role": "primary",
+        "displayName": "Study Emerald",
+        "canonical": "#0D5946",
+        "tonalRamp": ["#062A20", "#084030", "#0D5946", "#24735F", "#559684", "#8AB9AB", "#BDD8D0", "#EDF1EE"]
+      },
+      "warm-fog": {
+        "role": "neutral",
+        "displayName": "Warm Fog",
+        "canonical": "#F1EFE9",
+        "tonalRamp": ["#181715", "#35332E", "#59564E", "#7E7A70", "#A7A297", "#CBC7BF", "#E8E5DD", "#FBFAF6"]
+      },
+      "error": {
+        "role": "semantic",
+        "displayName": "Error Brick",
+        "canonical": "#A33028",
+        "tonalRamp": ["#45110D", "#6D1E18", "#A33028", "#BF574F", "#D98780", "#E7B5B0", "#F5E4E1", "#FCF5F4"]
+      }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "English page and section headings use Lora; Arabic headings use Cairo." },
+      "title": { "displayName": "Title", "purpose": "Card, dialog, and compact header titles." },
+      "body": { "displayName": "Body", "purpose": "Readable supporting text and instructions." },
+      "label": { "displayName": "Label", "purpose": "Buttons, metadata, and navigation." }
+    },
+    "shadows": [
+      { "name": "subtle-surface", "value": "0 1px 2px rgba(24,23,21,0.05), 0 1px 3px rgba(24,23,21,0.04)", "purpose": "Quiet surface separation." },
+      { "name": "overlay", "value": "0 12px 28px rgba(24,23,21,0.09), 0 4px 10px rgba(24,23,21,0.05)", "purpose": "Dialogs, menus, and popovers." }
+    ],
+    "motion": [
+      { "name": "fast", "value": "120ms ease", "purpose": "Small interaction feedback." },
+      { "name": "base", "value": "180ms ease", "purpose": "Default component state changes." },
+      { "name": "slow", "value": "280ms ease", "purpose": "Larger state transitions only." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "640px" },
+      { "name": "tablet", "value": "900px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main task action.",
+      "html": "<button class=\"ds-btn-primary\">Browse classes</button>",
+      "css": ".ds-btn-primary{background:var(--accent,#0D5946);color:var(--accent-fg,#FBFAF6);border:0;border-radius:10px;padding:12px 18px;font:700 14px/1.3 Inter,system-ui,sans-serif;transition:background 180ms ease}.ds-btn-primary:hover{background:var(--accent-hover,#084030)}.ds-btn-primary:focus-visible{outline:2px solid var(--accent,#0D5946);outline-offset:2px}.ds-btn-primary:active{background:var(--accent-active,#062A20)}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Alternative action with lower emphasis.",
+      "html": "<button class=\"ds-btn-secondary\">View details</button>",
+      "css": ".ds-btn-secondary{background:var(--bg-card,#FBFAF6);color:var(--text,#181715);border:1px solid var(--border,#D8D4C7);border-radius:10px;padding:12px 18px;font:700 14px/1.3 Inter,system-ui,sans-serif;transition:border-color 180ms ease,background 180ms ease}.ds-btn-secondary:hover{background:var(--bg-alt,#E8E5DD);border-color:var(--border-strong,#BDB8A8)}.ds-btn-secondary:focus-visible{outline:2px solid var(--accent,#0D5946);outline-offset:2px}"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Marketplace search and form field.",
+      "html": "<input class=\"ds-input\" placeholder=\"Search classes\" />",
+      "css": ".ds-input{background:var(--bg-card,#FBFAF6);color:var(--text,#181715);border:1px solid var(--border,#D8D4C7);border-radius:10px;padding:12px 14px;font:400 14px/1.4 Inter,system-ui,sans-serif}.ds-input::placeholder{color:var(--text-muted,#6F6B61)}.ds-input:focus-visible{outline:2px solid var(--accent,#0D5946);outline-offset:2px;border-color:var(--accent,#0D5946)}"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Compact filter or metadata control.",
+      "html": "<button class=\"ds-chip\">IGCSE</button>",
+      "css": ".ds-chip{background:var(--bg-alt,#E8E5DD);color:var(--text-secondary,#4A4843);border:1px solid var(--border,#D8D4C7);border-radius:9999px;padding:6px 10px;font:700 12px/1.3 Inter,system-ui,sans-serif}.ds-chip:hover{background:var(--accent-bg,#E3EBE6);color:var(--accent,#0D5946)}.ds-chip:focus-visible{outline:2px solid var(--accent,#0D5946);outline-offset:2px}"
+    },
+    {
+      "name": "Marketplace Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Scannable class listing with an obvious next action.",
+      "html": "<article class=\"ds-card\"><span class=\"ds-chip\">Physics</span><h3>IGCSE Physics Revision</h3><p>Verified tutor · Cairo · 350 EGP</p><button class=\"ds-btn-primary\">View class</button></article>",
+      "css": ".ds-card{display:grid;gap:12px;max-width:320px;background:var(--bg-card,#FBFAF6);color:var(--text,#181715);border:1px solid var(--border-light,#E3DFD3);border-radius:14px;padding:16px;font-family:Inter,system-ui,sans-serif}.ds-card h3,.ds-card p{margin:0}.ds-card h3{font-size:18px;line-height:1.3}.ds-card p{color:var(--text-secondary,#4A4843);font-size:14px;line-height:1.5}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Trusted Study Desk",
+    "overview": "A calm, task-first marketplace system for Egypt. Warm stone surfaces support clear comparison and booking, while emerald is reserved for useful action, selection, focus, and trust cues.",
+    "keyCharacteristics": ["Restrained emerald actions", "Warm tonal layering", "Compact familiar controls", "English and Arabic parity", "State-driven motion"],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Use emerald for actions, selection, focus, and trust states, not decoration.", "section": "colors" },
+      { "name": "The Layer Before Shadow Rule", "body": "Prefer a surface tone or border before adding a shadow.", "section": "elevation" }
+    ],
+    "dos": ["Do keep booking details scannable.", "Do preserve RTL layouts and keyboard focus.", "Do use loading, empty, and error states."],
+    "donts": ["Don't use generic SaaS dashboards.", "Don't use decorative glassmorphism, loud gradients, neon accents, or excessive card nesting.", "Don't add ornamental motion that slows task completion."]
+  }
+}

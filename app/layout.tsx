@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Cairo, Inter, Lora } from "next/font/google";
 import "./globals.css";
 import Navbar from "./Navbar";
 import { I18nProvider } from "@/app/components/i18n";
@@ -8,6 +9,24 @@ import SkipLink from "@/components/SkipLink";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import PageTransition from "@/components/ui/PageTransition";
 import { ToastProvider } from "@/components/ui/ToastProvider";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  variable: "--font-cairo",
+  display: "swap",
+});
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+  display: "swap",
+});
 
 // Runs before React hydration to prevent flash-of-wrong-theme / wrong-lang.
 const PREFS_BOOTSTRAP = `
@@ -62,15 +81,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${cairo.variable} ${lora.variable}`} suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap"
-          rel="stylesheet"
-        />
         <script dangerouslySetInnerHTML={{ __html: PREFS_BOOTSTRAP }} />
       </head>
       <body style={{ margin: 0, padding: 0, minHeight: "100vh", backgroundColor: "var(--bg)", color: "var(--text)" }}>
