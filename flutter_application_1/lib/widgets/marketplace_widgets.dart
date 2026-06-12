@@ -31,40 +31,76 @@ const curricula = [
 const formats = ['IN_PERSON', 'ONLINE', 'HYBRID'];
 
 class BrandMark extends StatelessWidget {
-  const BrandMark({super.key, this.compact = false});
+  const BrandMark({super.key, this.compact = false, this.onDark = false});
   final bool compact;
+  final bool onDark;
 
   @override
   Widget build(BuildContext context) {
     final c = context.c;
+    final size = compact ? 30.0 : 36.0;
+    final fontSize = compact ? 15.0 : 18.0;
+    final textColor = onDark ? Colors.white : c.text;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: compact ? 28 : 34,
-          height: compact ? 28 : 34,
-          decoration: BoxDecoration(
-            color: c.accent,
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: Center(
-            child: Text(
-              'C',
-              style: TextStyle(
-                color: c.onAccent,
-                fontWeight: FontWeight.w900,
-                fontSize: compact ? 14 : 18,
+        SizedBox(
+          width: size + 4,
+          height: size + 4,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: size,
+                height: size,
+                margin: const EdgeInsets.only(top: 2, left: 2),
+                decoration: BoxDecoration(
+                  color: onDark
+                      ? Colors.white.withValues(alpha: 0.18)
+                      : c.accent,
+                  borderRadius: BorderRadius.circular(size * 0.28),
+                ),
+                child: Center(
+                  child: Text(
+                    'C',
+                    style: TextStyle(
+                      color: onDark ? Colors.white : c.onAccent,
+                      fontWeight: FontWeight.w900,
+                      fontSize: fontSize,
+                      height: 1,
+                    ),
+                  ),
+                ),
               ),
-            ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: size * 0.42,
+                  height: size * 0.42,
+                  decoration: BoxDecoration(
+                    color: onDark ? c.bg : c.bg,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.play_arrow_rounded,
+                    color: AppColors.rating,
+                    size: size * 0.32,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         Text(
           context.l10n.t('app.name'),
           style: TextStyle(
-            color: c.text,
-            fontSize: compact ? 16 : 19,
+            color: textColor,
+            fontSize: compact ? 16 : 20,
             fontWeight: FontWeight.w900,
+            letterSpacing: -0.3,
           ),
         ),
       ],
@@ -196,6 +232,8 @@ class FilterChipButton extends StatelessWidget {
   }
 }
 
+// ─── Class Card ──────────────────────────────────────────────────────────────
+
 class AppClassCard extends StatelessWidget {
   const AppClassCard({super.key, required this.item, this.compact = false});
   final AppClass item;
@@ -207,183 +245,187 @@ class AppClassCard extends StatelessWidget {
     final l = context.l10n;
     final app = context.appWatch;
     final price = item.priceEgp == 0 ? l.t('common.free') : egp(item.priceEgp);
-    final seatsText = '${item.seatsTaken} / ${item.seatLimit}';
-    final seatRatio = item.seatLimit == 0
-        ? 0.0
-        : (item.seatsTaken / item.seatLimit).clamp(0.0, 1.0);
-    final seatColor = item.isFull
-        ? Theme.of(context).colorScheme.error
-        : item.isLowSeats
-        ? AppColors.rating
-        : c.accent;
+    final isSaved = app.isSaved(item.id);
+
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       onTap: () => context.push('/classes/${item.id}', extra: item),
       child: Ink(
         decoration: BoxDecoration(
           color: c.card,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: c.border),
         ),
-        padding: EdgeInsets.all(compact ? 10 : 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            // ── Image with overlaid badges ──
+            Stack(
               children: [
-                _Badge(item.subject, color: c.accent),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    price,
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(15),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 10,
+                    child: _ClassImage(item: item, accent: c.accent),
+                  ),
+                ),
+                // Subject badge (top-left)
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
                       color: c.accent,
-                      fontWeight: FontWeight.w900,
-                      fontSize: compact ? 12 : 14,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: Text(
+                      item.subject,
+                      style: TextStyle(
+                        color: c.onAccent,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 34,
-                    minHeight: 34,
-                  ),
-                  onPressed: () => app.toggleSaved(item.id),
-                  icon: Icon(
-                    app.isSaved(item.id)
-                        ? Icons.favorite_rounded
-                        : Icons.favorite_border_rounded,
-                    color: app.isSaved(item.id) ? c.accent : c.muted,
-                    size: 19,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Container(
-              height: compact ? 48 : 58,
-              decoration: BoxDecoration(
-                color: c.accent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: item.thumbnailUrl == null
-                  ? Center(
+                // Heart button (top-right)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: GestureDetector(
+                    onTap: () => app.toggleSaved(item.id),
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: c.card.withValues(alpha: 0.92),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
                       child: Icon(
-                        _subjectIcon(item.subject),
-                        color: c.accent,
-                        size: compact ? 22 : 26,
-                      ),
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: item.thumbnailUrl!,
-                      fit: BoxFit.cover,
-                      fadeInDuration: const Duration(milliseconds: 120),
-                      placeholder: (_, _) => Center(
-                        child: Icon(
-                          _subjectIcon(item.subject),
-                          color: c.accent,
-                          size: compact ? 22 : 26,
-                        ),
-                      ),
-                      errorWidget: (_, _, _) => Center(
-                        child: Icon(
-                          _subjectIcon(item.subject),
-                          color: c.accent,
-                          size: compact ? 22 : 26,
-                        ),
+                        isSaved
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color: isSaved ? c.accent : c.muted,
+                        size: 15,
                       ),
                     ),
-            ),
-            const SizedBox(height: 7),
-            Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: LinearProgressIndicator(
-                      minHeight: 5,
-                      value: seatRatio,
-                      color: seatColor,
-                      backgroundColor: c.border,
+                  ),
+                ),
+                // Full / low seats badge (bottom-right)
+                if (item.isFull)
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: _ImageBadge(
+                      text: l.t('classes.full'),
+                      color: AppColors.error,
+                    ),
+                  )
+                else if (item.isLowSeats)
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: _ImageBadge(
+                      text: l
+                          .t('classes.onlyLeft')
+                          .replaceFirst('{count}', '${item.remainingSeats}'),
+                      color: AppColors.rating,
                     ),
                   ),
-                ),
-                const SizedBox(width: 7),
-                Text(
-                  item.isFull ? l.t('classes.full') : seatsText,
-                  style: TextStyle(
-                    color: seatColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
               ],
             ),
-            if (item.isLowSeats) ...[
-              const SizedBox(height: 5),
-              Text(
-                l
-                    .t('classes.onlyLeft')
-                    .replaceFirst('{count}', '${item.remainingSeats}'),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: AppColors.rating,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-            const SizedBox(height: 7),
-            Text(
-              item.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: c.text,
-                fontWeight: FontWeight.w900,
-                fontSize: compact ? 13 : 15,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              item.providerName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: c.secondary,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                _Meta(
-                  icon: Icons.place_outlined,
-                  text: item.format == 'ONLINE'
-                      ? l.t('format.ONLINE')
-                      : item.city,
-                ),
-                if (item.avgRating != null)
-                  _Meta(
-                    icon: Icons.star_rounded,
-                    text: item.avgRating!.toStringAsFixed(1),
-                    color: AppColors.rating,
+            // ── Content ──
+            Padding(
+              padding: EdgeInsets.all(compact ? 10.0 : 12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: c.text,
+                      fontWeight: FontWeight.w900,
+                      fontSize: compact ? 13 : 15,
+                      height: 1.25,
+                    ),
                   ),
-                if (item.spotsLeft != null)
-                  _Meta(
-                    icon: Icons.people_outline_rounded,
-                    text: '${item.spotsLeft} ${l.t('classes.spots')}',
+                  const SizedBox(height: 5),
+                  Text(
+                    item.providerName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: c.secondary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-              ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (item.avgRating != null) ...[
+                        Icon(
+                          Icons.star_rounded,
+                          size: 13,
+                          color: AppColors.rating,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          item.avgRating!.toStringAsFixed(1),
+                          style: TextStyle(
+                            color: AppColors.rating,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        if (item.seatsTaken > 0) ...[
+                          Text(
+                            '  •  ',
+                            style: TextStyle(color: c.muted, fontSize: 11),
+                          ),
+                          Icon(
+                            Icons.people_outline_rounded,
+                            size: 12,
+                            color: c.muted,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${item.seatsTaken}',
+                            style: TextStyle(
+                              color: c.muted,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ],
+                      const Spacer(),
+                      Text(
+                        price,
+                        style: TextStyle(
+                          color: c.accent,
+                          fontWeight: FontWeight.w900,
+                          fontSize: compact ? 12 : 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -392,22 +434,255 @@ class AppClassCard extends StatelessWidget {
   }
 }
 
-IconData _subjectIcon(String subject) {
-  final normalized = subject.toLowerCase();
-  if (normalized.contains('math')) return Icons.calculate_outlined;
-  if (normalized.contains('physics')) return Icons.bolt_outlined;
-  if (normalized.contains('chem')) return Icons.biotech_outlined;
-  if (normalized.contains('bio') || normalized.contains('science')) {
-    return Icons.science_outlined;
+class _ClassImage extends StatelessWidget {
+  const _ClassImage({required this.item, required this.accent});
+  final AppClass item;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    if (item.thumbnailUrl != null) {
+      return CachedNetworkImage(
+        imageUrl: item.thumbnailUrl!,
+        fit: BoxFit.cover,
+        fadeInDuration: const Duration(milliseconds: 150),
+        placeholder: (_, _) => _placeholder(),
+        errorWidget: (_, _, _) => _placeholder(),
+      );
+    }
+    return _placeholder();
   }
-  if (normalized.contains('english') || normalized.contains('arabic')) {
-    return Icons.menu_book_outlined;
-  }
-  return Icons.school_outlined;
+
+  Widget _placeholder() => Container(
+    color: accent.withValues(alpha: 0.1),
+    child: Center(
+      child: Icon(_subjectIcon(item.subject), color: accent, size: 34),
+    ),
+  );
 }
 
+class _ImageBadge extends StatelessWidget {
+  const _ImageBadge({required this.text, required this.color});
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.92),
+      borderRadius: BorderRadius.circular(6),
+    ),
+    child: Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 9,
+        fontWeight: FontWeight.w900,
+      ),
+    ),
+  );
+}
+
+// ─── Tutor Card ───────────────────────────────────────────────────────────────
+
 class TutorCard extends StatelessWidget {
-  const TutorCard({super.key, required this.tutor, this.compact = false});
+  const TutorCard({
+    super.key,
+    required this.tutor,
+    this.compact = false,
+    this.portrait = false,
+  });
+  final TutorProfile tutor;
+  final bool compact;
+  final bool portrait;
+
+  @override
+  Widget build(BuildContext context) {
+    return portrait
+        ? _PortraitTutorCard(tutor: tutor)
+        : _HorizontalTutorCard(tutor: tutor, compact: compact);
+  }
+}
+
+class _PortraitTutorCard extends StatelessWidget {
+  const _PortraitTutorCard({required this.tutor});
+  final TutorProfile tutor;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.c;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => context.push('/tutors/${tutor.id}', extra: tutor),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Portrait image with badges ──
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(15),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 0.9,
+                    child: _TutorImage(tutor: tutor, accent: c.accent),
+                  ),
+                ),
+                // Heart button (top-right)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: c.card.withValues(alpha: 0.9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.favorite_border_rounded,
+                      color: c.muted,
+                      size: 15,
+                    ),
+                  ),
+                ),
+                // Verified badge (bottom-left of image)
+                if (tutor.isVerified)
+                  Positioned(
+                    bottom: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: c.accent,
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.verified_rounded,
+                            size: 10,
+                            color: c.onAccent,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            'Verified',
+                            style: TextStyle(
+                              color: c.onAccent,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            // ── Info ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          tutor.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: c.text,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      if (tutor.isVerified)
+                        Icon(
+                          Icons.verified_rounded,
+                          size: 14,
+                          color: c.accent,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    tutor.subjects.take(2).join(' • '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: c.secondary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      if (tutor.avgRating != null) ...[
+                        Icon(
+                          Icons.star_rounded,
+                          size: 12,
+                          color: AppColors.rating,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          tutor.avgRating!.toStringAsFixed(1),
+                          style: TextStyle(
+                            color: AppColors.rating,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                      Expanded(
+                        child: Text(
+                          '${egp(tutor.hourlyRateEgp)}/hr',
+                          maxLines: 1,
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            color: c.accent,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HorizontalTutorCard extends StatelessWidget {
+  const _HorizontalTutorCard({required this.tutor, required this.compact});
   final TutorProfile tutor;
   final bool compact;
 
@@ -435,7 +710,7 @@ class TutorCard extends StatelessWidget {
                   : NetworkImage(tutor.photoUrl!),
               child: tutor.photoUrl == null
                   ? Text(
-                      tutor.name.isEmpty ? 'C' : tutor.name.substring(0, 1),
+                      tutor.name.isEmpty ? 'C' : tutor.name[0],
                       style: TextStyle(
                         color: c.accent,
                         fontWeight: FontWeight.w900,
@@ -463,7 +738,11 @@ class TutorCard extends StatelessWidget {
                         ),
                       ),
                       if (tutor.isVerified)
-                        Icon(Icons.verified_rounded, size: 16, color: c.accent),
+                        Icon(
+                          Icons.verified_rounded,
+                          size: 16,
+                          color: c.accent,
+                        ),
                     ],
                   ),
                   const SizedBox(height: 3),
@@ -502,6 +781,35 @@ class TutorCard extends StatelessWidget {
     );
   }
 }
+
+class _TutorImage extends StatelessWidget {
+  const _TutorImage({required this.tutor, required this.accent});
+  final TutorProfile tutor;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    if (tutor.photoUrl != null) {
+      return CachedNetworkImage(
+        imageUrl: tutor.photoUrl!,
+        fit: BoxFit.cover,
+        fadeInDuration: const Duration(milliseconds: 150),
+        placeholder: (_, _) => _placeholder(),
+        errorWidget: (_, _, _) => _placeholder(),
+      );
+    }
+    return _placeholder();
+  }
+
+  Widget _placeholder() => Container(
+    color: accent.withValues(alpha: 0.12),
+    child: Center(
+      child: Icon(Icons.person_rounded, color: accent, size: 48),
+    ),
+  );
+}
+
+// ─── State / Loading Views ────────────────────────────────────────────────────
 
 class StateView extends StatelessWidget {
   const StateView({
@@ -577,30 +885,7 @@ class LoadingList extends StatelessWidget {
   }
 }
 
-class _Badge extends StatelessWidget {
-  const _Badge(this.text, {required this.color});
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(7),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-}
+// ─── Shared private widgets ───────────────────────────────────────────────────
 
 class _Meta extends StatelessWidget {
   const _Meta({required this.icon, required this.text, this.color});
@@ -627,4 +912,16 @@ class _Meta extends StatelessWidget {
       ],
     );
   }
+}
+
+IconData _subjectIcon(String subject) {
+  final s = subject.toLowerCase();
+  if (s.contains('math')) return Icons.calculate_outlined;
+  if (s.contains('physics')) return Icons.bolt_outlined;
+  if (s.contains('chem')) return Icons.biotech_outlined;
+  if (s.contains('bio') || s.contains('science')) return Icons.science_outlined;
+  if (s.contains('english') || s.contains('arabic')) {
+    return Icons.menu_book_outlined;
+  }
+  return Icons.school_outlined;
 }

@@ -18,6 +18,7 @@ import 'screens/notifications_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/saved_screen.dart';
 import 'screens/shell_screen.dart';
+import 'screens/messages_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/tutor/tutor_classes_screen.dart';
 import 'screens/tutor/tutor_dashboard_screen.dart';
@@ -100,6 +101,10 @@ GoRouter createRouter(AppState state) {
           GoRoute(
             path: '/center/tutors',
             pageBuilder: _fade((context, state) => const CenterTutorsScreen()),
+          ),
+          GoRoute(
+            path: '/messages',
+            pageBuilder: _fade((context, state) => const MessagesScreen()),
           ),
         ],
       ),

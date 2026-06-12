@@ -16,12 +16,6 @@ class ShellScreen extends StatelessWidget {
         selected = i;
       }
     }
-    if (location.startsWith('/classes') ||
-        location.startsWith('/tutors') ||
-        location.startsWith('/centers')) {
-      final browse = items.indexWhere((item) => item.path == '/browse');
-      if (browse >= 0) return browse;
-    }
     return selected;
   }
 
@@ -37,9 +31,8 @@ class ShellScreen extends StatelessWidget {
         selectedIndex: _index(location, items),
         onDestinationSelected: (index) {
           final target = items[index];
-          final path = target.needsAuth && !app.isSignedIn
-              ? '/login'
-              : target.path;
+          final path =
+              target.needsAuth && !app.isSignedIn ? '/login' : target.path;
           context.go(path);
         },
         destinations: [
@@ -73,10 +66,10 @@ class ShellScreen extends StatelessWidget {
           needsAuth: true,
         ),
         _NavItem(
-          '/notifications',
-          l.t('nav.notifications'),
-          Icons.notifications_outlined,
-          Icons.notifications_rounded,
+          '/messages',
+          l.t('nav.messages'),
+          Icons.chat_bubble_outline_rounded,
+          Icons.chat_bubble_rounded,
           needsAuth: true,
         ),
         _NavItem(
@@ -121,26 +114,26 @@ class ShellScreen extends StatelessWidget {
         ),
       ];
     }
+    // STUDENT (default)
     return [
       _NavItem('/', l.t('nav.home'), Icons.home_outlined, Icons.home_rounded),
       _NavItem(
-        '/browse',
-        l.t('nav.browse'),
+        '/classes',
+        l.t('nav.classes'),
         Icons.school_outlined,
         Icons.school_rounded,
       ),
       _NavItem(
-        '/dashboard',
-        l.t('nav.bookings'),
-        Icons.event_note_outlined,
-        Icons.event_note_rounded,
-        needsAuth: true,
+        '/tutors',
+        l.t('nav.tutors'),
+        Icons.person_search_outlined,
+        Icons.person_search_rounded,
       ),
       _NavItem(
-        '/saved',
-        l.t('nav.saved'),
-        Icons.favorite_border_rounded,
-        Icons.favorite_rounded,
+        '/messages',
+        l.t('nav.messages'),
+        Icons.chat_bubble_outline_rounded,
+        Icons.chat_bubble_rounded,
       ),
       _NavItem(
         '/profile',

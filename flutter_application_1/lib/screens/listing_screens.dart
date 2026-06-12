@@ -328,11 +328,20 @@ class _TutorsScreenState extends State<TutorsScreen> {
                 }
                 return RefreshIndicator(
                   onRefresh: () async => _refresh(),
-                  child: ListView.separated(
+                  child: GridView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-                    itemBuilder: (_, i) => TutorCard(tutor: items[i]),
-                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.62,
+                        ),
                     itemCount: items.length,
+                    itemBuilder: (_, i) => TutorCard(
+                      tutor: items[i],
+                      portrait: true,
+                    ),
                   ),
                 );
               },

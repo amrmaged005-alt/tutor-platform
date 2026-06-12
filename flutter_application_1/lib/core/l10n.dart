@@ -35,6 +35,14 @@ class AppLocalizations {
     'nav.browse': {AppLang.en: 'Browse', AppLang.ar: 'تصفح'},
     'nav.manage': {AppLang.en: 'Manage', AppLang.ar: 'إدارة'},
     'nav.notifications': {AppLang.en: 'Alerts', AppLang.ar: 'تنبيهات'},
+    'nav.messages': {AppLang.en: 'Messages', AppLang.ar: 'الرسائل'},
+    'messages.title': {AppLang.en: 'Messages', AppLang.ar: 'الرسائل'},
+    'messages.empty': {AppLang.en: 'No messages yet', AppLang.ar: 'لا رسائل بعد'},
+    'messages.emptyBody': {
+      AppLang.en: 'Start a conversation with a tutor and we\'ll see it here.',
+      AppLang.ar: 'ابدأ محادثة مع مدرس وستظهر هنا.',
+    },
+    'messages.browseTutors': {AppLang.en: 'Browse tutors', AppLang.ar: 'تصفح المدرسين'},
     'browse.title': {AppLang.en: 'Explore', AppLang.ar: 'استكشف'},
     'browse.search': {
       AppLang.en: 'Search tutors, classes, centers',
