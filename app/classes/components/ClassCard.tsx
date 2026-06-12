@@ -19,6 +19,7 @@ export interface ClassCardData {
   priceEgp?: number;
   capacity?: number | null;
   schedule?: string | null;
+  imageUrl?: string | null;
   format?: string;
   curriculum?: string;
   gradeLevel?: string | null;
@@ -54,7 +55,7 @@ export default function ClassCard({
   const price = cls.priceEgp ?? 0;
   const name = providerName(cls);
   const accent = subjectAccent(cls.subject);
-  const bannerSrc = classBanner(`${cls.subject}-${cls.id}`);
+  const bannerSrc = cls.imageUrl?.trim() ? cls.imageUrl : classBanner(`${cls.subject}-${cls.id}`);
   const tutorPhoto = cls.owner?.photoUrl ?? avatarFallback(cls.owner?.id ?? cls.id);
 
   async function onFavorite(e: React.MouseEvent<HTMLButtonElement>) {

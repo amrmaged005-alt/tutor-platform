@@ -143,6 +143,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Only tutors and centers can create classes", code: "FORBIDDEN" }, { status: 403 });
     }
 
+    // A center tutor without full access cannot create classes.
+    if (user.role === "TUTOR" && user.centerId && user.centerAccessLevel !== "FULL") {
+      return NextResponse.json({ error: "Insufficient access level", code: "FORBIDDEN" }, { status: 403 });
+    }
+
     const body = await req.json();
     const parsed = ClassCreateSchema.safeParse({
       ...body,

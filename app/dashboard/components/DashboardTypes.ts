@@ -39,6 +39,7 @@ export type OwnedClass = {
   capacity: number | null;
   gradeLevel: string | null;
   schedule: string | null;
+  imageUrl: string | null;
   bookingsCount: number;
   bookings: ManagedBooking[];
 };

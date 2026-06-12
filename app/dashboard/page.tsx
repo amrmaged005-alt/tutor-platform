@@ -124,6 +124,7 @@ export default async function DashboardPage() {
       capacity: cls.capacity,
       gradeLevel: cls.gradeLevel,
       schedule: (cls as any).schedule ?? null,
+      imageUrl: (cls as any).imageUrl ?? null,
       bookingsCount: cls._count.bookings,
       bookings: cls.bookings.map((bk) => ({
         id: bk.id,
@@ -172,6 +173,8 @@ export default async function DashboardPage() {
           priceEgp: cls.priceEgp,
           capacity: cls.capacity,
           schedule: cls.schedule ?? null,
+          imageUrl: cls.imageUrl ?? null,
+          gradeLevel: cls.gradeLevel ?? null,
           bookingsCount: cls._count.bookings,
           ownerName: cls.owner?.fullName ?? cls.owner?.name ?? null,
           bookings: cls.bookings.map((bk: any) => ({

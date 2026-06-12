@@ -267,6 +267,7 @@ model Class {
   priceEgp    Int     @default(0)
   capacity    Int     @default(20)
   isOnline    Boolean @default(false)
+  imageUrl    String? // optional cover image; falls back to a deterministic gradient
   isActive    Boolean @default(true)
   schedule    String? // legacy display fallback
 

@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import DeleteClassButton from "@/app/DeleteClassButton";
 import { useI18n } from "@/app/components/i18n";
 import type { CenterClass, CenterData, OwnedClass } from "./DashboardTypes";
+import { getClassImage } from "@/lib/classImage";
 
 type Props =
   | { mode: "tutor"; classes: OwnedClass[]; deleteClass: (formData: FormData) => Promise<void>; centerData?: undefined; isMobile: boolean; readOnly?: boolean }
@@ -152,6 +153,13 @@ export default function DashboardClasses(props: Props) {
             >
               {/* Class name + subject */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getClassImage(cls.id, cls.subject, cls.imageUrl)}
+                  alt=""
+                  loading="lazy"
+                  style={{ width: 40, height: 28, borderRadius: 6, objectFit: "cover", flexShrink: 0, border: "1px solid var(--border-light)" }}
+                />
                 <span
                   style={{
                     display: "inline-flex",

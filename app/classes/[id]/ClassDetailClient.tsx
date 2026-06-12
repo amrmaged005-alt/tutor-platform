@@ -1,165 +1,32 @@
-﻿"use client";
+"use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
-import ReviewSection from "../../components/ReviewSection";
-import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
-import { useIsMobile } from "../../hooks/useIsMobile";
-import BrowseClassCard from "../components/ClassCard";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Armchair,
   BadgeCheck,
+  BookOpen,
   CalendarDays,
   CheckCircle,
   Clock,
-  ClipboardList,
-  DollarSign,
   FileText,
-  Flame,
   Globe2,
+  Heart,
   Lock,
   MapPin,
   MessageCircle,
   Monitor,
-  User,
-  Users,
+  ShieldCheck,
+  Star,
+  Wallet,
 } from "lucide-react";
-import { classBanner, subjectAccent } from "../../lib/imagery";
-
-// Subject color map
-const SUBJECT_COLORS: Record<string, { glow: string; badge: string; bg: string }> = {
-  Math:        { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
-  Mathematics: { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
-  Physics:     { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
-  Chemistry:   { glow: "var(--success)", badge: "var(--success)", bg: "var(--success-bg)" },
-  Biology:     { glow: "var(--success)", badge: "var(--success)", bg: "var(--success-bg)" },
-  English:     { glow: "var(--rating)",  badge: "var(--rating)",  bg: "var(--warning-bg)" },
-  Arabic:      { glow: "var(--error)",   badge: "var(--error)",   bg: "var(--error-bg)" },
-  History:     { glow: "var(--warning)", badge: "var(--warning)", bg: "var(--warning-bg)" },
-  Geography:   { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
-  French:      { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
-  Computer:    { glow: "var(--accent)",  badge: "var(--accent)",  bg: "var(--accent-bg)" },
-  Science:     { glow: "var(--success)", badge: "var(--success)", bg: "var(--success-bg)" },
-};
-
-function getSubjectColor(subject: string) {
-  return SUBJECT_COLORS[subject] ?? { glow: "var(--accent)", badge: "var(--subject-teal)", bg: "var(--subject-teal-bg)" };
-}
-
-// Animated progress bar
-function SpotsBar({ capacity, spotsLeft }: { capacity: number; spotsLeft: number }) {
-  const pct = Math.round(((capacity - spotsLeft) / capacity) * 100);
-  const isCritical = spotsLeft <= 3;
-  const isLow = spotsLeft <= 5;
-
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>
-          {capacity - spotsLeft} enrolled
-        </span>
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: isCritical ? "var(--error)" : isLow ? "var(--rating)" : "var(--success)",
-          }}
-        >
-          {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left
-        </span>
-      </div>
-      <div
-        style={{
-          height: 6,
-          backgroundColor: "var(--border-light)",
-          borderRadius: 99,
-          overflow: "hidden",
-        }}
-      >
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
-          style={{
-            height: "100%",
-            borderRadius: 99,
-            background: isCritical
-              ? "linear-gradient(90deg, var(--error), var(--subject-ochre))"
-              : isLow
-                ? "linear-gradient(90deg, var(--rating), var(--rating))"
-                : "linear-gradient(90deg, var(--success), var(--success))",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-// Badge
-function Badge({
-  children,
-  color,
-  bg,
-}: {
-  children: React.ReactNode;
-  color: string;
-  bg: string;
-}) {
-  return (
-    <span
-      style={{
-        fontSize: 11,
-        fontWeight: 700,
-        padding: "4px 12px",
-        borderRadius: 99,
-        backgroundColor: bg,
-        color,
-        border: `1px solid ${color}44`,
-        letterSpacing: 0.3,
-        whiteSpace: "nowrap" as const,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-// Stat tile
-function StatTile({ label, value, icon: Icon }: { label: string; value: string; icon: React.ComponentType<{ size?: number; strokeWidth?: number }> }) {
-  return (
-    <div
-      style={{
-        backgroundColor: "var(--bg-card)",
-        border: "1px solid var(--border-light)",
-        borderRadius: 12,
-        padding: "14px 16px",
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-      }}
-    >
-      <span style={{ color: "var(--accent)", display: "inline-flex" }}><Icon size={20} strokeWidth={1.8} /></span>
-      <div>
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: "var(--text-muted)",
-            textTransform: "uppercase" as const,
-            letterSpacing: 0.8,
-            marginBottom: 2,
-          }}
-        >
-          {label}
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{value}</div>
-      </div>
-    </div>
-  );
-}
+import SignInRequiredModal from "@/components/ui/SignInRequiredModal";
+import { useFavorites } from "@/app/hooks/useFavorites";
+import { useIsMobile } from "@/app/hooks/useIsMobile";
+import BrowseClassCard, { type ClassCardData } from "../components/ClassCard";
+import { avatarFallback, classBanner, subjectAccent } from "../../lib/imagery";
 
 type ClassMaterial = {
   id: string;
@@ -170,93 +37,6 @@ type ClassMaterial = {
   isLocked?: boolean;
 };
 
-function ClassMaterials({
-  classId,
-  hasAccess,
-}: {
-  classId: string;
-  hasAccess: boolean;
-}) {
-  const [materials, setMaterials] = useState<ClassMaterial[]>([]);
-  const [loading, setLoading] = useState(hasAccess);
-
-  useEffect(() => {
-    if (!hasAccess) return;
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) setLoading(true);
-    });
-    fetch(`/api/classes/${classId}/materials`, { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
-        if (!cancelled) setMaterials(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (!cancelled) setMaterials([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [classId, hasAccess]);
-
-  return (
-    <motion.details
-      open
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.18 }}
-      style={{
-        backgroundColor: "var(--bg-card)",
-        border: "1px solid var(--border-light)",
-        borderRadius: 18,
-        padding: "1.5rem",
-        marginBottom: "1.5rem",
-      }}
-    >
-      <summary style={{ color: "var(--text)", fontWeight: 800, fontSize: "1.05rem", cursor: "pointer", listStyle: "none", display: "flex", alignItems: "center", gap: 8 }}>
-        <FileText size={17} strokeWidth={1.8} aria-hidden />
-        Class Materials
-      </summary>
-
-      {!hasAccess ? (
-        <div style={{ marginTop: "1rem", border: "1px solid var(--accent-border)", borderRadius: 14, padding: "1rem", backgroundColor: "var(--accent-bg)", color: "var(--accent)", display: "flex", alignItems: "center", gap: 10 }}>
-          <Lock size={20} strokeWidth={1.8} aria-hidden />
-          <span>
-            <strong style={{ display: "block", color: "var(--text)", fontSize: 14 }}>Enroll to access materials</strong>
-            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Notes, recordings, homework, and announcements unlock after confirmed enrollment.</span>
-          </span>
-        </div>
-      ) : loading ? (
-        <div role="status" aria-label="Loading class materials" style={{ display: "grid", gap: 8, marginTop: "1rem" }}>
-          {[0, 1, 2].map((item) => <div key={item} style={{ height: 52, borderRadius: 12, backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)" }} />)}
-        </div>
-      ) : materials.length === 0 ? (
-        <p style={{ color: "var(--text-muted)", fontSize: 14, margin: "1rem 0 0" }}>No materials uploaded yet</p>
-      ) : (
-        <div style={{ display: "grid", gap: 8, marginTop: "1rem" }}>
-          {materials.map((material) => {
-            const href = material.url ?? material.fileUrl ?? "";
-            return (
-              <div key={material.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "0.875rem 1rem", backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)", borderRadius: 12, flexWrap: "wrap" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 10, color: "var(--text)", fontSize: 14, fontWeight: 700 }}>
-                  <FileText size={18} strokeWidth={1.8} aria-hidden />
-                  {material.title}
-                  <small style={{ color: "var(--accent)", border: "1px solid var(--accent-border)", borderRadius: 999, padding: "2px 8px" }}>{material.type ?? "Material"}</small>
-                </span>
-                {href && <a href={href} download target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ textDecoration: "none", padding: "7px 12px", fontSize: 13 }}>Download</a>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </motion.details>
-  );
-}
-
-// Types
 interface ClassData {
   id: string;
   title: string;
@@ -312,48 +92,420 @@ interface Props {
   bookingError: boolean;
 }
 
-// Main client component
+type Review = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  student: { fullName: string | null; name: string | null; photoUrl: string | null };
+};
+
+function formatFormat(format: string) {
+  if (format === "IN_PERSON") return "In person";
+  if (format === "ONLINE") return "Online";
+  if (format === "HYBRID") return "Hybrid";
+  return format.replace(/_/g, " ").toLowerCase();
+}
+
+function providerName(cls: ClassData) {
+  return cls.owner?.fullName ?? cls.owner?.name ?? cls.center?.name ?? "Coursaty Tutor";
+}
+
+function Stars({ value = 4.8, small = false }: { value?: number; small?: boolean }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 2, color: "var(--rating)", fontSize: small ? 10 : 12, fontWeight: 850 }}>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <Star key={index} size={small ? 10 : 12} fill="currentColor" strokeWidth={1.5} aria-hidden />
+      ))}
+      <span style={{ color: "var(--text-secondary)", marginInlineStart: 4 }}>{value.toFixed(1)}</span>
+    </span>
+  );
+}
+
+function Pill({ children, tone = "neutral" }: { children: React.ReactNode; tone?: "neutral" | "accent" | "rating" }) {
+  const color = tone === "accent" ? "var(--accent)" : tone === "rating" ? "var(--rating)" : "var(--text-secondary)";
+  const bg = tone === "accent" ? "var(--accent-bg)" : tone === "rating" ? "var(--warning-bg)" : "var(--bg-card)";
+  const border = tone === "accent" ? "var(--accent-border)" : "var(--border-light)";
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 8px", border: `1px solid ${border}`, borderRadius: 999, background: bg, color, fontSize: 10, fontWeight: 850 }}>
+      {children}
+    </span>
+  );
+}
+
+function InfoRow({ icon: Icon, label, value }: { icon: React.ComponentType<{ size?: number; strokeWidth?: number }>; label: string; value: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 7, color: "var(--text-muted)", fontSize: 11, fontWeight: 750 }}>
+        <Icon size={13} strokeWidth={1.9} aria-hidden />
+        {label}
+      </span>
+      <span style={{ maxWidth: "58%", color: "var(--text)", fontSize: 11, fontWeight: 850, textAlign: "right" }}>{value}</span>
+    </div>
+  );
+}
+
+function LearningOutcomes({ subject }: { subject: string }) {
+  const outcomes = [
+    `Master core ${subject} exam skills`,
+    "Solve weekly assignments with feedback",
+    "Review past-paper style questions",
+    "Track progress before each session",
+    "Ask questions between lessons",
+    "Build a practical revision plan",
+  ];
+
+  return (
+    <section style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+      {outcomes.map((outcome) => (
+        <div key={outcome} style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--text-secondary)", fontSize: 11, fontWeight: 700 }}>
+          <CheckCircle size={13} color="var(--accent)" strokeWidth={2} aria-hidden />
+          {outcome}
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function TutorPanel({ cls }: { cls: ClassData }) {
+  const tutor = cls.owner;
+  const name = providerName(cls);
+  const avatar = tutor ? avatarFallback(tutor.id) : avatarFallback(cls.center?.id ?? cls.id);
+  const whatsapp = tutor?.phone?.replace(/\D/g, "") ?? cls.center?.phone?.replace(/\D/g, "") ?? "";
+
+  return (
+    <section style={{ display: "flex", alignItems: "center", gap: 14, padding: 12, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 11 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={avatar} alt="" style={{ width: 64, height: 64, borderRadius: 10, objectFit: "cover", border: "1px solid var(--border-light)" }} />
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text)", fontSize: 14, fontWeight: 900 }}>
+          {name}
+          {tutor?.isVerified && <BadgeCheck size={14} color="var(--accent)" strokeWidth={2} aria-label="Verified tutor" />}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginBlock: "4px 7px" }}>
+          <Stars value={4.8} small />
+          <span style={{ color: "var(--text-muted)", fontSize: 10 }}>128 students</span>
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {(tutor?.subjects?.length ? tutor.subjects : [cls.subject]).slice(0, 4).map((subject) => <Pill key={subject} tone="accent">{subject}</Pill>)}
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+        {tutor && (
+          <Link href={`/tutors/${tutor.id}`} className="btn-secondary" style={{ minHeight: 30, padding: "6px 10px", fontSize: 11, textDecoration: "none" }}>
+            View profile <ArrowRight size={12} aria-hidden />
+          </Link>
+        )}
+        {whatsapp && (
+          <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ minHeight: 30, padding: "6px 10px", fontSize: 11, textDecoration: "none" }}>
+            <MessageCircle size={12} aria-hidden /> WhatsApp
+          </a>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ReviewsStrip({ classId, isEligible }: { classId: string; isEligible: boolean }) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/classes/${classId}/reviews`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : { reviews: [] }))
+      .then((data) => {
+        if (!cancelled) setReviews(Array.isArray(data.reviews) ? data.reviews : []);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [classId]);
+
+  const visible = reviews.slice(0, 3);
+
+  return (
+    <section>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <h2 style={{ margin: 0, color: "var(--text)", fontSize: 13, fontWeight: 900 }}>Reviews</h2>
+          <Stars value={reviews.length ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 4.8} small />
+          <span style={{ color: "var(--text-muted)", fontSize: 10 }}>{reviews.length || "No"} public reviews</span>
+        </div>
+        {isEligible && <button type="button" className="btn-secondary" style={{ minHeight: 28, padding: "5px 9px", fontSize: 10 }}>Write review</button>}
+      </div>
+
+      {loading ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+          {[0, 1, 2].map((item) => <div key={item} className="skeleton" style={{ height: 86, borderRadius: 9 }} />)}
+        </div>
+      ) : visible.length > 0 ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+          {visible.map((review) => (
+            <article key={review.id} style={{ minHeight: 86, padding: 10, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 9 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
+                <span style={{ display: "grid", placeItems: "center", width: 24, height: 24, borderRadius: 999, color: "var(--accent-fg)", background: "var(--accent)", fontSize: 10, fontWeight: 900 }}>
+                  {(review.student.fullName ?? review.student.name ?? "S")[0].toUpperCase()}
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ color: "var(--text)", fontSize: 10, fontWeight: 900, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{review.student.fullName ?? review.student.name ?? "Student"}</div>
+                  <Stars value={review.rating} small />
+                </div>
+              </div>
+              <p style={{ color: "var(--text-secondary)", fontSize: 10, lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                {review.comment || "Helpful class and clear explanations."}
+              </p>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+          {["Clear explanations and patient pacing.", "Useful practice after each class.", "The schedule is easy to follow."].map((copy, index) => (
+            <article key={copy} style={{ minHeight: 86, padding: 10, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 9 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
+                <span style={{ display: "grid", placeItems: "center", width: 24, height: 24, borderRadius: 999, color: "var(--accent)", background: "var(--accent-bg)", fontSize: 10, fontWeight: 900 }}>S{index + 1}</span>
+                <Stars value={5} small />
+              </div>
+              <p style={{ color: "var(--text-secondary)", fontSize: 10, lineHeight: 1.4, margin: 0 }}>{copy}</p>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function MaterialsPanel({ classId, hasAccess }: { classId: string; hasAccess: boolean }) {
+  const [materials, setMaterials] = useState<ClassMaterial[]>([]);
+  const [loading, setLoading] = useState(hasAccess);
+
+  useEffect(() => {
+    if (!hasAccess) return;
+    let cancelled = false;
+    setLoading(true);
+    fetch(`/api/classes/${classId}/materials`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (!cancelled) setMaterials(Array.isArray(data) ? data : []);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [classId, hasAccess]);
+
+  return (
+    <section style={{ padding: 12, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 11 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
+        <h2 style={{ margin: 0, color: "var(--text)", fontSize: 13, fontWeight: 900 }}>Class materials</h2>
+        <Pill tone={hasAccess ? "accent" : "neutral"}>{hasAccess ? "Unlocked" : "After booking"}</Pill>
+      </div>
+      {!hasAccess ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 9, color: "var(--text-secondary)", fontSize: 11, lineHeight: 1.45 }}>
+          <Lock size={15} color="var(--accent)" aria-hidden />
+          Notes, recordings, and homework unlock after confirmed enrollment.
+        </div>
+      ) : loading ? (
+        <div className="skeleton" style={{ height: 44, borderRadius: 8 }} />
+      ) : materials.length > 0 ? (
+        <div style={{ display: "grid", gap: 7 }}>
+          {materials.slice(0, 3).map((material) => (
+            <div key={material.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "7px 8px", border: "1px solid var(--border-light)", borderRadius: 8, background: "var(--bg)" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, color: "var(--text)", fontSize: 11, fontWeight: 800 }}>
+                <FileText size={13} aria-hidden /> {material.title}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p style={{ margin: 0, color: "var(--text-muted)", fontSize: 11 }}>No materials uploaded yet.</p>
+      )}
+    </section>
+  );
+}
+
+function MiniDateSelector() {
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu"];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 5 }}>
+      {days.map((day, index) => {
+        const active = index === 1;
+        return (
+          <button
+            key={day}
+            type="button"
+            style={{
+              minHeight: 42,
+              border: `1px solid ${active ? "var(--accent)" : "var(--border-light)"}`,
+              borderRadius: 7,
+              background: active ? "var(--accent)" : "var(--bg)",
+              color: active ? "var(--accent-fg)" : "var(--text-secondary)",
+              fontSize: 9,
+              fontWeight: 850,
+              cursor: "pointer",
+            }}
+          >
+            <span style={{ display: "block" }}>{day}</span>
+            <span style={{ display: "block", marginTop: 2 }}>{index + 7}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function BookingCard({
+  cls,
+  bookingError,
+  alreadyBooked,
+  isFull,
+  isTutor,
+  session,
+  waitlistPosition,
+  onJoinWaitlist,
+  onSignIn,
+  onFavorite,
+  saved,
+}: {
+  cls: ClassData;
+  bookingError: boolean;
+  alreadyBooked: boolean;
+  isFull: boolean;
+  isTutor: boolean;
+  session: Props["session"];
+  waitlistPosition: number | null;
+  onJoinWaitlist: () => void;
+  onSignIn: () => void;
+  onFavorite: () => void;
+  saved: boolean;
+}) {
+  function cta() {
+    if (isFull) {
+      return (
+        <button type="button" onClick={onJoinWaitlist} disabled={waitlistPosition !== null} className="btn-primary" style={{ width: "100%", justifyContent: "center", minHeight: 34, fontSize: 12 }}>
+          <Clock size={14} aria-hidden />
+          {waitlistPosition ? `Waitlist #${waitlistPosition}` : "Join waitlist"}
+        </button>
+      );
+    }
+    if (!session?.user) {
+      return <button type="button" onClick={onSignIn} className="btn-primary" style={{ width: "100%", justifyContent: "center", minHeight: 34, fontSize: 12 }}>Sign in to book</button>;
+    }
+    if (isTutor) {
+      return <div style={{ padding: "9px 10px", borderRadius: 8, border: "1px solid var(--border-light)", color: "var(--text-muted)", background: "var(--bg)", textAlign: "center", fontSize: 11, fontWeight: 850 }}>Tutors cannot book classes</div>;
+    }
+    if (alreadyBooked) {
+      return <div style={{ padding: "9px 10px", borderRadius: 8, border: "1px solid var(--accent-border)", color: "var(--accent)", background: "var(--accent-bg)", textAlign: "center", fontSize: 11, fontWeight: 850 }}>Already booked</div>;
+    }
+    return <Link href={`/classes/${cls.id}/book`} className="btn-primary" style={{ width: "100%", justifyContent: "center", minHeight: 34, fontSize: 12, textDecoration: "none" }}>Book this class</Link>;
+  }
+
+  const finalPrice = cls.priceEgp;
+  const fees = 0;
+  const total = finalPrice + fees;
+
+  return (
+    <aside style={{ position: "sticky", top: 78, display: "grid", gap: 10 }}>
+      <section style={{ padding: 12, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 11 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 9 }}>
+          <div>
+            <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 800 }}>EGP <span style={{ color: "var(--accent)", fontSize: 25, fontWeight: 950 }}>{cls.priceEgp}</span></div>
+            <div style={{ color: "var(--text-muted)", fontSize: 10 }}>per enrollment</div>
+          </div>
+          <button type="button" onClick={onFavorite} aria-label={saved ? "Remove from favorites" : "Save class"} style={{ width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 7, border: "1px solid var(--border-light)", background: "var(--bg)", color: saved ? "var(--error)" : "var(--text-muted)", cursor: "pointer" }}>
+            <Heart size={14} fill={saved ? "currentColor" : "none"} aria-hidden />
+          </button>
+        </div>
+
+        <div style={{ display: "grid", gap: 7, paddingBlock: 9, borderBlock: "1px solid var(--border-light)" }}>
+          <InfoRow icon={BookOpen} label="Curriculum" value={cls.curriculum} />
+          <InfoRow icon={cls.format === "ONLINE" ? Monitor : MapPin} label="Format" value={formatFormat(cls.format)} />
+          <InfoRow icon={CalendarDays} label="Schedule" value={cls.schedule ?? "Flexible"} />
+          <InfoRow icon={Globe2} label="Language" value={cls.language ?? "English"} />
+        </div>
+
+        <div style={{ marginBlock: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)", fontSize: 10, fontWeight: 800, marginBottom: 6 }}>
+            <span>Select your schedule</span>
+            <span>{cls.spotsLeft ?? "Many"} seats</span>
+          </div>
+          <MiniDateSelector />
+        </div>
+
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 800, marginBottom: 6 }}>Available times</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 5 }}>
+            {["08:00 AM", "10:30 AM", "06:00 PM", "08:30 PM"].map((time, index) => (
+              <button key={time} type="button" style={{ minHeight: 28, border: `1px solid ${index === 0 ? "var(--accent)" : "var(--border-light)"}`, background: index === 0 ? "var(--accent)" : "var(--bg)", color: index === 0 ? "var(--accent-fg)" : "var(--text-secondary)", borderRadius: 7, fontSize: 10, fontWeight: 850, cursor: "pointer" }}>{time}</button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gap: 5, paddingTop: 9, borderTop: "1px solid var(--border-light)", marginBottom: 10 }}>
+          <InfoRow icon={Wallet} label="Price" value={`EGP ${finalPrice}`} />
+          <InfoRow icon={ShieldCheck} label="Platform fee" value={`EGP ${fees}`} />
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, color: "var(--text)", fontSize: 12, fontWeight: 950 }}>
+            <span>Total</span>
+            <span>EGP {total}</span>
+          </div>
+        </div>
+
+        {bookingError && <div role="alert" style={{ marginBottom: 8, padding: "8px 9px", color: "var(--error)", background: "var(--error-bg)", border: "1px solid var(--error-border)", borderRadius: 8, fontSize: 10, fontWeight: 800 }}>Booking failed. Please try again.</div>}
+        {cta()}
+      </section>
+
+      <section style={{ padding: 10, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 11 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <ShieldCheck size={18} color="var(--accent)" strokeWidth={2} aria-hidden />
+          <div>
+            <div style={{ color: "var(--text)", fontSize: 11, fontWeight: 900 }}>Booked with protection</div>
+            <p style={{ margin: "2px 0 0", color: "var(--text-muted)", fontSize: 10, lineHeight: 1.45 }}>Your booking is tracked in Coursaty with tutor and schedule details.</p>
+          </div>
+        </div>
+      </section>
+    </aside>
+  );
+}
+
 export default function ClassDetailClient({
   classData: cls,
   session,
   alreadyBooked,
   currentUserRole,
   isEligibleToReview,
-  existingUserReview,
   classId,
   bookingError,
 }: Props) {
   const isMobile = useIsMobile();
-  const subjectColor = getSubjectColor(cls.subject);
-  const tutor = cls.owner;
-  const whatsappNumber = tutor?.phone?.replace(/\D/g, "") ?? "";
-  const centerWhatsapp = cls.center?.phone?.replace(/\D/g, "") ?? "";
-
-  const [stickyVisible, setStickyVisible] = useState(false);
+  const { isFavorited, toggle } = useFavorites();
   const [showSignInModal, setShowSignInModal] = useState(false);
-  const [similarClasses, setSimilarClasses] = useState(cls.relatedClasses);
+  const [similarClasses, setSimilarClasses] = useState<ClassCardData[]>(cls.relatedClasses);
   const [similarLoading, setSimilarLoading] = useState(true);
   const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
+  const [stickyVisible, setStickyVisible] = useState(false);
   const bookingCardRef = useRef<HTMLDivElement>(null);
+  const saved = isFavorited("class", cls.id);
+  const accent = subjectAccent(cls.subject);
+  const bannerSrc = classBanner(`${cls.subject}-${cls.id}-detail`, 1400, 520);
   const isFull = cls.capacity !== null && cls.spotsLeft !== null && cls.spotsLeft <= 0;
-
-  // Show sticky bottom bar on mobile after the main booking card leaves view.
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setStickyVisible(!entry.isIntersecting),
-      { threshold: 0 }
-    );
-    if (bookingCardRef.current) observer.observe(bookingCardRef.current);
-    return () => observer.disconnect();
-  }, []);
+  const isTutor = currentUserRole === "TUTOR" || currentUserRole === "CENTER_ADMIN" || currentUserRole === "ADMIN";
+  const hasMaterialAccess = isEligibleToReview || isTutor || alreadyBooked;
 
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/classes/${cls.id}/similar`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        if (!cancelled && Array.isArray(data)) setSimilarClasses(data.slice(0, 6));
+        if (!cancelled && Array.isArray(data)) {
+          setSimilarClasses(data.slice(0, 6));
+        }
       })
       .catch(() => undefined)
       .finally(() => {
@@ -365,11 +517,15 @@ export default function ClassDetailClient({
   }, [cls.id]);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(`coursaty.waitlist.${cls.id}`);
-    if (saved) {
-      queueMicrotask(() => setWaitlistPosition(Number(saved)));
-    }
+    const savedPosition = window.localStorage.getItem(`coursaty.waitlist.${cls.id}`);
+    if (savedPosition) setWaitlistPosition(Number(savedPosition));
   }, [cls.id]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => setStickyVisible(!entry.isIntersecting), { threshold: 0 });
+    if (bookingCardRef.current) observer.observe(bookingCardRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   async function joinWaitlist() {
     if (!session?.user) {
@@ -385,1054 +541,140 @@ export default function ClassDetailClient({
     }
   }
 
-  const isTutor =
-    currentUserRole === "TUTOR" ||
-    currentUserRole === "CENTER_ADMIN" ||
-    currentUserRole === "ADMIN";
-  const hasMaterialAccess = isEligibleToReview || isTutor;
+  async function favoriteClass() {
+    try {
+      await toggle("class", cls.id);
+    } catch {
+      setShowSignInModal(true);
+    }
+  }
 
-  const bookingCTA = () => {
-    if (isFull) {
-      return (
-        <div>
-          <button
-            type="button"
-            onClick={joinWaitlist}
-            style={{
-              display: "flex",
-              width: "100%",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              backgroundColor: waitlistPosition ? "var(--accent-bg)" : "var(--bg-card)",
-              color: waitlistPosition ? "var(--accent)" : "var(--text)",
-              padding: "14px",
-              borderRadius: 12,
-              fontWeight: 800,
-              fontSize: "0.95rem",
-              border: "1px solid var(--accent-border)",
-              cursor: waitlistPosition ? "default" : "pointer",
-            }}
-            disabled={waitlistPosition !== null}
-          >
-            <Clock size={17} strokeWidth={2} aria-hidden />
-            {waitlistPosition ? `You're on the waitlist - Position #${waitlistPosition}` : "Join Waitlist"}
-          </button>
-          <p style={{ color: "var(--text-muted)", fontSize: 12, margin: "0.5rem 0 0", textAlign: "center" }}>We&apos;ll email you the moment a spot opens</p>
-        </div>
-      );
-    }
-
-    if (!session?.user) {
-      return (
-        <button
-          type="button"
-          onClick={() => setShowSignInModal(true)}
-          style={{
-            display: "block",
-            width: "100%",
-            textAlign: "center" as const,
-            background: "linear-gradient(135deg, var(--accent), var(--accent-hover))",
-            color: "var(--accent-fg)",
-            padding: "14px",
-            borderRadius: 12,
-            fontWeight: 700,
-            fontSize: "1rem",
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 4px 20px rgba(13,89,70,0.25)",
-            transition: "opacity 0.2s",
-          }}
-        >
-          Sign in to Book
-        </button>
-      );
-    }
-    if (isTutor) {
-      return (
-        <div
-          style={{
-            textAlign: "center" as const,
-            backgroundColor: "var(--bg-card)",
-            border: "1px solid var(--border-light)",
-            color: "var(--text-muted)",
-            padding: "14px",
-            borderRadius: 12,
-            fontWeight: 600,
-            fontSize: "0.9rem",
-          }}
-        >
-          Tutors cannot book classes
-        </div>
-      );
-    }
-    if (alreadyBooked) {
-      return (
-        <div
-          style={{
-            textAlign: "center" as const,
-            backgroundColor: "var(--bg-card)",
-            border: "1px solid var(--success)",
-            color: "var(--success)",
-            padding: "14px",
-            borderRadius: 12,
-            fontWeight: 700,
-            fontSize: "1rem",
-          }}
-        >
-          <CheckCircle size={16} strokeWidth={2.2} aria-hidden style={{ verticalAlign: "-3px", marginInlineEnd: 6 }} />
-          Already booked
-        </div>
-      );
-    }
-    if (cls.spotsLeft === 0) {
-      return (
-        <div
-          style={{
-            textAlign: "center" as const,
-            backgroundColor: "var(--error-bg)",
-            border: "1px solid var(--error-border)",
-            color: "var(--error)",
-            padding: "14px",
-            borderRadius: 12,
-            fontWeight: 700,
-          }}
-        >
-          Class is Full
-        </div>
-      );
-    }
-    return (
-      <Link
-          href={`/classes/${cls.id}/book`}
-          style={{
-            display: "block",
-            width: "100%",
-            background: "linear-gradient(135deg, var(--accent), var(--accent-hover))",
-            color: "var(--accent-fg)",
-            padding: "14px",
-            borderRadius: 12,
-            fontWeight: 700,
-            fontSize: "1rem",
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 4px 24px rgba(13,89,70,0.31)",
-            transition: "transform 0.15s, box-shadow 0.15s",
-            textAlign: "center",
-            textDecoration: "none",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
-            (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 8px 32px rgba(13,89,70,0.38)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
-            (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 4px 24px rgba(13,89,70,0.31)";
-          }}
-      >
-          {cls.priceEgp === 0 ? "Book free - get started" : `Book now - ${cls.priceEgp} EGP`}
-      </Link>
-    );
-  };
-
-  // Render
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--bg-card)",
-        color: "var(--text)",
-      }}
-    >
-      {/* Hero banner */}
-      <div
-        ref={heroRef}
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          background: "linear-gradient(135deg, var(--bg-alt) 0%, var(--bg-card) 58%, var(--bg-alt) 100%)",
-          borderBottom: "1px solid var(--border-light)",
-          padding: isMobile ? "0.75rem 0.875rem 0.875rem" : "3rem 2rem 2.5rem",
-        }}
-      >
-        {/* Real photography backdrop — emerald duotone for brand cohesion */}
-        <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={classBanner(`${cls.subject}-${cls.id}-hero`, 1400, 600)}
-            alt=""
-            loading="lazy"
-            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.18, mixBlendMode: "luminosity" }}
-          />
-          <span
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: `linear-gradient(135deg, ${subjectAccent(cls.subject)}22 0%, transparent 45%, transparent 100%)`,
-            }}
-          />
+    <div style={{ minHeight: "calc(100vh - 64px)", color: "var(--text)", background: "var(--bg)" }}>
+      <main style={{ maxWidth: 1180, margin: "0 auto", padding: isMobile ? "10px 12px 84px" : "12px 12px 34px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: 10, fontWeight: 800, marginBottom: 8 }}>
+          <Link href="/classes" style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "var(--text-muted)", textDecoration: "none" }}>
+            <ArrowLeft size={12} aria-hidden /> Back to classes
+          </Link>
         </div>
 
-        {/* Subtle subject wash — desktop only; on mobile it eats vertical space */}
-        {!isMobile && <div
-          style={{
-            position: "absolute",
-            top: -80,
-            insetInlineEnd: -80,
-            width: 360,
-            height: 360,
-            borderRadius: "50%",
-            background: `radial-gradient(circle, ${subjectColor.glow}14 0%, transparent 70%)`,
-            pointerEvents: "none",
-          }}
-        />}
-
-        <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative" }}>
-          {/* Breadcrumb — compact (just back link) on mobile */}
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: isMobile ? "0.75rem" : "1.5rem" }}
-          >
-            <Link
-              href="/classes"
-              style={{
-                color: "var(--text-muted)",
-                fontSize: 13,
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                transition: "color 0.2s",
-              }}
-            >
-              <ArrowLeft size={14} strokeWidth={2} aria-hidden /> {isMobile ? "Back" : "Browse Classes"}
-            </Link>
-            {!isMobile && <>
-              <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
-              <span style={{ color: "var(--text-muted)", fontSize: 13 }}>{cls.subject}</span>
-              <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>/</span>
-              <span style={{ color: "var(--text-muted)", fontSize: 13, fontWeight: 600 }}>
-                {cls.title.length > 40 ? cls.title.slice(0, 40) + "..." : cls.title}
-              </span>
-            </>}
-          </motion.div>
-
-          {/* Badges row */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.05 }}
-            style={{ display: "flex", gap: 6, flexWrap: "wrap" as const, marginBottom: isMobile ? "0.625rem" : "1.25rem" }}
-          >
-            <Badge color={subjectColor.badge} bg={subjectColor.bg}>
-              {cls.subject}
-            </Badge>
-            <Badge color="var(--accent)" bg="var(--accent-bg)">
-              {cls.curriculum}
-            </Badge>
-            <Badge
-              color={cls.format === "ONLINE" ? "var(--subject-teal)" : cls.format === "IN_PERSON" ? "var(--success)" : "var(--rating)"}
-              bg={cls.format === "ONLINE" ? "var(--subject-teal-bg)" : cls.format === "IN_PERSON" ? "var(--success-bg)" : "var(--warning-bg)"}
-            >
-              {cls.format === "IN_PERSON" ? "In-person" : cls.format === "ONLINE" ? "Online" : "Hybrid"}
-            </Badge>
-            {cls.gradeLevel && (
-              <Badge color="var(--rating)" bg="var(--warning-bg)">
-                Grade {cls.gradeLevel}
-              </Badge>
-            )}
-            {cls.language && (
-              <Badge color="var(--text-secondary)" bg="var(--bg-alt)">
-                {cls.language}
-              </Badge>
-            )}
-          </motion.div>
-
-          {/* Title */}
-          <motion.h1
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            style={{
-              fontSize: isMobile ? "1.35rem" : "clamp(1.6rem, 4vw, 2.4rem)",
-              fontWeight: 800,
-              color: "var(--text)",
-              margin: isMobile ? "0 0 0.5rem" : "0 0 1rem",
-              letterSpacing: -0.5,
-              maxWidth: 700,
-              lineHeight: 1.2,
-            }}
-          >
-            {cls.title}
-          </motion.h1>
-
-          {/* Social proof row — compact on mobile (12px text, 12px gap, 3-row max) */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 20, flexWrap: "wrap" as const, fontSize: isMobile ? 12 : 14 }}
-          >
-            <span style={{ color: "var(--text-muted)", fontSize: "inherit" }}>
-              <Users size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
-              <strong style={{ color: "var(--text)" }}>{cls.bookingsCount}</strong> students enrolled
-            </span>
-            {cls.capacity && (
-              <span style={{ color: "var(--text-muted)", fontSize: "inherit" }}>
-                <ClipboardList size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
-                Capacity: <strong style={{ color: "var(--text)" }}>{cls.capacity}</strong>
-              </span>
-            )}
-            {tutor && (
-              <span style={{ color: "var(--text-muted)", fontSize: "inherit" }}>
-                <User size={14} strokeWidth={1.8} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
-                by{" "}
-                <strong style={{ color: "var(--text)" }}>
-                  {tutor.fullName || tutor.name || "Tutor"}
-                </strong>
-              </span>
-            )}
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Two-column layout */}
-      <div
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: isMobile ? "1rem 0.875rem 3rem" : "2rem 1.5rem 4rem",
-          display: isMobile ? "flex" : "grid",
-          flexDirection: isMobile ? "column" : undefined,
-          gridTemplateColumns: "1fr min(380px, 35%)",
-          gap: isMobile ? "1rem" : "2rem",
-          alignItems: "start",
-        }}
-        className="detail-grid"
-      >
-        {/* Left column */}
-        <div style={{ minWidth: 0 }}>
-          {/* Description */}
-          {cls.description && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                borderRadius: 18,
-                padding: "1.75rem",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <h2
-                style={{
-                  color: "var(--text)",
-                  fontWeight: 700,
-                  fontSize: "1.05rem",
-                  margin: "0 0 0.875rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <span
-                  style={{
-                    width: 4,
-                    height: 18,
-                    background: `linear-gradient(180deg, ${subjectColor.glow}, transparent)`,
-                    borderRadius: 2,
-                    display: "inline-block",
-                  }}
-                />
-                About This Class
-              </h2>
-              <p
-                style={{
-                  color: "var(--text-muted)",
-                  fontSize: 15,
-                  lineHeight: 1.75,
-                  margin: 0,
-                }}
-              >
-                {cls.description}
-              </p>
-            </motion.div>
-          )}
-
-          <ClassMaterials
-            classId={cls.id}
-            hasAccess={hasMaterialAccess}
-          />
-
-          {/* Stats grid */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-              gap: 12,
-              marginBottom: "1.5rem",
-            }}
-          >
-            <StatTile
-              icon={DollarSign}
-              label="Price"
-              value={cls.priceEgp === 0 ? "Free" : cls.priceEgp + " EGP"}
-            />
-            <StatTile
-              icon={cls.isOnline ? Monitor : MapPin}
-              label="Location"
-              value={
-                cls.isOnline
-                  ? "Online"
-                  : cls.location ?? cls.city ?? "See details"
-              }
-            />
-            {cls.schedule && (
-              <StatTile icon={CalendarDays} label="Schedule" value={cls.schedule} />
-            )}
-            {cls.capacity && (
-              <StatTile
-                icon={Armchair}
-                label="Capacity"
-                value={cls.capacity + " students"}
-              />
-            )}
-          </motion.div>
-
-          {/* Spots bar */}
-          {cls.capacity && cls.spotsLeft !== null && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: `1px solid ${cls.spotsLeft <= 3 ? "rgba(163,48,40,0.25)" : cls.spotsLeft <= 5 ? "rgba(184,134,27,0.25)" : "var(--text-secondary)"}`,
-                borderRadius: 16,
-                padding: "1.25rem 1.5rem",
-                marginBottom: "1.5rem",
-              }}
-            >
-              {cls.spotsLeft <= 5 && cls.spotsLeft > 0 && (
-                <motion.div
-                  animate={{ opacity: [1, 0.5, 1] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: cls.spotsLeft <= 3 ? "var(--error)" : "var(--rating)",
-                    marginBottom: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <Flame size={14} strokeWidth={2} aria-hidden />
-                  Only {cls.spotsLeft} spot{cls.spotsLeft !== 1 ? "s" : ""} remaining - book now!
-                </motion.div>
-              )}
-              <SpotsBar capacity={cls.capacity} spotsLeft={cls.spotsLeft} />
-            </motion.div>
-          )}
-
-          {/* Tutor card */}
-          {tutor && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                borderRadius: 18,
-                padding: "1.75rem",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <h2
-                style={{
-                  color: "var(--text)",
-                  fontWeight: 700,
-                  fontSize: "1.05rem",
-                  margin: "0 0 1.25rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <span
-                  style={{
-                    width: 4,
-                    height: 18,
-                    background: "linear-gradient(180deg, var(--accent), transparent)",
-                    borderRadius: 2,
-                    display: "inline-block",
-                  }}
-                />
-                About the Tutor
-              </h2>
-              <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-                <div
-                  style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: "50%",
-                    background: `radial-gradient(circle at 40% 40%, var(--accent), var(--accent-hover))`,
-                    flexShrink: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 800,
-                    fontSize: 24,
-                    color: "var(--bg-card)",
-                    boxShadow: "0 0 0 3px var(--border), 0 0 0 5px rgba(13,89,70,0.25)",
-                  }}
-                >
-                  {((tutor.fullName || tutor.name || "T")[0] || "T").toUpperCase()}
+        <section style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0, 1fr) 278px", gap: 12, alignItems: "start" }} className="class-detail-shell">
+          <div style={{ minWidth: 0 }}>
+            <section style={{ position: "relative", minHeight: isMobile ? 230 : 258, overflow: "hidden", borderRadius: 11, background: accent, border: "1px solid var(--border-light)" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={bannerSrc} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.62, mixBlendMode: "luminosity" }} />
+              <span aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(24,23,21,0.84), rgba(24,23,21,0.46) 50%, rgba(24,23,21,0.14))" }} />
+              <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", minHeight: isMobile ? 230 : 258, padding: isMobile ? 16 : 20, color: "var(--accent-fg)" }}>
+                <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 8 }}>
+                  <Pill tone="accent">{cls.subject}</Pill>
+                  <Pill>{cls.curriculum}</Pill>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      color: "var(--text)",
-                      fontSize: 16,
-                      marginBottom: 4,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}
-                  >
-                    {tutor.fullName || tutor.name || "Tutor"}
-                    {tutor.isVerified && (
-                      <span title="Verified tutor" style={{ color: "var(--accent)", display: "inline-flex" }}>
-                        <BadgeCheck size={14} strokeWidth={2} aria-hidden />
-                      </span>
-                    )}
-                  </div>
-                  {tutor.subjects && tutor.subjects.length > 0 && (
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 6,
-                        flexWrap: "wrap" as const,
-                        marginBottom: 10,
-                      }}
-                    >
-                      {tutor.subjects.map((s) => (
-                        <span
-                          key={s}
-                          style={{
-                            background: "var(--accent-bg)",
-                            border: "1px solid var(--accent-border)",
-                            borderRadius: 6,
-                            padding: "2px 10px",
-                            fontSize: 12,
-                            color: "var(--accent)",
-                          }}
-                        >
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {tutor.bio && (
-                    <p
-                      style={{
-                        color: "var(--text-muted)",
-                        fontSize: 14,
-                        lineHeight: 1.65,
-                        margin: "0 0 14px",
-                      }}
-                    >
-                      {tutor.bio}
+                <h1 style={{ maxWidth: 650, margin: "0 0 6px", fontFamily: "var(--font-serif)", fontSize: isMobile ? 28 : 33, lineHeight: 1.04, fontWeight: 850, color: "var(--accent-fg)", letterSpacing: 0 }}>
+                  {cls.title}
+                </h1>
+                <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap", color: "rgba(251,250,246,0.86)", fontSize: 11, fontWeight: 750 }}>
+                  <Stars value={4.8} small />
+                  <span>{cls.bookingsCount} enrolled</span>
+                  <span>{cls.spotsLeft ?? "Open"} seats left</span>
+                  <span>{formatFormat(cls.format)}</span>
+                </div>
+              </div>
+            </section>
+
+            <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+              <section style={{ display: "grid", gap: 10, padding: 12, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 11 }}>
+                <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: 12 }}>
+                  <div>
+                    <h2 style={{ margin: "0 0 5px", color: "var(--text)", fontSize: 15, fontWeight: 950 }}>What you will learn</h2>
+                    <p style={{ maxWidth: 720, margin: 0, color: "var(--text-secondary)", fontSize: 11, lineHeight: 1.55 }}>
+                      {cls.description || `A focused ${cls.subject} class for ${cls.curriculum}${cls.gradeLevel ? `, ${cls.gradeLevel}` : ""}.`}
                     </p>
-                  )}
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const }}>
-                    <Link
-                      href={"/tutors/" + tutor.id}
-                      style={{
-                        color: "var(--accent)",
-                        fontSize: 13,
-                        textDecoration: "none",
-                        fontWeight: 600,
-                        padding: "6px 14px",
-                        border: "1px solid rgba(13,89,70,0.25)",
-                        borderRadius: 8,
-                        transition: "background 0.2s",
-                      }}
-                    >
-                      View full profile <ArrowRight size={13} strokeWidth={2} aria-hidden />
-                    </Link>
-                    {tutor.phone && (
-                      <a
-                        href={"https://wa.me/" + whatsappNumber}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          backgroundColor: "var(--success)",
-                          color: "var(--bg-card)",
-                          borderRadius: 8,
-                          padding: "6px 14px",
-                          textDecoration: "none",
-                          fontWeight: 600,
-                          fontSize: 13,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                        }}
-                      >
-                        <MessageCircle size={14} strokeWidth={2} aria-hidden />
-                        WhatsApp
-                      </a>
-                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    {cls.gradeLevel && <Pill>{cls.gradeLevel}</Pill>}
+                    <Pill>{cls.language ?? "English"}</Pill>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
+                <LearningOutcomes subject={cls.subject} />
+              </section>
 
-          {/* Center card */}
-          {cls.center && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.35 }}
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border-light)",
-                borderRadius: 18,
-                padding: "1.75rem",
-                marginBottom: "1.5rem",
-              }}
-            >
-              <h2
-                style={{
-                  color: "var(--text)",
-                  fontWeight: 700,
-                  fontSize: "1.05rem",
-                  margin: "0 0 1.25rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <span
-                  style={{
-                    width: 4,
-                    height: 18,
-                    background: "linear-gradient(180deg, var(--accent-hover), transparent)",
-                    borderRadius: 2,
-                    display: "inline-block",
-                  }}
-                />
-                Learning Center
-              </h2>
-              <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-                <div
-                  style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 14,
-                    background: "linear-gradient(135deg, var(--accent), var(--accent-hover))",
-                    flexShrink: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 800,
-                    fontSize: 24,
-                    color: "var(--accent-fg)",
-                    boxShadow: "0 0 0 3px var(--border), 0 0 0 5px rgba(13,89,70,0.25)",
-                  }}
-                >
-                  {cls.center.name[0].toUpperCase()}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      color: "var(--text)",
-                      fontSize: 16,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {cls.center.name}
-                  </div>
-                  <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 10 }}>
-                    {cls.center.city}
-                    {cls.center.location ? " - " + cls.center.location : ""}
-                  </div>
-                  {cls.center.description && (
-                    <p
-                      style={{
-                        color: "var(--text-muted)",
-                        fontSize: 14,
-                        lineHeight: 1.65,
-                        margin: "0 0 14px",
-                      }}
-                    >
-                      {cls.center.description}
-                    </p>
-                  )}
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const }}>
-                    <Link
-                      href={"/centers/" + cls.center.id}
-                      style={{
-                        color: "var(--accent)",
-                        fontSize: 13,
-                        textDecoration: "none",
-                        fontWeight: 600,
-                        padding: "6px 14px",
-                        border: "1px solid rgba(13,89,70,0.25)",
-                        borderRadius: 8,
-                      }}
-                    >
-                      View center <ArrowRight size={13} strokeWidth={2} aria-hidden />
-                    </Link>
-                    {cls.center.phone && (
-                      <a
-                        href={"https://wa.me/" + centerWhatsapp}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          backgroundColor: "var(--success)",
-                          color: "var(--bg-card)",
-                          borderRadius: 8,
-                          padding: "6px 14px",
-                          textDecoration: "none",
-                          fontWeight: 600,
-                          fontSize: 13,
-                        }}
-                      >
-                        <MessageCircle size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
-                        WhatsApp
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
+              <TutorPanel cls={cls} />
 
-          {/* Reviews */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.45 }}
-          >
-            <ReviewSection
-              classId={classId}
-              isEligible={isEligibleToReview}
-              existingUserReview={existingUserReview}
+              <ReviewsStrip classId={classId} isEligible={isEligibleToReview} />
+
+              <section>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+                  <h2 style={{ margin: 0, color: "var(--text)", fontSize: 13, fontWeight: 900 }}>Related classes</h2>
+                  <Link href="/classes" style={{ color: "var(--accent)", fontSize: 10, fontWeight: 850, textDecoration: "none" }}>View all</Link>
+                </div>
+                <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: isMobile ? "minmax(170px, 190px)" : "minmax(165px, 1fr)", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
+                  {similarLoading && [0, 1, 2, 3].map((item) => <div key={item} className="skeleton" style={{ height: 188, borderRadius: 10 }} />)}
+                  {!similarLoading && similarClasses.length === 0 && cls.relatedClasses.map((related, index) => <BrowseClassCard key={related.id} cls={related} index={index} compact />)}
+                  {!similarLoading && similarClasses.length > 0 && similarClasses.map((related, index) => <BrowseClassCard key={related.id} cls={related} index={index} compact />)}
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div ref={bookingCardRef}>
+            <BookingCard
+              cls={cls}
+              bookingError={bookingError}
+              alreadyBooked={alreadyBooked}
+              isFull={isFull}
+              isTutor={isTutor}
+              session={session}
+              waitlistPosition={waitlistPosition}
+              onJoinWaitlist={joinWaitlist}
+              onSignIn={() => setShowSignInModal(true)}
+              onFavorite={favoriteClass}
+              saved={saved}
             />
-          </motion.div>
-        </div>
-
-        {/* Right sidebar */}
-        <div>
-          <motion.div
-            ref={bookingCardRef}
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            style={{
-              position: "sticky",
-              top: "6rem",
-              backgroundColor: "var(--bg-card)",
-              border: `1px solid ${subjectColor.glow}30`,
-              borderRadius: 20,
-              padding: "1.75rem",
-              boxShadow: `0 0 40px ${subjectColor.glow}15`,
-            }}
-          >
-            {/* Price */}
-            <div style={{ marginBottom: "1.25rem" }}>
-              <div
-                style={{
-                  fontSize: "2rem",
-                  fontWeight: 800,
-                  color: "var(--text)",
-                  letterSpacing: -1,
-                }}
-              >
-                {cls.priceEgp === 0 ? (
-                  <span style={{ color: "var(--success)" }}>Free</span>
-                ) : (
-                  <>
-                    {cls.priceEgp}{" "}
-                    <span style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-muted)" }}>
-                      EGP
-                    </span>
-                  </>
-                )}
-              </div>
-              <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 2 }}>
-                per enrollment
-              </div>
+            <div style={{ marginTop: 10 }}>
+              <MaterialsPanel classId={cls.id} hasAccess={hasMaterialAccess} />
             </div>
+          </div>
+        </section>
+      </main>
 
-            {/* Quick stats */}
-            <div
-              style={{
-                backgroundColor: "var(--bg-card)",
-                borderRadius: 12,
-                padding: "1rem",
-                marginBottom: "1.25rem",
-                display: "flex",
-                flexDirection: "column" as const,
-                gap: 10,
-              }}
-            >
-              {[
-                { icon: ClipboardList, label: "Curriculum", value: cls.curriculum },
-                {
-                  icon: cls.format === "ONLINE" ? Monitor : MapPin,
-                  label: "Format",
-                  value: cls.format === "IN_PERSON" ? "In-person" : cls.format === "ONLINE" ? "Online" : "Hybrid",
-                },
-                { icon: CalendarDays, label: "Schedule", value: cls.schedule ?? "Flexible" },
-                { icon: cls.isOnline ? Globe2 : MapPin, label: "Location", value: cls.isOnline ? "Online" : cls.location ?? cls.city ?? "See details" },
-              ].map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.label}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-muted)", fontSize: 13, display: "flex", gap: 6, alignItems: "center" }}>
-                      <Icon size={14} strokeWidth={1.8} aria-hidden /> {item.label}
-                    </span>
-                    <span style={{ color: "var(--text)", fontSize: 13, fontWeight: 600, textAlign: "right" as const, maxWidth: "55%" }}>
-                      {item.value}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            {/* Spots bar in sidebar */}
-            {cls.capacity && cls.spotsLeft !== null && (
-              <div style={{ marginBottom: "1.25rem" }}>
-                <SpotsBar capacity={cls.capacity} spotsLeft={cls.spotsLeft} />
-              </div>
-            )}
-
-            {/* Urgency warning */}
-            {cls.spotsLeft !== null && cls.spotsLeft <= 5 && cls.spotsLeft > 0 && (
-              <motion.div
-                animate={{ opacity: [1, 0.6, 1] }}
-                transition={{ repeat: Infinity, duration: 2.5 }}
-                style={{
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--warning)",
-                  borderRadius: 10,
-                  padding: "10px 12px",
-                  marginBottom: "1rem",
-                  fontSize: 13,
-                  color: "var(--warning)",
-                  fontWeight: 600,
-                  textAlign: "center" as const,
-                }}
-              >
-                <Flame size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: "-2px", marginInlineEnd: 5 }} />
-                Only {cls.spotsLeft} spot{cls.spotsLeft !== 1 ? "s" : ""} left
-              </motion.div>
-            )}
-
-            {/* CTA */}
-            {bookingError && (
-              <div
-                style={{
-                  backgroundColor: "var(--error-bg)",
-                  border: "1px solid var(--error-border)",
-                  color: "var(--error)",
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  marginBottom: "1rem",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textAlign: "center" as const,
-                }}
-              >
-                We could not complete this booking. Please try again or choose another class.
-              </div>
-            )}
-            {bookingCTA()}
-
-            {/* Trust badges */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 20,
-                marginTop: "1.25rem",
-                paddingTop: "1.25rem",
-                borderTop: "1px solid var(--border-light)",
-              }}
-            >
-              {[
-                { icon: CheckCircle, label: "Secure" },
-                { icon: CheckCircle, label: "Verified" },
-                { icon: MessageCircle, label: "Support" },
-              ].map((t) => {
-                const Icon = t.icon;
-                return (
-                  <div
-                    key={t.label}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column" as const,
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <span style={{ color: "var(--accent)", display: "inline-flex" }}><Icon size={16} strokeWidth={2} aria-hidden /></span>
-                    <span style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>
-                      {t.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Related classes */}
-      {(similarLoading || similarClasses.length > 0) && (
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: isMobile ? "0 0.875rem 3rem" : "0 1.5rem 4rem",
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            <h2
-              style={{
-                color: "var(--text)",
-                fontWeight: 700,
-                fontSize: "1.1rem",
-                margin: "0 0 1.25rem",
-                paddingTop: "1rem",
-                borderTop: "1px solid var(--border-light)",
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <span
-                style={{
-                  width: 4,
-                  height: 18,
-                  background: `linear-gradient(180deg, ${subjectColor.glow}, transparent)`,
-                  borderRadius: 2,
-                  display: "inline-block",
-                }}
-              />
-              You Might Also Like
-            </h2>
-            <div
-              style={{
-                display: "grid",
-                gridAutoFlow: "column",
-                gridAutoColumns: "minmax(240px, 280px)",
-                gap: 16,
-                overflowX: "auto",
-                paddingBottom: 8,
-              }}
-            >
-              {similarLoading && [0, 1, 2].map((item) => (
-                <div key={item} role="status" aria-label="Loading similar classes" style={{ height: 180, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16 }} />
-              ))}
-              {!similarLoading && similarClasses.map((r, i) => (
-                <BrowseClassCard key={r.id} cls={r} index={i} compact />
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Mobile sticky CTA */}
       <AnimatePresence>
-        {stickyVisible && (
+        {stickyVisible && isMobile && (
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
             style={{
               position: "fixed",
-              insetInlineStart: 0,
-              insetInlineEnd: 0,
+              insetInline: 0,
               bottom: "76px",
-              backgroundColor: "var(--bg-card)",
-              borderTop: "1px solid var(--border-light)",
-              padding: "1rem 1.5rem",
+              zIndex: 50,
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
-              gap: 16,
-              zIndex: 50,
-              boxShadow: "0 -8px 32px #00000080",
+              gap: 12,
+              padding: "10px 12px",
+              background: "var(--bg-card)",
+              borderTop: "1px solid var(--border-light)",
+              boxShadow: "0 -8px 20px rgba(24,23,21,0.08)",
             }}
-            className="mobile-sticky-cta"
           >
-            <div>
-              <div
-                style={{ fontWeight: 800, color: "var(--text)", fontSize: "1.2rem" }}
-              >
-                {cls.priceEgp === 0 ? "Free" : cls.priceEgp + " EGP"}
-              </div>
-              <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-                {cls.spotsLeft !== null
-                  ? cls.spotsLeft + " spots left"
-                  : "Unlimited spots"}
-              </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: "var(--accent)", fontSize: 17, fontWeight: 950 }}>EGP {cls.priceEgp}</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 10 }}>{cls.spotsLeft ?? "Open"} seats left</div>
             </div>
-            <div style={{ flex: 1, maxWidth: 240 }}>{bookingCTA()}</div>
+            <Link href={`/classes/${cls.id}/book`} className="btn-primary" style={{ minHeight: 36, padding: "8px 14px", textDecoration: "none" }}>Book class</Link>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Responsive style override */}
       <style>{`
-        @media (max-width: 768px) {
-          .detail-grid {
+        @media (max-width: 900px) {
+          .class-detail-shell {
             grid-template-columns: 1fr !important;
-          }
-          .mobile-sticky-cta {
-            display: flex !important;
-          }
-        }
-        @media (min-width: 769px) {
-          .mobile-sticky-cta {
-            display: none !important;
           }
         }
       `}</style>
 
-      <SignInRequiredModal
-        open={showSignInModal}
-        onClose={() => setShowSignInModal(false)}
-        callbackUrl={`/classes/${classId}`}
-      />
+      <SignInRequiredModal open={showSignInModal} onClose={() => setShowSignInModal(false)} callbackUrl={`/classes/${classId}`} />
     </div>
   );
 }
-
-
-

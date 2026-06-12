@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpenCheck, Flame, RotateCcw, Search, SlidersHorizontal, X } from "lucide-react";
+import { BookOpenCheck, Flame, MapPin, Monitor, RotateCcw, Search, SlidersHorizontal, Star, TrendingUp, Wallet, X } from "lucide-react";
 import { useFilterParams } from "../hooks/useFilterParams";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useIsMobile } from "../hooks/useIsMobile";
@@ -83,24 +83,147 @@ function TrendingPills({ classes, activeSubject, onSelect }: { classes: ClassCar
   );
 }
 
-function LoadingPatternPanel() {
+function QuickRefinePanel({
+  classes,
+  filters,
+  onChange,
+}: {
+  classes: ClassCardData[];
+  filters: ClassFilterState;
+  onChange: (key: keyof ClassFilterState, value: string) => void;
+}) {
+  const popularSubjects = useMemo(() => {
+    const counts = new Map<string, number>();
+    classes.forEach((cls) => counts.set(cls.subject, (counts.get(cls.subject) ?? 0) + 1));
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+  }, [classes]);
+
+  const actions = [
+    {
+      label: "Under 500 EGP",
+      icon: Wallet,
+      active: filters.maxPrice === "500",
+      onClick: () => onChange("maxPrice", filters.maxPrice === "500" ? "" : "500"),
+    },
+    {
+      label: "Online",
+      icon: Monitor,
+      active: filters.type === "online",
+      onClick: () => onChange("type", filters.type === "online" ? "" : "online"),
+    },
+    {
+      label: "Cairo",
+      icon: MapPin,
+      active: filters.city === "Cairo",
+      onClick: () => onChange("city", filters.city === "Cairo" ? "" : "Cairo"),
+    },
+    {
+      label: "4+ stars",
+      icon: Star,
+      active: filters.minRating === "4",
+      onClick: () => onChange("minRating", filters.minRating === "4" ? "" : "4"),
+    },
+    {
+      label: "Cheapest first",
+      icon: TrendingUp,
+      active: filters.sort === "price_asc",
+      onClick: () => onChange("sort", filters.sort === "price_asc" ? "popular" : "price_asc"),
+    },
+  ];
+
   return (
     <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 11, padding: 12 }}>
-      <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 800, marginBottom: 10 }}>Loading skeleton pattern</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div key={index} style={{ display: "grid", gap: 5 }}>
-            <div className="skeleton" style={{ height: 44, borderRadius: 7 }} />
-            <div className="skeleton" style={{ height: 7, width: "82%" }} />
-            <div className="skeleton" style={{ height: 7, width: "55%" }} />
-          </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
+        <div>
+          <div style={{ color: "var(--text)", fontSize: 12, fontWeight: 900 }}>Quick refine</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 10, lineHeight: 1.35 }}>Narrow results without opening filters.</div>
+        </div>
+        <span style={{ width: 28, height: 28, borderRadius: 999, display: "grid", placeItems: "center", flexShrink: 0, color: "var(--accent)", background: "var(--accent-bg)" }}>
+          <SlidersHorizontal size={14} strokeWidth={2} aria-hidden />
+        </span>
+      </div>
+
+      <div style={{ display: "grid", gap: 6 }}>
+        {actions.map(({ label, icon: Icon, active, onClick }) => (
+          <button
+            key={label}
+            type="button"
+            aria-pressed={active}
+            onClick={onClick}
+            style={{
+              minHeight: 32,
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              width: "100%",
+              padding: "6px 8px",
+              borderRadius: 8,
+              border: `1px solid ${active ? "var(--accent-border)" : "var(--border-light)"}`,
+              background: active ? "var(--accent-bg)" : "var(--bg)",
+              color: active ? "var(--accent)" : "var(--text-secondary)",
+              fontFamily: "inherit",
+              fontSize: 11,
+              fontWeight: 800,
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            <Icon size={13} strokeWidth={2} aria-hidden />
+            <span>{label}</span>
+          </button>
         ))}
       </div>
-    </div>
+
+      {popularSubjects.length > 0 && (
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--border-light)" }}>
+          <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 850, marginBottom: 7 }}>Popular subjects</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {popularSubjects.map(([subject, count]) => {
+              const active = filters.subject === subject;
+              return (
+                <button
+                  key={subject}
+                  type="button"
+                  onClick={() => onChange("subject", active ? "" : subject)}
+                  style={{
+                    border: `1px solid ${active ? "var(--accent-border)" : "var(--border-light)"}`,
+                    background: active ? "var(--accent-bg)" : "var(--bg)",
+                    color: active ? "var(--accent)" : "var(--text-secondary)",
+                    borderRadius: 999,
+                    padding: "4px 8px",
+                    fontSize: 10,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                  }}
+                >
+                  {subject} · {count}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      </div>
   );
 }
 
-function RightRail({ resultCount, activeCount, onReset }: { resultCount: number; activeCount: number; onReset: () => void }) {
+function RightRail({
+  classes,
+  filters,
+  resultCount,
+  activeCount,
+  onChange,
+  onReset,
+}: {
+  classes: ClassCardData[];
+  filters: ClassFilterState;
+  resultCount: number;
+  activeCount: number;
+  onChange: (key: keyof ClassFilterState, value: string) => void;
+  onReset: () => void;
+}) {
   return (
     <aside className="classes-right-rail" style={{ width: 216, flexShrink: 0, display: "grid", gap: 14, position: "sticky", top: 80 }}>
       <div style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 800 }}>No results state</div>
@@ -138,7 +261,7 @@ function RightRail({ resultCount, activeCount, onReset }: { resultCount: number;
           Reset filters
         </button>
       </div>
-      <LoadingPatternPanel />
+      <QuickRefinePanel classes={classes} filters={filters} onChange={onChange} />
     </aside>
   );
 }
@@ -408,7 +531,7 @@ export default function ClassesClient({ classes }: { classes: ClassCardData[] })
         </main>
 
         <div className="desktop-only" style={{ flexShrink: 0, paddingBlockStart: 22 }}>
-          <RightRail resultCount={filtered.length} activeCount={activeFilterCount} onReset={resetFilters} />
+          <RightRail classes={items} filters={typedFilters} resultCount={filtered.length} activeCount={activeFilterCount} onChange={updateFilter} onReset={resetFilters} />
         </div>
       </div>
     </div>

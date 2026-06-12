@@ -1,13 +1,26 @@
 // app/centers/page.tsx
-// SERVER COMPONENT — fetches all centers with stats
+// SERVER COMPONENT — fetches all centers with stats (signed-in users only)
 
+import { redirect } from "next/navigation";
 import { prisma } from "../../lib/prisma";
+import { auth } from "../../lib/auth";
 import CentersClient from "./CentersClient";
 
-export const metadata = { title: "Learning Centers | Coursaty" };
+// Listing is gated to signed-in users, so keep it out of search indexes.
+export const metadata = {
+  title: "Learning Centers | Coursaty",
+  robots: { index: false, follow: false },
+};
 export const revalidate = 60;
 
+const ALLOWED_ROLES = ["STUDENT", "TUTOR", "CENTER_ADMIN", "ADMIN"];
+
 export default async function CentersPage() {
+  const session = await auth();
+  if (!session?.user || !ALLOWED_ROLES.includes((session.user as { role?: string }).role ?? "")) {
+    redirect("/login?callbackUrl=/centers");
+  }
+
   let centers: Awaited<ReturnType<typeof fetchCenters>> = [];
   try {
     centers = await fetchCenters();

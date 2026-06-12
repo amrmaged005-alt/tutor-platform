@@ -35,6 +35,15 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       isVerified: true,
       centerAccessLevel: true,
       _count: { select: { ownedClasses: true } },
+      ownedClasses: {
+        select: {
+          id: true,
+          title: true,
+          capacity: true,
+          _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
@@ -82,6 +91,12 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       accessLevel: t.centerAccessLevel,
       classCount: t._count.ownedClasses,
       avgRating: rb && rb.count > 0 ? Math.round((rb.sum / rb.count) * 10) / 10 : null,
+      classes: t.ownedClasses.map((c) => ({
+        id: c.id,
+        title: c.title,
+        capacity: c.capacity,
+        bookings: c._count.bookings,
+      })),
     };
   });
 

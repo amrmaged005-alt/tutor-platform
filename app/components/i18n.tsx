@@ -1020,6 +1020,12 @@ const DICT = {
   "centerAdmin.settings.logoPreview": { en: "Logo preview", ar: "معاينة الشعار" },
   "centerAdmin.settings.saving": { en: "Saving…", ar: "جارٍ الحفظ…" },
   "centerAdmin.settings.save": { en: "Save Changes", ar: "حفظ التغييرات" },
+
+  // ── Center admin: tutor class fill badges ─────────────────────────────────────
+  "centerAdmin.tutors.toggleClasses": { en: "Toggle classes", ar: "عرض/إخفاء الفصول" },
+  "centerAdmin.tutors.fill.full": { en: "Full", ar: "مكتمل" },
+  "centerAdmin.tutors.fill.limited": { en: "Limited", ar: "محدود" },
+  "centerAdmin.tutors.fill.open": { en: "Open", ar: "متاح" },
 } as const;
 
 type DictKey = keyof typeof DICT;

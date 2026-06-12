@@ -1,22 +1,46 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Users, UserPlus, Trash2, ShieldCheck, Star } from "lucide-react";
+import { Fragment, useState, useEffect, useCallback } from "react";
+import { Users, UserPlus, Trash2, ShieldCheck, Star, ChevronDown, ChevronRight } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
 
 type AccessLevel = "FULL" | "LIMITED" | "VIEW_ONLY";
+
+interface TutorClass {
+  id: string;
+  title: string;
+  capacity: number;
+  bookings: number;
+}
 
 interface TutorEntry {
   id: string;
   fullName: string | null;
   name: string | null;
   email: string | null;
+  photoUrl: string | null;
   subjects: string[];
   isVerified: boolean;
   accessLevel: AccessLevel;
   classCount: number;
   avgRating: number | null;
+  classes: TutorClass[];
 }
+
+type Fill = "full" | "limited" | "open";
+
+function fillLevel(bookings: number, capacity: number): Fill {
+  if (capacity <= 0) return "open";
+  if (bookings >= capacity) return "full";
+  if (bookings >= capacity * 0.75) return "limited";
+  return "open";
+}
+
+const FILL_STYLE: Record<Fill, { bg: string; color: string; labelKey: string }> = {
+  full: { bg: "var(--error-bg)", color: "var(--error)", labelKey: "centerAdmin.tutors.fill.full" },
+  limited: { bg: "var(--warning-bg)", color: "var(--warning)", labelKey: "centerAdmin.tutors.fill.limited" },
+  open: { bg: "var(--success-bg)", color: "var(--success)", labelKey: "centerAdmin.tutors.fill.open" },
+};
 
 const ACCESS_OPTIONS: Array<{ value: AccessLevel; labelKey: string; hintKey: string }> = [
   { value: "FULL", labelKey: "centerAdmin.access.full", hintKey: "centerAdmin.access.full.hint" },
@@ -75,6 +99,7 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
   };
 
   const [savingAccess, setSavingAccess] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   const handleAccessChange = async (tutorId: string, accessLevel: AccessLevel) => {
     const previous = tutors;
@@ -153,12 +178,18 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
               </thead>
               <tbody>
                 {tutors.map((t) => (
-                  <tr key={t.id}>
+                  <Fragment key={t.id}>
+                  <tr>
                     <td style={tdS}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: "var(--accent-bg)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "var(--accent)", flexShrink: 0 }}>
-                          {(t.fullName ?? t.name ?? "?")[0].toUpperCase()}
-                        </div>
+                        {t.photoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={t.photoUrl} alt="" loading="lazy" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: "var(--accent-bg)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "var(--accent)", flexShrink: 0 }}>
+                            {(t.fullName ?? t.name ?? "?")[0].toUpperCase()}
+                          </div>
+                        )}
                         <div>
                           <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 13, display: "flex", alignItems: "center", gap: 4 }}>
                             {t.fullName ?? t.name ?? "—"}
@@ -176,7 +207,20 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
                         {t.subjects.length > 3 && <span style={{ fontSize: 10, color: "var(--text-muted)" }}>+{t.subjects.length - 3}</span>}
                       </div>
                     </td>
-                    <td style={{ ...tdS, textAlign: "center", fontWeight: 700, color: "var(--text)" }}>{t.classCount}</td>
+                    <td style={{ ...tdS, textAlign: "center", fontWeight: 700, color: "var(--text)" }}>
+                      {t.classes.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => setExpanded((cur) => (cur === t.id ? null : t.id))}
+                          aria-expanded={expanded === t.id}
+                          aria-label={tr("centerAdmin.tutors.toggleClasses")}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "none", border: "none", color: "var(--text)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
+                        >
+                          {expanded === t.id ? <ChevronDown size={13} aria-hidden /> : <ChevronRight size={13} aria-hidden />}
+                          {t.classCount}
+                        </button>
+                      ) : t.classCount}
+                    </td>
                     <td style={{ ...tdS, textAlign: "center" }}>
                       {t.avgRating !== null ? (
                         <span style={{ fontWeight: 700, color: "var(--rating, #f59e0b)", display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
@@ -205,6 +249,30 @@ export default function CenterAdminTutors({ centerId }: { centerId: string }) {
                       </button>
                     </td>
                   </tr>
+                  {expanded === t.id && t.classes.length > 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ ...tdS, background: "var(--bg-alt)", padding: "10px 14px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          {t.classes.map((c) => {
+                            const fill = fillLevel(c.bookings, c.capacity);
+                            const fs = FILL_STYLE[fill];
+                            return (
+                              <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                                <span style={{ fontSize: 12, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.title}</span>
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{c.bookings}/{c.capacity}</span>
+                                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: fs.bg, color: fs.color }}>
+                                    {tr(fs.labelKey as Parameters<typeof tr>[0])}
+                                  </span>
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>

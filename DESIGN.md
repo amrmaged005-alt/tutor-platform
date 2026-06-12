@@ -100,6 +100,21 @@ The default register is product UI. The landing page may carry more narrative ex
 - Tonal layering and light borders before decorative shadow.
 - State-driven motion with reduced-motion alternatives.
 
+## 1.1 Product UI Direction
+
+**Browse Classes is the reference surface.** The current `/classes` page is the roadmap for future product UI improvements across Coursaty. New marketplace, dashboard, admin, search, booking, and settings work should use it as the first comparison point for density, spacing, controls, and visual tone.
+
+This means future surfaces should favor:
+- Compact task-first layouts with clear left/center/right information zones when the workflow benefits from them.
+- Warm fog and card-ivory surfaces with light borders before shadow.
+- Deep emerald only for selected states, primary actions, focus, and high-value trust cues.
+- Useful side panels that perform real work, such as quick refine actions, summaries, recommendations, or next steps.
+- Dense but readable cards, rows, filters, chips, and controls that help users compare options quickly.
+- Real marketplace details early: subject, curriculum, format, price, location, rating, tutor or center, and availability.
+- Familiar controls over decorative invention: checkboxes, pills, selects, icon buttons, search fields, tabs, and compact cards.
+
+Avoid introducing new visual directions that fight this surface. If a new screen needs a different structure, it should still feel related through the same control vocabulary, restrained emerald accent, tonal layering, compact spacing, and practical copy.
+
 ## 2. Colors
 
 The palette uses warm stone neutrals and a single deep emerald accent to communicate calm, local trust.
