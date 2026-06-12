@@ -14,6 +14,7 @@ import DashboardReviews from "./components/DashboardReviews";
 import DashboardStats from "./components/DashboardStats";
 import type { DashData } from "./components/DashboardTypes";
 import DashboardSidebar from "@/components/ui/DashboardSidebar";
+import { useI18n } from "../components/i18n";
 
 type Props = {
   data: DashData;
@@ -23,6 +24,7 @@ type Props = {
 
 export default function DashboardClient({ data, cancelBooking, deleteClass }: Props) {
   const isMobile = useIsMobile();
+  const { t } = useI18n();
   const { user, bookings, ownedClasses, centerData } = data;
   const role = user.role;
 
@@ -49,7 +51,7 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
           {(role === "TUTOR" || role === "CENTER_ADMIN") && (
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
               <button type="button" onClick={exportDashboard} className="btn-secondary" style={{ fontSize: 12, padding: "5px 12px" }}>
-                Export CSV
+                {t("dash.exportCsv")}
               </button>
             </div>
           )}
@@ -127,6 +129,7 @@ function UpcomingBookingsPanel({
   ownedClasses: { id: string; title: string; subject: string; schedule: string | null; bookings: Array<{ id: string; studentName: string; status: string; paymentStatus: string }> }[];
   isMobile: boolean;
 }) {
+  const { t } = useI18n();
   const upcoming = ownedClasses
     .flatMap((cls) =>
       cls.bookings.filter((b) => b.status !== "CANCELLED").map((b) => ({
@@ -148,6 +151,13 @@ function UpcomingBookingsPanel({
     PAID: { bg: "var(--success-bg)", color: "var(--success)" },
   };
 
+  const STATUS_LABEL: Record<string, string> = {
+    CONFIRMED: t("status.confirmed"),
+    PENDING: t("status.pending"),
+    CANCELLED: t("status.cancelled"),
+    PAID: t("status.paid"),
+  };
+
   return (
     <section
       style={{
@@ -167,7 +177,7 @@ function UpcomingBookingsPanel({
         }}
       >
         <h2 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "var(--text)" }}>
-          Upcoming Bookings
+          {t("dash.upcoming.title")}
         </h2>
         {upcoming.length > 0 && (
           <span
@@ -187,7 +197,7 @@ function UpcomingBookingsPanel({
 
       {upcoming.length === 0 ? (
         <div style={{ padding: "2rem 1.25rem", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
-          No upcoming bookings yet.
+          {t("dash.upcoming.empty")}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -252,7 +262,7 @@ function UpcomingBookingsPanel({
                     letterSpacing: "0.04em",
                   }}
                 >
-                  {item.status}
+                  {STATUS_LABEL[item.status] ?? item.status}
                 </span>
               </div>
             );
@@ -271,7 +281,7 @@ function UpcomingBookingsPanel({
               textDecoration: "none",
             }}
           >
-            View full calendar
+            {t("dash.upcoming.viewCalendar")}
           </a>
         </div>
       )}

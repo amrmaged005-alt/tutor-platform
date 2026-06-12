@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Bell, BookOpen, Check, MessageSquare, Save, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/app/components/i18n";
 
 export interface NotifPrefs {
   notifyBookingConfirmed: boolean;
@@ -11,13 +12,14 @@ export interface NotifPrefs {
   pushOnBooking: boolean;
 }
 const PREFS = [
-  { key: "notifyBookingConfirmed", label: "Booking emails", description: "Receive an email when someone books or confirms a session.", icon: BookOpen },
-  { key: "notifyNewMessage", label: "Message emails", description: "Receive an email when a tutor or student sends a message.", icon: MessageSquare },
-  { key: "notifyReviewReceived", label: "Review emails", description: "Receive an email when a student leaves a review.", icon: Star },
-  { key: "pushOnBooking", label: "Booking alerts", description: "Keep booking notifications enabled for your account.", icon: Bell },
+  { key: "notifyBookingConfirmed", labelKey: "settings.notif.booking.label", descKey: "settings.notif.booking.desc", icon: BookOpen },
+  { key: "notifyNewMessage", labelKey: "settings.notif.message.label", descKey: "settings.notif.message.desc", icon: MessageSquare },
+  { key: "notifyReviewReceived", labelKey: "settings.notif.review.label", descKey: "settings.notif.review.desc", icon: Star },
+  { key: "pushOnBooking", labelKey: "settings.notif.push.label", descKey: "settings.notif.push.desc", icon: Bell },
 ] as const;
 
 export default function SettingsClient({ initialPrefs }: { initialPrefs: Partial<NotifPrefs> }) {
+  const { t } = useI18n();
   const initial = useMemo<NotifPrefs>(() => ({
     notifyBookingConfirmed: initialPrefs.notifyBookingConfirmed ?? true,
     notifyNewMessage: initialPrefs.notifyNewMessage ?? true,
@@ -62,34 +64,34 @@ export default function SettingsClient({ initialPrefs }: { initialPrefs: Partial
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.error ?? "Could not save your preferences.");
+        setError(data.error ?? t("settings.saveError"));
         return;
       }
       setSavedPrefs(prefs);
       setSaved(true);
       window.setTimeout(() => setSaved(false), 2200);
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("common.networkError"));
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <div className="skeleton" role="status" aria-label="Loading notification settings" style={{ height: 280 }} />;
+  if (loading) return <div className="skeleton" role="status" aria-label={t("settings.notif.loading")} style={{ height: 280 }} />;
 
   return (
     <section aria-labelledby="notification-heading">
       <div style={{ marginBottom: 18 }}>
-        <h2 id="notification-heading" style={{ margin: 0, color: "var(--text)", fontSize: "1.15rem" }}>Notifications</h2>
-        <p style={{ margin: "4px 0 0", color: "var(--text-secondary)", fontSize: 13 }}>Choose the updates that are useful to you.</p>
+        <h2 id="notification-heading" style={{ margin: 0, color: "var(--text)", fontSize: "1.15rem" }}>{t("settings.tab.notifications")}</h2>
+        <p style={{ margin: "4px 0 0", color: "var(--text-secondary)", fontSize: 13 }}>{t("settings.notif.desc")}</p>
       </div>
       <div style={{ overflow: "hidden", background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: "var(--radius-lg)" }}>
-        {PREFS.map(({ key, label, description, icon: Icon }, index) => (
+        {PREFS.map(({ key, labelKey, descKey, icon: Icon }, index) => (
           <div key={key} style={{ display: "flex", alignItems: "center", gap: 12, padding: "1rem 1.1rem", borderBlockEnd: index < PREFS.length - 1 ? "1px solid var(--border-light)" : 0 }}>
             <span style={{ display: "inline-grid", width: 34, height: 34, placeItems: "center", color: "var(--accent)", background: "var(--accent-bg)", borderRadius: 10 }}><Icon size={16} aria-hidden /></span>
             <label htmlFor={`pref-${key}`} style={{ flex: 1 }}>
-              <strong style={{ display: "block", color: "var(--text)", fontSize: 14 }}>{label}</strong>
-              <span style={{ display: "block", color: "var(--text-muted)", fontSize: 12 }}>{description}</span>
+              <strong style={{ display: "block", color: "var(--text)", fontSize: 14 }}>{t(labelKey)}</strong>
+              <span style={{ display: "block", color: "var(--text-muted)", fontSize: 12 }}>{t(descKey)}</span>
             </label>
             <Toggle id={`pref-${key}`} checked={prefs[key]} onChange={(checked) => {
               setPrefs((current) => ({ ...current, [key]: checked }));
@@ -101,8 +103,8 @@ export default function SettingsClient({ initialPrefs }: { initialPrefs: Partial
       <AnimatePresence>
         {(dirty || saved || error) && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} style={{ position: "sticky", bottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 16, padding: "10px 12px", color: error ? "var(--error)" : saved ? "var(--success)" : "var(--text-secondary)", background: "var(--bg-elevated)", border: "1px solid var(--border-light)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-md)", fontSize: 13 }}>
-            <span>{error || (saved ? "Preferences saved" : "You have unsaved changes.")}</span>
-            {dirty && <button type="button" onClick={save} disabled={saving} className="btn-primary"><Save size={15} aria-hidden />{saving ? "Saving..." : "Save changes"}</button>}
+            <span>{error || (saved ? t("settings.saved") : t("settings.unsaved"))}</span>
+            {dirty && <button type="button" onClick={save} disabled={saving} className="btn-primary"><Save size={15} aria-hidden />{saving ? t("settings.saving") : t("settings.save")}</button>}
           </motion.div>
         )}
       </AnimatePresence>

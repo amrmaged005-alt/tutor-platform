@@ -4,9 +4,10 @@ import { useState } from "react";
 import { signOut } from "next-auth/react";
 import {
   ShieldCheck, AlertTriangle, Eye, EyeOff, Loader2, CheckCircle,
-  LogOut, KeyRound, Clock, MonitorSmartphone, Smartphone, Trash2,
+  LogOut, KeyRound, Clock, MonitorSmartphone, Trash2,
 } from "lucide-react";
 import { evaluatePasswordStrength } from "../lib/passwordStrength";
+import { useI18n } from "@/app/components/i18n";
 
 interface SecurityData {
   isEmailVerified: boolean;
@@ -55,36 +56,33 @@ const STRENGTH_COLOR: Record<string, string> = {
   strong: "var(--success)",
 };
 
-function formatDate(iso: string | null): string {
-  if (!iso) return "Never";
-  try {
-    return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-  } catch {
-    return iso;
-  }
-}
+const STRENGTH_KEY = {
+  weak: "security.strength.weak",
+  fair: "security.strength.fair",
+  strong: "security.strength.strong",
+} as const;
 
 export default function SecuritySettings({ security }: { security: SecurityData }) {
+  const { t } = useI18n();
+  const navLinks: Array<[string, string]> = [
+    ["#change-password", t("security.changePassword")],
+    ["#email-verification", t("security.emailVerification")],
+    ["#connected-accounts", t("security.connectedAccounts")],
+    ["#sessions", t("security.activeSessions")],
+  ];
   return (
     <div style={{ color: "var(--text)" }}>
       <div className="settings-security-layout" style={{ display: "grid", gridTemplateColumns: "180px minmax(0, 1fr)", gap: 14, alignItems: "start" }}>
         <aside style={{ position: "sticky", top: 16, padding: "0.9rem", background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 12 }}>
-          <div style={{ display: "flex", gap: 7, alignItems: "center", marginBottom: 7, color: "var(--accent)", fontSize: 12, fontWeight: 850 }}><ShieldCheck size={15} aria-hidden />Account security</div>
-          <p style={{ margin: "0 0 12px", color: "var(--text-muted)", fontSize: 10, lineHeight: 1.55 }}>Manage your password and sign-in protection.</p>
-          {[
-            ["#change-password", "Change password"],
-            ["#email-verification", "Email verification"],
-            ["#two-factor", "Two-factor authentication"],
-            ["#connected-accounts", "Connected accounts"],
-            ["#sessions", "Sessions"],
-          ].map(([href, label]) => (
+          <div style={{ display: "flex", gap: 7, alignItems: "center", marginBottom: 7, color: "var(--accent)", fontSize: 12, fontWeight: 850 }}><ShieldCheck size={15} aria-hidden />{t("security.nav.title")}</div>
+          <p style={{ margin: "0 0 12px", color: "var(--text-muted)", fontSize: 10, lineHeight: 1.55 }}>{t("security.nav.desc")}</p>
+          {navLinks.map(([href, label]) => (
             <a key={href} href={href} style={{ display: "block", padding: "5px 0", color: "var(--text-secondary)", fontSize: 11, fontWeight: 700, textDecoration: "none" }}>{label}</a>
           ))}
         </aside>
         <div style={{ display: "grid", gap: 12 }}>
           {security.hasPassword && <ChangePasswordCard />}
           <EmailVerificationCard verified={security.isEmailVerified} />
-          <TwoFactorCard />
           <ConnectedAccountsCard providers={security.providers} hasPassword={security.hasPassword} />
           <AccountActivityCard security={security} />
           <SessionsCard />
@@ -97,6 +95,7 @@ export default function SecuritySettings({ security }: { security: SecurityData 
 }
 
 function EmailVerificationCard({ verified }: { verified: boolean }) {
+  const { t } = useI18n();
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -109,33 +108,33 @@ function EmailVerificationCard({ verified }: { verified: boolean }) {
       if (res.ok) setSent(true);
       else {
         const d = await res.json().catch(() => ({}));
-        setError(d.error ?? "Could not send. Try again later.");
+        setError(d.error ?? t("security.sendFailed"));
       }
     } catch {
-      setError("Network error. Try again.");
+      setError(t("common.networkError"));
     }
     setSending(false);
   }
 
   return (
     <div id="email-verification" style={card}>
-      <div style={sectionHeader}>Email verification</div>
+      <div style={sectionHeader}>{t("security.emailVerification")}</div>
       <div style={{ padding: "1.25rem", display: "flex", alignItems: "center", gap: 12 }}>
         {verified ? (
           <>
             <CheckCircle size={22} style={{ color: "var(--success)", flexShrink: 0 }} aria-hidden />
             <div>
-              <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>Your email is verified</p>
-              <p style={{ color: "var(--text-muted)", fontSize: 13, margin: 0 }}>Your account is fully active.</p>
+              <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{t("security.emailVerified")}</p>
+              <p style={{ color: "var(--text-muted)", fontSize: 13, margin: 0 }}>{t("security.fullyActive")}</p>
             </div>
           </>
         ) : (
           <>
             <AlertTriangle size={22} style={{ color: "var(--error)", flexShrink: 0 }} aria-hidden />
             <div style={{ flex: 1 }}>
-              <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>Email not verified</p>
+              <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{t("security.emailNotVerified")}</p>
               <p style={{ color: "var(--text-muted)", fontSize: 13, margin: 0 }}>
-                {sent ? "Verification email sent — check your inbox." : error || "Verify your email to secure your account."}
+                {sent ? t("security.verificationSent") : error || t("security.verifyPrompt")}
               </p>
             </div>
             {!sent && (
@@ -145,7 +144,7 @@ function EmailVerificationCard({ verified }: { verified: boolean }) {
                 disabled={sending}
                 style={{ backgroundColor: "var(--accent)", color: "var(--accent-fg)", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600, cursor: sending ? "wait" : "pointer", flexShrink: 0 }}
               >
-                {sending ? "Sending…" : "Resend"}
+                {sending ? t("security.sending") : t("security.resend")}
               </button>
             )}
           </>
@@ -156,6 +155,18 @@ function EmailVerificationCard({ verified }: { verified: boolean }) {
 }
 
 function AccountActivityCard({ security }: { security: SecurityData }) {
+  const { t, lang } = useI18n();
+  const locale = lang === "ar" ? "ar-EG" : "en-EG";
+
+  function formatDate(iso: string | null): string {
+    if (!iso) return t("security.never");
+    try {
+      return new Date(iso).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
+    } catch {
+      return iso;
+    }
+  }
+
   const locked = security.lockedUntil && new Date(security.lockedUntil) > new Date();
   const row = (icon: React.ReactNode, label: string, value: string) => (
     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0.9rem 1.25rem", borderTop: "1px solid var(--border-light)" }}>
@@ -167,14 +178,14 @@ function AccountActivityCard({ security }: { security: SecurityData }) {
 
   return (
     <div style={card}>
-      <div style={sectionHeader}>Account activity</div>
-      {row(<Clock size={16} aria-hidden />, "Last login", formatDate(security.lastLoginAt))}
-      {row(<MonitorSmartphone size={16} aria-hidden />, "Last login IP", security.lastLoginIp ?? "—")}
+      <div style={sectionHeader}>{t("security.accountActivity")}</div>
+      {row(<Clock size={16} aria-hidden />, t("security.lastLogin"), formatDate(security.lastLoginAt))}
+      {row(<MonitorSmartphone size={16} aria-hidden />, t("security.lastLoginIp"), security.lastLoginIp ?? "—")}
       {row(
         <AlertTriangle size={16} aria-hidden />,
-        "Failed login attempts",
+        t("security.failedAttempts"),
         locked
-          ? `${security.failedLoginCount} (locked until ${formatDate(security.lockedUntil)})`
+          ? t("security.lockedUntil", { count: security.failedLoginCount, date: formatDate(security.lockedUntil) })
           : String(security.failedLoginCount)
       )}
     </div>
@@ -182,6 +193,7 @@ function AccountActivityCard({ security }: { security: SecurityData }) {
 }
 
 function ChangePasswordCard() {
+  const { t } = useI18n();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -197,7 +209,7 @@ function ChangePasswordCard() {
     setError("");
     setDone(false);
     if (next !== confirm) {
-      setError("New passwords don't match.");
+      setError(t("security.passwordsMismatch"));
       return;
     }
     setBusy(true);
@@ -214,10 +226,10 @@ function ChangePasswordCard() {
         setNext("");
         setConfirm("");
       } else {
-        setError(data.error ?? "Could not change password.");
+        setError(data.error ?? t("security.passwordChangeError"));
       }
     } catch {
-      setError("Network error. Try again.");
+      setError(t("common.networkError"));
     }
     setBusy(false);
   }
@@ -227,11 +239,11 @@ function ChangePasswordCard() {
       <div style={sectionHeader}>
         <KeyRound size={15} strokeWidth={1.8} aria-hidden />
         <span style={{ flex: 1 }}>
-          <strong style={{ display: "block" }}>Change password</strong>
-          <small style={{ display: "block", marginTop: 2, color: "var(--text-muted)", fontSize: 10, fontWeight: 500 }}>Use a strong password so you do not lose access.</small>
+          <strong style={{ display: "block" }}>{t("security.changePassword")}</strong>
+          <small style={{ display: "block", marginTop: 2, color: "var(--text-muted)", fontSize: 10, fontWeight: 500 }}>{t("security.changePassword.desc")}</small>
         </span>
         <button type="button" onClick={() => setExpanded((current) => !current)} className="btn-secondary" style={{ padding: "6px 10px", fontSize: 11 }}>
-          {expanded ? "Close" : "Change password"}
+          {expanded ? t("security.close") : t("security.changePassword")}
         </button>
       </div>
       {expanded && (
@@ -241,7 +253,8 @@ function ChangePasswordCard() {
           required
           value={current}
           onChange={(e) => setCurrent(e.target.value)}
-          placeholder="Current password"
+          placeholder={t("security.currentPassword")}
+          aria-label={t("security.currentPassword")}
           autoComplete="current-password"
           style={{ ...inputStyle, padding: "10px 12px" }}
         />
@@ -251,14 +264,15 @@ function ChangePasswordCard() {
             required
             value={next}
             onChange={(e) => setNext(e.target.value)}
-            placeholder="New password"
+            placeholder={t("security.newPassword")}
+            aria-label={t("security.newPassword")}
             autoComplete="new-password"
             style={inputStyle}
           />
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
-            aria-label={show ? "Hide passwords" : "Show passwords"}
+            aria-label={show ? t("security.hidePasswords") : t("security.showPasswords")}
             style={{ position: "absolute", insetInlineEnd: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0, display: "flex" }}
           >
             {show ? <EyeOff size={17} aria-hidden /> : <Eye size={17} aria-hidden />}
@@ -282,7 +296,7 @@ function ChangePasswordCard() {
                 />
               ))}
             </div>
-            <span style={{ fontSize: 12, color: STRENGTH_COLOR[strength.level], fontWeight: 600 }}>{strength.label} password</span>
+            <span style={{ fontSize: 12, color: STRENGTH_COLOR[strength.level], fontWeight: 600 }}>{t(STRENGTH_KEY[strength.level])}</span>
           </div>
         )}
         <input
@@ -290,7 +304,8 @@ function ChangePasswordCard() {
           required
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
-          placeholder="Confirm new password"
+          placeholder={t("security.confirmPassword")}
+          aria-label={t("security.confirmPassword")}
           autoComplete="new-password"
           style={{ ...inputStyle, padding: "10px 12px" }}
         />
@@ -302,7 +317,7 @@ function ChangePasswordCard() {
         )}
         {done && (
           <div style={{ backgroundColor: "var(--success-bg)", border: "1px solid var(--success)", color: "var(--success)", padding: "0.6rem 0.85rem", borderRadius: 8, fontSize: 13, fontWeight: 600 }}>
-            ✓ Password changed. A confirmation email has been sent.
+            {t("security.passwordChanged")}
           </div>
         )}
 
@@ -312,7 +327,7 @@ function ChangePasswordCard() {
           style={{ alignSelf: "flex-start", backgroundColor: busy ? "var(--accent-border)" : "var(--accent)", color: "var(--accent-fg)", border: "none", borderRadius: 8, padding: "10px 18px", fontSize: 14, fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8 }}
         >
           {busy && <Loader2 size={15} style={{ animation: "ssSpin 0.9s linear infinite" }} aria-hidden />}
-          {busy ? "Updating…" : "Update password"}
+          {busy ? t("security.updating") : t("security.updatePassword")}
         </button>
       </form>
       )}
@@ -322,20 +337,21 @@ function ChangePasswordCard() {
 }
 
 function ConnectedAccountsCard({ providers, hasPassword }: { providers: string[]; hasPassword: boolean }) {
+  const { t } = useI18n();
   const googleLinked = providers.includes("google");
   return (
     <div id="connected-accounts" style={card}>
-      <div style={sectionHeader}>Connected accounts</div>
+      <div style={sectionHeader}>{t("security.connectedAccounts")}</div>
       <div style={{ padding: "1rem 1.25rem", display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ fontSize: 14, fontWeight: 600, flex: 1 }}>Google</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: googleLinked ? "var(--success)" : "var(--text-muted)" }}>
-          {googleLinked ? "Connected" : "Not connected"}
+          {googleLinked ? t("security.connected") : t("security.notConnected")}
         </span>
       </div>
       <div style={{ padding: "1rem 1.25rem", borderTop: "1px solid var(--border-light)", display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 14, fontWeight: 600, flex: 1 }}>Password login</span>
+        <span style={{ fontSize: 14, fontWeight: 600, flex: 1 }}>{t("security.passwordLogin")}</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: hasPassword ? "var(--success)" : "var(--text-muted)" }}>
-          {hasPassword ? "Enabled" : "Not set"}
+          {hasPassword ? t("security.enabled") : t("security.notSet")}
         </span>
       </div>
     </div>
@@ -343,6 +359,7 @@ function ConnectedAccountsCard({ providers, hasPassword }: { providers: string[]
 }
 
 function SessionsCard() {
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
 
   async function signOutAll() {
@@ -357,12 +374,12 @@ function SessionsCard() {
 
   return (
     <div id="sessions" style={card}>
-      <div style={sectionHeader}>Active sessions</div>
+      <div style={sectionHeader}>{t("security.activeSessions")}</div>
       <div style={{ padding: "1.25rem", display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ flex: 1 }}>
-          <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>Sign out everywhere</p>
+          <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{t("security.signOutEverywhere")}</p>
           <p style={{ color: "var(--text-muted)", fontSize: 13, margin: 0 }}>
-            Ends every session on all devices, including this one.
+            {t("security.signOutEverywhereDesc")}
           </p>
         </div>
         <button
@@ -372,39 +389,25 @@ function SessionsCard() {
           style={{ display: "flex", alignItems: "center", gap: 7, backgroundColor: "transparent", color: "var(--error)", border: "1px solid var(--error-border)", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600, cursor: busy ? "wait" : "pointer", flexShrink: 0 }}
         >
           <LogOut size={15} aria-hidden />
-          {busy ? "Signing out…" : "Sign out of all devices"}
+          {busy ? t("security.signingOut") : t("security.signOutAll")}
         </button>
       </div>
     </div>
   );
 }
 
-function TwoFactorCard() {
-  return (
-    <div id="two-factor" style={card}>
-      <div style={{ padding: "0.95rem 1rem", display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ display: "grid", width: 34, height: 34, placeItems: "center", flexShrink: 0, color: "var(--accent)", background: "var(--accent-bg)", borderRadius: 9 }}><Smartphone size={16} aria-hidden /></span>
-        <span style={{ flex: 1 }}>
-          <strong style={{ display: "block", fontSize: 13 }}>Two-factor authentication is off</strong>
-          <small style={{ display: "block", marginTop: 2, color: "var(--text-muted)", fontSize: 11 }}>Add an extra step to secure your account.</small>
-        </span>
-        <button type="button" className="btn-secondary" style={{ padding: "7px 11px", color: "var(--accent)", fontSize: 11 }}>Enable 2FA</button>
-      </div>
-    </div>
-  );
-}
-
 function DangerZoneCard() {
+  const { t } = useI18n();
   return (
     <div style={{ ...card, borderColor: "var(--error-border)", background: "var(--error-bg)" }}>
       <div style={{ padding: "0.95rem 1rem", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <AlertTriangle size={18} color="var(--error)" aria-hidden />
         <span style={{ flex: 1, minWidth: 220 }}>
-          <strong style={{ display: "block", color: "var(--error)", fontSize: 12 }}>Danger zone</strong>
-          <small style={{ display: "block", marginTop: 2, color: "var(--text-secondary)", fontSize: 11 }}>Permanently delete your account and all of your data. This action cannot be undone.</small>
+          <strong style={{ display: "block", color: "var(--error)", fontSize: 12 }}>{t("settings.danger.title")}</strong>
+          <small style={{ display: "block", marginTop: 2, color: "var(--text-secondary)", fontSize: 11 }}>{t("security.danger.desc")}</small>
         </span>
         <a href="mailto:support@coursaty.com?subject=Delete account request" className="btn-secondary" style={{ padding: "7px 11px", color: "var(--error)", borderColor: "var(--error-border)", fontSize: 11, textDecoration: "none" }}>
-          <Trash2 size={14} aria-hidden /> Delete account
+          <Trash2 size={14} aria-hidden /> {t("security.deleteAccount")}
         </a>
       </div>
     </div>
