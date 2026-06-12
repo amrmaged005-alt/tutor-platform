@@ -8,14 +8,14 @@ import { useI18n } from "@/app/components/i18n";
 import { DashboardIcon } from "./DashboardPrimitives";
 import type { DashData, DashboardStatsShape } from "./DashboardTypes";
 
-function getGreeting(): { text: string; emoji: string } {
+function getGreeting(): { key: "dash.greeting.morning" | "dash.greeting.afternoon" | "dash.greeting.evening"; emoji: string } {
   const hour = new Date().getHours();
-  if (hour < 12) return { text: "Good morning", emoji: "🌅" };
-  if (hour < 18) return { text: "Good afternoon", emoji: "☀️" };
-  return { text: "Good evening", emoji: "🌙" };
+  if (hour < 12) return { key: "dash.greeting.morning", emoji: "🌅" };
+  if (hour < 18) return { key: "dash.greeting.afternoon", emoji: "☀️" };
+  return { key: "dash.greeting.evening", emoji: "🌙" };
 }
 
-function getWeekRange(): string {
+function getWeekRange(locale: string): string {
   const now = new Date();
   const day = now.getDay();
   const startOfWeek = new Date(now);
@@ -23,7 +23,7 @@ function getWeekRange(): string {
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 6);
   const fmt = (d: Date) =>
-    d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    d.toLocaleDateString(locale, { month: "short", day: "numeric" });
   return `${fmt(startOfWeek)} - ${fmt(endOfWeek)}, ${now.getFullYear()}`;
 }
 
@@ -148,12 +148,13 @@ export default function DashboardStats({
   stats: DashboardStatsShape;
   isMobile: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user, bookings, ownedClasses, tutorReviews, centerData } = data;
   const role = user.role;
-  const firstName = (user.fullName || user.name || "there").split(" ")[0];
-  const { text: greeting, emoji } = getGreeting();
-  const weekRange = getWeekRange();
+  const firstName = (user.fullName || user.name || t("dash.greeting.fallbackName")).split(" ")[0];
+  const { key: greetingKey, emoji } = getGreeting();
+  const greeting = t(greetingKey);
+  const weekRange = getWeekRange(lang === "ar" ? "ar-EG" : "en-EG");
 
   const avgRating =
     tutorReviews && tutorReviews.length > 0
@@ -168,28 +169,28 @@ export default function DashboardStats({
   const statItems =
     role === "STUDENT"
       ? [
-          { label: "Total Bookings", value: bookings.length, icon: "bookings", color: "var(--accent)", meta: "All time" },
-          { label: "Confirmed", value: stats.confirmedBookings, icon: "check", color: "var(--success)", meta: "Active", trend: "up" as const },
-          { label: "Pending", value: stats.pendingBookings, icon: "clock", color: "var(--warning)", meta: "Awaiting approval" },
+          { label: t("dash.stat.totalBookings"), value: bookings.length, icon: "bookings", color: "var(--accent)", meta: t("dash.meta.allTime") },
+          { label: t("dash.stat.confirmed"), value: stats.confirmedBookings, icon: "check", color: "var(--success)", meta: t("dash.meta.active"), trend: "up" as const },
+          { label: t("dash.stat.pending"), value: stats.pendingBookings, icon: "clock", color: "var(--warning)", meta: t("dash.meta.awaitingApproval") },
         ]
       : role === "TUTOR"
       ? [
-          { label: "Total Bookings", value: stats.totalBookings, icon: "students", color: "var(--accent)", meta: "Enrolled students", trend: stats.totalBookings > 0 ? "up" as const : undefined },
-          { label: "My Classes", value: ownedClasses.length, icon: "classes", color: "var(--accent-hover)", meta: "Active classes" },
-          { label: "Gross Revenue", value: `${stats.totalRevenue.toLocaleString()} EGP`, icon: "revenue", color: "var(--success)", meta: stats.totalRevenue > 0 ? "Lifetime earnings" : undefined, trend: stats.totalRevenue > 0 ? ("up" as const) : undefined },
+          { label: t("dash.stat.totalBookings"), value: stats.totalBookings, icon: "students", color: "var(--accent)", meta: t("dash.meta.enrolledStudents"), trend: stats.totalBookings > 0 ? "up" as const : undefined },
+          { label: t("dash.tab.classes"), value: ownedClasses.length, icon: "classes", color: "var(--accent-hover)", meta: t("dash.meta.activeClasses") },
+          { label: t("dash.stat.grossRevenue"), value: t("common.priceEgp", { price: stats.totalRevenue.toLocaleString() }), icon: "revenue", color: "var(--success)", meta: stats.totalRevenue > 0 ? t("dash.meta.lifetimeEarnings") : undefined, trend: stats.totalRevenue > 0 ? ("up" as const) : undefined },
           {
-            label: "Average Rating",
+            label: t("dash.stat.avgRating"),
             value: avgRating ? `${avgRating} ★` : "—",
             icon: "trend",
             color: "var(--rating)",
-            meta: tutorReviews && tutorReviews.length > 0 ? `from ${tutorReviews.length} review${tutorReviews.length > 1 ? "s" : ""}` : "No reviews yet",
+            meta: tutorReviews && tutorReviews.length > 0 ? t("dash.meta.fromReviews", { n: tutorReviews.length }) : t("dash.meta.noReviews"),
           },
         ]
       : [
-          { label: "Classes", value: centerData?.classes.length ?? 0, icon: "classes", color: "var(--accent)", meta: "Active" },
-          { label: "Tutors", value: centerData?.tutors.length ?? 0, icon: "tutor", color: "var(--accent-hover)", meta: "Enrolled" },
-          { label: "Bookings", value: stats.centerBookings, icon: "clipboard", color: "var(--rating)", meta: "Total", trend: stats.centerBookings > 0 ? "up" as const : undefined },
-          { label: "Gross Revenue", value: `${stats.centerRevenue.toLocaleString()} EGP`, icon: "revenue", color: "var(--success)", meta: "Lifetime" },
+          { label: t("dash.stat.classes"), value: centerData?.classes.length ?? 0, icon: "classes", color: "var(--accent)", meta: t("dash.meta.active") },
+          { label: t("landing.stats.tutors"), value: centerData?.tutors.length ?? 0, icon: "tutor", color: "var(--accent-hover)", meta: t("dash.meta.enrolled") },
+          { label: t("dash.stat.bookings"), value: stats.centerBookings, icon: "clipboard", color: "var(--rating)", meta: t("dash.meta.total"), trend: stats.centerBookings > 0 ? "up" as const : undefined },
+          { label: t("dash.stat.grossRevenue"), value: t("common.priceEgp", { price: stats.centerRevenue.toLocaleString() }), icon: "revenue", color: "var(--success)", meta: t("dash.meta.lifetime") },
         ];
 
   return (

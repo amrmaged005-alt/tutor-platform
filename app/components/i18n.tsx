@@ -819,6 +819,26 @@ const DICT = {
   "tutor.sessions": { en: "Sessions", ar: "جلسة" },
   "tutor.fromPrice": { en: "From {price} EGP", ar: "ابتداءً من {price} جنيه" },
   "tutor.book": { en: "Book", ar: "احجز" },
+
+  // ── Dashboard stat cards ──────────────────────────────────────────────────────
+  "dash.stat.totalBookings": { en: "Total Bookings", ar: "إجمالي الحجوزات" },
+  "dash.stat.grossRevenue": { en: "Gross Revenue", ar: "إجمالي الإيرادات" },
+  "dash.stat.avgRating": { en: "Average Rating", ar: "متوسط التقييم" },
+  "dash.meta.allTime": { en: "All time", ar: "منذ البداية" },
+  "dash.meta.active": { en: "Active", ar: "نشطة" },
+  "dash.meta.awaitingApproval": { en: "Awaiting approval", ar: "في انتظار الموافقة" },
+  "dash.meta.enrolledStudents": { en: "Enrolled students", ar: "الطلاب المسجّلون" },
+  "dash.meta.activeClasses": { en: "Active classes", ar: "فصول نشطة" },
+  "dash.meta.lifetimeEarnings": { en: "Lifetime earnings", ar: "أرباح إجمالية" },
+  "dash.meta.fromReviews": { en: "from {n} reviews", ar: "من {n} تقييمًا" },
+  "dash.meta.noReviews": { en: "No reviews yet", ar: "لا تقييمات بعد" },
+  "dash.meta.enrolled": { en: "Enrolled", ar: "مسجّلون" },
+  "dash.meta.total": { en: "Total", ar: "الإجمالي" },
+  "dash.meta.lifetime": { en: "Lifetime", ar: "إجمالي" },
+  "dash.greeting.morning": { en: "Good morning", ar: "صباح الخير" },
+  "dash.greeting.afternoon": { en: "Good afternoon", ar: "مساء الخير" },
+  "dash.greeting.evening": { en: "Good evening", ar: "مساء الخير" },
+  "dash.greeting.fallbackName": { en: "there", ar: "بك" },
 } as const;
 
 type DictKey = keyof typeof DICT;
