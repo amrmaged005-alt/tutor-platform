@@ -27,6 +27,8 @@ export async function deleteClass(formData: FormData) {
     where: { email: session.user.email },
   });
   if (!currentUser) redirect("/login");
+  // View-only center tutors cannot mutate classes, even if the UI control is bypassed.
+  if (currentUser.centerId && currentUser.centerAccessLevel === "VIEW_ONLY") redirect("/dashboard");
   const cls = await prisma.class.findUnique({ where: { id: classId } });
   if (!cls || cls.ownerId !== currentUser.id) redirect("/dashboard");
   await prisma.material.deleteMany({ where: { classId } });

@@ -96,6 +96,8 @@ export default async function DashboardPage() {
       subjects: (user as any).subjects ?? [],
       centerId: (user as any).centerId ?? null,
       centerName: (user as any).center?.name ?? null,
+      // Access level only constrains a tutor who belongs to a center; standalone tutors are FULL.
+      centerAccessLevel: (user as any).centerId ? ((user as any).centerAccessLevel ?? "FULL") : null,
       isVerified: (user as any).isVerified ?? false,
     },
     bookings: user.bookings.map((b) => ({

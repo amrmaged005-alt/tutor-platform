@@ -7,8 +7,8 @@ import { useI18n } from "@/app/components/i18n";
 import type { CenterClass, CenterData, OwnedClass } from "./DashboardTypes";
 
 type Props =
-  | { mode: "tutor"; classes: OwnedClass[]; deleteClass: (formData: FormData) => Promise<void>; centerData?: undefined; isMobile: boolean }
-  | { mode: "center"; classes: CenterClass[]; centerData: CenterData; deleteClass?: undefined; isMobile: boolean };
+  | { mode: "tutor"; classes: OwnedClass[]; deleteClass: (formData: FormData) => Promise<void>; centerData?: undefined; isMobile: boolean; readOnly?: boolean }
+  | { mode: "center"; classes: CenterClass[]; centerData: CenterData; deleteClass?: undefined; isMobile: boolean; readOnly?: undefined };
 
 const SUBJECT_COLORS: Record<string, string> = {
   Mathematics: "#1a4d3a",
@@ -29,6 +29,7 @@ export default function DashboardClasses(props: Props) {
   const { t } = useI18n();
   const title = props.mode === "center" ? t("dash.classes.title.center") : t("dash.classes.title.my");
   const { classes, isMobile } = props;
+  const canCreate = props.mode === "tutor" && !props.readOnly;
 
   return (
     <section
@@ -49,42 +50,49 @@ export default function DashboardClasses(props: Props) {
         }}
       >
         <h2 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "var(--text)" }}>{title}</h2>
-        <Link
-          href="/create-class"
-          className="btn-primary"
-          style={{ textDecoration: "none", padding: "5px 12px", fontSize: 12 }}
-        >
-          <Plus size={13} aria-hidden />
-          {t("dash.classes.new")}
-        </Link>
+        {canCreate && (
+          <Link
+            href="/create-class"
+            className="btn-primary"
+            style={{ textDecoration: "none", padding: "5px 12px", fontSize: 12 }}
+          >
+            <Plus size={13} aria-hidden />
+            {t("dash.classes.new")}
+          </Link>
+        )}
       </div>
 
       {/* Create new class CTA when empty */}
       {classes.length === 0 ? (
         <div style={{ padding: "2.5rem 1.25rem", textAlign: "center" }}>
-          <Link
-            href="/create-class"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "0.75rem 1.5rem",
-              color: "var(--accent)",
-              background: "var(--accent-bg-soft)",
-              border: "1px dashed var(--accent-border)",
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              textDecoration: "none",
-            }}
-          >
-            <Plus size={16} aria-hidden />
-            {t("dash.classes.createFirst")}
-          </Link>
+          {canCreate ? (
+            <Link
+              href="/create-class"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "0.75rem 1.5rem",
+                color: "var(--accent)",
+                background: "var(--accent-bg-soft)",
+                border: "1px dashed var(--accent-border)",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 700,
+                textDecoration: "none",
+              }}
+            >
+              <Plus size={16} aria-hidden />
+              {t("dash.classes.createFirst")}
+            </Link>
+          ) : (
+            <p style={{ margin: 0, color: "var(--text-muted)", fontSize: 13 }}>{t("dash.empty.noCreatedClasses")}</p>
+          )}
         </div>
       ) : (
         <>
           {/* Create-new shortcut row */}
+          {canCreate && (
           <Link
             href="/create-class"
             style={{
@@ -104,6 +112,7 @@ export default function DashboardClasses(props: Props) {
             <Plus size={14} aria-hidden />
             {t("dash.classes.createNew")}
           </Link>
+          )}
 
           {/* Table header */}
           {!isMobile && (
@@ -210,7 +219,7 @@ export default function DashboardClasses(props: Props) {
                 >
                   {t("dash.action.view")}
                 </Link>
-                {props.mode === "tutor" && (
+                {props.mode === "tutor" && !props.readOnly && (
                   <DeleteClassButton classId={cls.id} deleteAction={props.deleteClass} />
                 )}
               </div>

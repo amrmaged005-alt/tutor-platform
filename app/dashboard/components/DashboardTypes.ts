@@ -1,5 +1,7 @@
 export type DashboardRole = "STUDENT" | "TUTOR" | "CENTER_ADMIN" | string;
 
+export type CenterAccessLevel = "FULL" | "LIMITED" | "VIEW_ONLY";
+
 export type ManagedBooking = {
   id: string;
   status: string;
@@ -85,6 +87,7 @@ export type DashData = {
     subjects: string[];
     centerId: string | null;
     centerName: string | null;
+    centerAccessLevel?: CenterAccessLevel | null;
     isVerified?: boolean;
   };
   bookings: StudentBooking[];

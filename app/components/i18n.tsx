@@ -839,6 +839,12 @@ const DICT = {
   "dash.greeting.afternoon": { en: "Good afternoon", ar: "مساء الخير" },
   "dash.greeting.evening": { en: "Good evening", ar: "مساء الخير" },
   "dash.greeting.fallbackName": { en: "there", ar: "بك" },
+
+  // ── Center access levels (tutor-facing) ───────────────────────────────────────
+  "access.limited": { en: "Limited access", ar: "وصول محدود" },
+  "access.limited.desc": { en: "You can see your class schedule. Revenue and payouts are managed by your center.", ar: "يمكنك رؤية جدول فصولك. تتولى إدارة المركز الإيرادات والمدفوعات." },
+  "access.viewOnly": { en: "View-only access", ar: "وصول للعرض فقط" },
+  "access.viewOnly.desc": { en: "You can view your class info. Changes are managed by your center admin.", ar: "يمكنك عرض معلومات فصولك. يتولى مدير المركز إجراء التغييرات." },
 } as const;
 
 type DictKey = keyof typeof DICT;

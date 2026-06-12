@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { ShieldCheck } from "lucide-react";
 import PageShell from "../../components/ui/PageShell";
 import { useIsMobile } from "../hooks/useIsMobile";
 import DashboardBookings from "./components/DashboardBookings";
@@ -28,6 +29,11 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
   const { user, bookings, ownedClasses, centerData } = data;
   const role = user.role;
 
+  // Center access level only constrains a tutor who belongs to a center.
+  const accessLevel = user.centerAccessLevel ?? "FULL";
+  const canSeeRevenue = accessLevel === "FULL";
+  const isReadOnly = accessLevel === "VIEW_ONLY";
+
   function exportDashboard() {
     window.location.href = "/api/dashboard/export";
   }
@@ -48,7 +54,18 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
       <DashboardSidebar name={user.fullName ?? user.name ?? "Coursaty member"} />
       <div className="dashboard-app-content">
         <PageShell>
-          {(role === "TUTOR" || role === "CENTER_ADMIN") && (
+          {role === "TUTOR" && user.centerId && accessLevel !== "FULL" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, padding: "10px 14px", background: "var(--accent-bg)", border: "1px solid var(--accent-border)", borderRadius: 10, fontSize: 12.5 }}>
+              <ShieldCheck size={15} style={{ color: "var(--accent)", flexShrink: 0 }} aria-hidden />
+              <span style={{ color: "var(--text-secondary)" }}>
+                <strong style={{ color: "var(--accent)" }}>{t(accessLevel === "LIMITED" ? "access.limited" : "access.viewOnly")}</strong>
+                {" — "}
+                {t(accessLevel === "LIMITED" ? "access.limited.desc" : "access.viewOnly.desc")}
+              </span>
+            </div>
+          )}
+
+          {(role === "TUTOR" || role === "CENTER_ADMIN") && canSeeRevenue && (
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
               <button type="button" onClick={exportDashboard} className="btn-secondary" style={{ fontSize: 12, padding: "5px 12px" }}>
                 {t("dash.exportCsv")}
@@ -80,16 +97,20 @@ export default function DashboardClient({ data, cancelBooking, deleteClass }: Pr
 
               {/* Right column: classes + revenue */}
               <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                <DashboardClasses mode="tutor" classes={ownedClasses} deleteClass={deleteClass} isMobile={isMobile} />
-                <DashboardRevenue
-                  mode="tutor"
-                  classes={ownedClasses}
-                  totalBookings={stats.totalBookings}
-                  totalRevenue={stats.totalRevenue}
-                  isMobile={isMobile}
-                />
-                <DashboardReviews reviews={data.tutorReviews ?? []} />
-                <DashboardPayouts />
+                <DashboardClasses mode="tutor" classes={ownedClasses} deleteClass={deleteClass} isMobile={isMobile} readOnly={isReadOnly} />
+                {canSeeRevenue && (
+                  <>
+                    <DashboardRevenue
+                      mode="tutor"
+                      classes={ownedClasses}
+                      totalBookings={stats.totalBookings}
+                      totalRevenue={stats.totalRevenue}
+                      isMobile={isMobile}
+                    />
+                    <DashboardReviews reviews={data.tutorReviews ?? []} />
+                    <DashboardPayouts />
+                  </>
+                )}
               </div>
             </div>
           )}

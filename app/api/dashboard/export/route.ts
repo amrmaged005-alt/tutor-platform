@@ -36,9 +36,14 @@ export async function GET(req: NextRequest) {
 
   const me = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, role: true },
+    select: { id: true, role: true, centerId: true, centerAccessLevel: true },
   });
   if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Revenue exports are gated for center tutors without full access.
+  if (me.role === "TUTOR" && me.centerId && me.centerAccessLevel !== "FULL") {
+    return NextResponse.json({ error: "Your center manages revenue exports." }, { status: 403 });
+  }
 
   const { searchParams } = new URL(req.url);
   const type = (searchParams.get("type") ?? "bookings").toLowerCase();
