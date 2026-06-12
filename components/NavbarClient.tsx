@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Gift, Heart, MessageSquare, Search, Settings, Sun, Moon, Menu, X, Plus } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ChevronRight, Gift, Heart, MessageSquare, Search, Settings, Sun, Moon, Menu, X, Plus } from "lucide-react";
 import { useI18n } from "@/app/components/i18n";
 import { useTheme } from "@/app/components/Theme";
 import { useFavorites } from "@/app/hooks/useFavorites";
 import { useFocusTrap } from "@/components/ui/useFocusTrap";
+import CoursatyLogo from "@/components/ui/CoursatyLogo";
 
 const subscribeClient = () => () => {};
 const getClientSnapshot = () => true;
@@ -71,47 +74,21 @@ function LangToggle({ compact = false }: { compact?: boolean }) {
     const mounted = useHasHydrated();
 
     if (!mounted) {
-        return (
-            <div
-                aria-hidden="true"
-                style={{
-                    width: compact ? 54 : 62,
-                    height: 36,
-                    borderRadius: compact ? 8 : 999,
-                    border: "1px solid var(--border-light)",
-                    display: "inline-flex",
-                    flexShrink: 0,
-                }}
-            />
-        );
+        return <div aria-hidden="true" style={{ width: compact ? 84 : 92, height: 36, borderRadius: 999, border: "1px solid var(--border-light)", display: "inline-flex", flexShrink: 0 }} />;
     }
 
     return (
-        <button
-            type="button"
-            onClick={() => setLang(lang === "en" ? "ar" : "en")}
-            aria-label="Toggle language"
-            style={{
-                background: "transparent",
-                border: "1px solid var(--border-light)",
-                borderRadius: compact ? 8 : 999,
-                height: 36,
-                padding: compact ? "0 10px" : "0 14px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                color: "var(--text-secondary)",
-                cursor: "pointer",
-                fontSize: 13,
-                fontWeight: 600,
-                fontFamily: "inherit",
-                transition: "background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast)",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-alt)"; e.currentTarget.style.color = "var(--text)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-        >
-            {lang === "en" ? "عربي" : "EN"}
-        </button>
+        <div role="group" aria-label="Language" style={{ display: "inline-flex", gap: 2, minWidth: compact ? 84 : 92, height: 36, padding: 3, background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 999 }}>
+            {(["ar", "en"] as const).map((option) => {
+                const selected = lang === option;
+                return (
+                    <button key={option} type="button" aria-pressed={selected} onClick={() => setLang(option)} style={{ position: "relative", flex: 1, height: 28, padding: "0 7px", color: selected ? "var(--accent-fg)" : "var(--text-secondary)", background: "transparent", border: 0, borderRadius: 999, cursor: "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: 800 }}>
+                        {selected && <motion.span layoutId="lang-indicator" style={{ position: "absolute", inset: 0, zIndex: 0, borderRadius: 999, background: "var(--accent)" }} />}
+                        <span style={{ position: "relative", zIndex: 1 }}>{option === "ar" ? "AR" : "EN"}</span>
+                    </button>
+                );
+            })}
+        </div>
     );
 }
 
@@ -127,8 +104,8 @@ function MobileDrawer({
     favoriteCount: number;
     unreadMessages: number;
 }) {
-    const { t, dir } = useI18n();
-    const closedTransform = dir === "rtl" ? "translateX(-100%)" : "translateX(100%)";
+    const { t } = useI18n();
+    const reduceMotion = useReducedMotion();
     const dialogRef = useRef<HTMLElement | null>(null);
     useFocusTrap(dialogRef, open, onClose);
 
@@ -148,44 +125,47 @@ function MobileDrawer({
     }, [open, onClose]);
 
     return (
-        <>
-            <div
+        <AnimatePresence>
+          {open && (
+            <>
+            <motion.button
+                type="button"
+                aria-label="Close navigation"
                 onClick={onClose}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 style={{
                     position: "fixed", inset: 0,
-                    display: open ? "block" : "none",
                     backgroundColor: "rgba(24,23,21,0.42)",
                     backdropFilter: "blur(3px)",
-                    zIndex: 998,
-                    opacity: open ? 1 : 0,
-                    pointerEvents: open ? "auto" : "none",
-                    transition: "opacity 0.25s ease",
+                    zIndex: 1099,
+                    border: 0,
                 }}
             />
-            <nav
+            <motion.nav
                 ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
                 aria-label="Mobile navigation"
+                initial={reduceMotion ? false : { opacity: 0, x: 26 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={reduceMotion ? undefined : { opacity: 0, x: 26 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 style={{
-                    position: "fixed", top: 0, insetInlineEnd: 0,
-                    width: "min(300px, 82vw)", height: "100vh",
+                    position: "fixed", top: 0, bottom: 0, insetInlineEnd: 0,
+                    width: "min(88vw, 360px)",
                     backgroundColor: "var(--bg-elevated)",
                     borderInlineStart: "1px solid var(--border-light)",
-                    zIndex: 999,
-                    transform: open ? "translateX(0)" : closedTransform,
-                    transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
-                    display: open ? "flex" : "none", flexDirection: "column",
-                    padding: "1.25rem",
+                    zIndex: 1100,
+                    display: "flex", flexDirection: "column",
+                    padding: "1rem",
                     overflowY: "auto",
                     boxShadow: "var(--shadow-lg)",
                 }}
             >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <ThemeToggle compact />
-                        <LangToggle compact />
-                    </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "0.9rem", borderBlockEnd: "1px solid var(--border-light)", marginBottom: "0.7rem" }}>
+                    <CoursatyLogo compact />
                     <button
                         onClick={onClose}
                         aria-label="Close menu"
@@ -202,21 +182,32 @@ function MobileDrawer({
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    {links.map((link) => (
-                        <Link
+                    {links.map((link, index) => (
+                        <motion.div
                             key={link.href + link.label}
-                            href={link.href}
-                            onClick={onClose}
-                            style={{
-                                color: "var(--text)", fontSize: 15, fontWeight: 500,
-                                textDecoration: "none", padding: "0.65rem 0.875rem",
-                                borderRadius: 8, transition: "background 0.15s",
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-alt)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                            initial={reduceMotion ? false : { opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
                         >
-                            {link.label}
-                        </Link>
+                            <Link
+                                href={link.href}
+                                onClick={onClose}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 10,
+                                    color: "var(--text)", fontSize: 15, fontWeight: 600,
+                                    textDecoration: "none", padding: "0.75rem 0.7rem",
+                                    borderRadius: 8, transition: "background 0.15s",
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-alt)")}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                            >
+                                {link.label}
+                                <ChevronRight size={15} strokeWidth={1.8} aria-hidden />
+                            </Link>
+                        </motion.div>
                     ))}
 
                     {session && canCreateClass && (
@@ -296,7 +287,7 @@ function MobileDrawer({
                     )}
                 </div>
 
-                <div style={{ height: 1, background: "var(--border-light)", margin: "1.25rem 0" }} />
+                <div style={{ height: 1, background: "var(--border-light)", margin: "auto 0 1rem" }} />
 
                 {session ? (
                     <button
@@ -310,25 +301,31 @@ function MobileDrawer({
                 ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         <Link
-                            href="/classes"
+                            href="/login"
+                            onClick={onClose}
+                            className="btn-secondary"
+                            style={{ width: "100%", padding: "0.7rem", fontWeight: 700, justifyContent: "center" }}
+                        >
+                            {t("nav.signIn")}
+                        </Link>
+                        <Link
+                            href="/signup"
                             onClick={onClose}
                             className="btn-primary"
                             style={{ width: "100%", padding: "0.75rem", fontSize: 14, justifyContent: "center" }}
                         >
-                            {t("nav.browseClasses")}
-                        </Link>
-                        <Link
-                            href="/login"
-                            onClick={onClose}
-                            className="btn-secondary"
-                            style={{ width: "100%", padding: "0.7rem", fontWeight: 500, justifyContent: "center" }}
-                        >
-                            {t("nav.signIn")}
+                            Get started
                         </Link>
                     </div>
                 )}
-            </nav>
-        </>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginTop: "1rem", paddingTop: "0.9rem", borderBlockStart: "1px solid var(--border-light)" }}>
+                    <LangToggle compact />
+                    <ThemeToggle compact />
+                </div>
+            </motion.nav>
+            </>
+          )}
+        </AnimatePresence>
     );
 }
 
@@ -342,13 +339,14 @@ export default function NavbarClient({
     centerId?: string | null;
 }) {
     const { t } = useI18n();
+    const pathname = usePathname();
     const { favorites } = useFavorites();
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [unreadMessages, setUnreadMessages] = useState(0);
 
     useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 4);
+        const onScroll = () => setScrolled(window.scrollY > 60);
         window.addEventListener("scroll", onScroll, { passive: true });
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
@@ -374,17 +372,8 @@ export default function NavbarClient({
         };
     }, [session]);
 
-    const linkStyle = {
-        color: "var(--text-secondary)",
-        fontSize: 14,
-        textDecoration: "none" as const,
-        fontWeight: 500,
-        transition: "color 0.15s",
-        whiteSpace: "nowrap" as const,
-    };
-
     const publicLinks = [
-        ...(session ? [{ href: "/classes", label: t("nav.classes") }] : []),
+        { href: "/classes", label: t("nav.classes") },
         { href: "/tutors", label: t("nav.tutors") },
         { href: "/centers", label: t("nav.centers") },
         { href: "/signup?role=tutor", label: t("nav.forTutors") },
@@ -394,6 +383,22 @@ export default function NavbarClient({
     const bookingsLink = session && canCreateClass ? [{ href: "/dashboard/bookings", label: t("nav.bookings") }] : [];
     const centerAdminLink = isCenterAdmin && centerId ? [{ href: `/centers/${centerId}/admin`, label: "My Center" }] : [];
     const mobileLinks = [{ href: "/", label: t("nav.home") }, ...publicLinks, ...dashboardLink, ...bookingsLink, ...centerAdminLink];
+    const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+    const immersiveShell = ["/login", "/signup", "/forgot-password", "/reset-password", "/verify-email", "/global-states"].some((path) => pathname.startsWith(path)) || /\/classes\/[^/]+\/book/.test(pathname);
+    const dashboardShell = pathname.startsWith("/dashboard") || pathname.startsWith("/settings");
+
+    useEffect(() => {
+        if (immersiveShell) document.body.dataset.immersiveShell = "true";
+        else delete document.body.dataset.immersiveShell;
+        if (dashboardShell) document.body.dataset.dashboardShell = "true";
+        else delete document.body.dataset.dashboardShell;
+        return () => {
+            delete document.body.dataset.immersiveShell;
+            delete document.body.dataset.dashboardShell;
+        };
+    }, [dashboardShell, immersiveShell]);
+
+    if (immersiveShell || dashboardShell) return null;
 
     return (
         <>
@@ -401,9 +406,9 @@ export default function NavbarClient({
                 role="banner"
                 style={{
                     backgroundColor: scrolled ? "color-mix(in srgb, var(--bg) 85%, transparent)" : "var(--bg)",
-                    backdropFilter: scrolled ? "saturate(180%) blur(10px)" : "none",
-                    WebkitBackdropFilter: scrolled ? "saturate(180%) blur(10px)" : "none",
-                    borderBottom: scrolled ? "1px solid var(--border-light)" : "1px solid transparent",
+                    backdropFilter: scrolled ? "blur(14px) saturate(160%)" : "none",
+                    WebkitBackdropFilter: scrolled ? "blur(14px) saturate(160%)" : "none",
+                    borderBottom: "1px solid var(--border-light)",
                     boxShadow: scrolled ? "var(--shadow-xs)" : "none",
                     padding: "0 1.5rem",
                     display: "flex",
@@ -418,37 +423,14 @@ export default function NavbarClient({
                     transition: "background 0.2s, box-shadow 0.2s, border-color 0.2s",
                 }}
             >
-                <Link
-                    href="/"
-                    aria-label="Coursaty home"
-                    style={{
-                        fontSize: "1.2rem",
-                        fontWeight: 800,
-                        color: "var(--text)",
-                        textDecoration: "none",
-                        letterSpacing: "-0.025em",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                    }}
-                >
-                    <span style={{
-                        width: 22, height: 22, borderRadius: 6,
-                        background: "var(--accent)",
-                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        color: "var(--accent-fg)", fontSize: 12, fontWeight: 800,
-                    }}>C</span>
-                    Coursaty
-                </Link>
+                <CoursatyLogo compact />
 
                 <nav className="desktop-only" aria-label="Main navigation" style={{ gap: "1.5rem", alignItems: "center" }}>
                     {publicLinks.map((link) => (
                         <Link
                             key={link.href}
                             href={link.href}
-                            style={linkStyle}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-secondary)"; }}
+                            className={`nav-link${isActive(link.href) ? " is-active" : ""}`}
                         >
                             {link.label}
                         </Link>
@@ -456,16 +438,12 @@ export default function NavbarClient({
 
                     {session ? (
                         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-                            <Link href="/dashboard" style={linkStyle}
-                                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"; }}
-                                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-secondary)"; }}>
+                            <Link href="/dashboard" className={`nav-link${isActive("/dashboard") ? " is-active" : ""}`}>
                                 {t("nav.dashboard")}
                             </Link>
 
                             {canCreateClass && (
-                                <Link href="/dashboard/bookings" style={linkStyle}
-                                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text)"; }}
-                                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-secondary)"; }}>
+                                <Link href="/dashboard/bookings" className={`nav-link${isActive("/dashboard/bookings") ? " is-active" : ""}`}>
                                     {t("nav.bookings")}
                                 </Link>
                             )}
@@ -508,7 +486,7 @@ export default function NavbarClient({
                             >
                                 <MessageSquare size={16} strokeWidth={1.8} />
                                 {unreadMessages > 0 && (
-                                    <span style={{ position: "absolute", insetBlockStart: -5, insetInlineEnd: -5, minWidth: 18, height: 18, borderRadius: 999, backgroundColor: "var(--accent)", color: "var(--accent-fg)", border: "1px solid var(--bg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 850 }}>
+                                    <span className="notification-dot" style={{ position: "absolute", insetBlockStart: -5, insetInlineEnd: -5, minWidth: 18, height: 18, borderRadius: 999, backgroundColor: "var(--accent)", color: "var(--accent-fg)", border: "1px solid var(--bg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 850 }}>
                                         {unreadMessages}
                                     </span>
                                 )}
@@ -621,9 +599,9 @@ export default function NavbarClient({
                                 onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-secondary)"; }}>
                                 {t("nav.signIn")}
                             </Link>
-                            <Link href="/classes" className="btn-primary"
+                            <Link href="/signup" className="btn-primary"
                                 style={{ padding: "7px 16px", fontSize: 13.5 }}>
-                                {t("nav.browseClasses")}
+                                Get started
                             </Link>
                         </div>
                     )}

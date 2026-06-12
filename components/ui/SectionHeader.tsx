@@ -96,9 +96,9 @@ export default function SectionHeader({
           borderRadius: "999px",
           background: badge
             ? `linear-gradient(90deg, ${badgeColor}, ${badgeColor}60)`
-            : "linear-gradient(90deg, var(--accent), #1c6e7a)",
-          marginLeft: align === "center" ? "auto" : "0",
-          marginRight: align === "center" ? "auto" : "0",
+            : "linear-gradient(90deg, var(--accent), var(--subject-teal))",
+          marginInlineStart: align === "center" ? "auto" : "0",
+          marginInlineEnd: align === "center" ? "auto" : "0",
         }}
       />
     </motion.div>

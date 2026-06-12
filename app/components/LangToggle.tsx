@@ -12,7 +12,7 @@ export default function LangToggle() {
             style={{
                 position: "fixed",
                 bottom: "1.5rem",
-                left: "1.5rem",
+                insetInlineStart: "1.5rem",
                 zIndex: 1000,
                 backgroundColor: "var(--bg-card)",
                 border: "1px solid var(--border-light)",

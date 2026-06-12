@@ -22,16 +22,17 @@ export default function MobileBottomNav() {
   const pathname = usePathname();
   const { t } = useI18n();
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const immersiveShell = ["/login", "/signup", "/forgot-password", "/reset-password", "/verify-email", "/global-states"].some((path) => pathname.startsWith(path)) || /\/classes\/[^/]+\/book/.test(pathname);
 
   useEffect(() => {
-    if (!isMobile) return;
+    if (!isMobile || immersiveShell) return;
     let cancelled = false;
 
-    fetch("/api/messages", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : []))
+    fetch("/api/messages/unread-count", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : { count: 0 }))
       .then((data) => {
-        if (!cancelled && Array.isArray(data)) {
-          setUnreadMessages(data.reduce((sum, thread) => sum + (thread.unreadCount ?? 0), 0));
+        if (!cancelled) {
+          setUnreadMessages(typeof data.count === "number" ? data.count : 0);
         }
       })
       .catch(() => undefined);
@@ -39,9 +40,9 @@ export default function MobileBottomNav() {
     return () => {
       cancelled = true;
     };
-  }, [isMobile]);
+  }, [immersiveShell, isMobile]);
 
-  if (!isMobile) return null;
+  if (!isMobile || immersiveShell) return null;
 
   const items: NavItem[] = [
     {

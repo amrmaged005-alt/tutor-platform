@@ -55,7 +55,7 @@ export default function SignInRequiredModal({ open, onClose, callbackUrl, title,
           onClick={onClose}
           aria-label="Close"
           style={{
-            position: "absolute", top: 14, right: 14,
+            position: "absolute", top: 14, insetInlineEnd: 14,
             background: "transparent", border: "none",
             color: "var(--text-muted)",
             cursor: "pointer", padding: 6, borderRadius: 8,

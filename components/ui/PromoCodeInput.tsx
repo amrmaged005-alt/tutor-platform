@@ -19,7 +19,6 @@ interface PromoCodeInputProps {
 
 export default function PromoCodeInput({
   classId,
-  priceEgp,
   onApply,
   onClear,
   disabled = false,
