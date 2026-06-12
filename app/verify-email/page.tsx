@@ -1,132 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import AnimatedCheck from "@/components/ui/AnimatedCheck";
+import AuthShell from "@/components/ui/AuthShell";
+import { useI18n } from "../components/i18n";
 
 type Status = "loading" | "success" | "error";
-
-const cardStyle: React.CSSProperties = {
-  width: "100%",
-  maxWidth: 420,
-  backgroundColor: "var(--bg-card)",
-  border: "1px solid var(--border-light)",
-  borderRadius: 16,
-  padding: "2rem",
-  boxShadow: "var(--shadow-md)",
-  textAlign: "center",
-};
-
-const buttonStyle: React.CSSProperties = {
-  display: "inline-block",
-  marginTop: "1.5rem",
-  backgroundColor: "var(--accent)",
-  color: "var(--accent-fg)",
-  padding: "11px 22px",
-  fontSize: 14,
-  fontWeight: 600,
-  borderRadius: 8,
-  textDecoration: "none",
-};
+type MessageKey = "verify.invalid" | "verify.already" | "verify.done" | "verify.error" | "verify.network";
 
 export default function VerifyEmailPage() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<Status>("loading");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<MessageKey>("verify.invalid");
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
     if (!token) {
-      setStatus("error");
-      setMessage("Invalid or expired link.");
+      queueMicrotask(() => {
+        setStatus("error");
+        setMessage("verify.invalid");
+      });
       return;
     }
-
     let cancelled = false;
     fetch(`/api/auth/verify-email?token=${encodeURIComponent(token)}`)
-      .then(async (res) => {
-        const data = await res.json().catch(() => ({}));
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
         if (cancelled) return;
-        if (res.ok && data.success) {
-          setStatus("success");
-          setMessage(
-            data.alreadyVerified
-              ? "Your email is already verified. You can log in."
-              : "Email verified! You can now log in."
-          );
-        } else {
-          setStatus("error");
-          setMessage(data.error ?? "We couldn't verify your email.");
-        }
+        setStatus(response.ok && data.success ? "success" : "error");
+        setMessage(response.ok && data.success
+          ? data.alreadyVerified ? "verify.already" : "verify.done"
+          : "verify.error");
       })
       .catch(() => {
         if (!cancelled) {
           setStatus("error");
-          setMessage("Something went wrong. Please try again.");
+          setMessage("verify.network");
         }
       });
-
     return () => {
       cancelled = true;
     };
   }, []);
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--bg-alt)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "var(--font-sans)",
-        padding: "2rem 1.25rem",
-      }}
-    >
-      <div style={cardStyle}>
-        {status === "loading" && (
-          <>
-            <Loader2
-              size={36}
-              style={{ color: "var(--accent)", animation: "veSpin 0.9s linear infinite" }}
-              aria-hidden
-            />
-            <h1 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "1rem 0 0.25rem", color: "var(--text)" }}>
-              Verifying your email…
-            </h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>
-              This will only take a moment.
-            </p>
-          </>
+    <AuthShell heading={t("verify.shell.heading")} description={t("verify.shell.description")}>
+      <div style={{ textAlign: "center" }} aria-busy={status === "loading"}>
+        {status === "loading" ? <Loader2 size={52} color="var(--accent)" style={{ animation: "spin 0.8s linear infinite" }} aria-hidden /> : <AnimatedCheck error={status === "error"} />}
+        <h1 style={{ margin: "14px 0 8px", color: "var(--text)", fontSize: "1.5rem" }}>
+          {status === "loading" ? t("verify.loading") : status === "success" ? t("verify.success") : t("verify.failed")}
+        </h1>
+        <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.7 }}>
+          {status === "loading" ? t("reset.moment") : t(message)}
+        </p>
+        {status !== "loading" && (
+          <Link href={status === "success" ? "/login?verified=true" : "/login"} className="btn-primary btn-primary-shimmer" style={{ width: "100%", marginTop: 20 }}>
+            {status === "success" ? t("signup.goSignIn") : t("forgot.back")}
+          </Link>
         )}
-
-        {status === "success" && (
-          <>
-            <CheckCircle size={36} style={{ color: "var(--accent)" }} aria-hidden />
-            <h1 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "1rem 0 0.25rem", color: "var(--text)" }}>
-              You're all set
-            </h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>{message}</p>
-            <Link href="/login?verified=true" style={buttonStyle}>
-              Go to login
-            </Link>
-          </>
-        )}
-
-        {status === "error" && (
-          <>
-            <AlertCircle size={36} style={{ color: "var(--error)" }} aria-hidden />
-            <h1 style={{ fontSize: "1.25rem", fontWeight: 800, margin: "1rem 0 0.25rem", color: "var(--text)" }}>
-              Verification failed
-            </h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>{message}</p>
-            <Link href="/login" style={buttonStyle}>
-              Back to login
-            </Link>
-          </>
-        )}
-
-        <style>{`@keyframes veSpin { to { transform: rotate(360deg); } }`}</style>
       </div>
-    </main>
+    </AuthShell>
   );
 }

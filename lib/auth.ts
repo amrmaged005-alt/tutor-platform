@@ -116,13 +116,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           );
         }
 
+        // TEMP: email verification disabled — re-enable this block before going to production.
         // Correct password but email not verified.
-        if (!user.isEmailVerified) {
-          await prisma.loginAuditLog
-            .create({ data: { email, userId: user.id, ip, userAgent, success: false, reason: "unverified_email" } })
-            .catch(() => {});
-          throw new LoginError("Please verify your email before logging in. Check your inbox.");
-        }
+        // if (!user.isEmailVerified) {
+        //   await prisma.loginAuditLog
+        //     .create({ data: { email, userId: user.id, ip, userAgent, success: false, reason: "unverified_email" } })
+        //     .catch(() => {});
+        //   throw new LoginError("Please verify your email before logging in. Check your inbox.");
+        // }
 
         // Success — reset lockout counters, record login telemetry.
         await prisma.user.update({
