@@ -116,7 +116,7 @@ function BookingCard({ booking, onUpdate }: { booking: Booking; onUpdate: () => 
             rel="noopener noreferrer"
             style={{ color: "var(--success)", fontSize: 12, textDecoration: "none" }}
           >
-            <MessageCircle size={12} strokeWidth={2} style={{ verticalAlign: "middle", marginRight: 4 }} />WhatsApp {booking.student.phone}
+            <MessageCircle size={12} strokeWidth={2} style={{ verticalAlign: "middle", marginInlineEnd: 4 }} />WhatsApp {booking.student.phone}
           </a>
         )}
         {booking.student.email && (
@@ -232,7 +232,7 @@ export default function BookingsManagementPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", fontFamily: "system-ui, sans-serif", padding: isMobile ? "1rem 0.875rem 3rem" : "2rem" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)", padding: isMobile ? "1rem 0.875rem 3rem" : "2rem" }}>
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
 
         <div style={{ marginBottom: isMobile ? "1rem" : "2rem" }}>

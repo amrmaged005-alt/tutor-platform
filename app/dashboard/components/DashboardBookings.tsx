@@ -67,9 +67,13 @@ export default function DashboardBookings({
       {filtered.length === 0 ? (
         <EmptyState icon="inbox" message="No bookings match this filter." actionHref="/classes" actionLabel="Browse Classes" />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 12, paddingInlineStart: 24 }}>
+          <span aria-hidden style={{ position: "absolute", insetInlineStart: 7, insetBlock: "10px", width: 1, background: "var(--border)" }} />
           {filtered.map((booking, index) => (
-            <motion.article key={booking.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.03 }} style={cardBase}>
+            <motion.article key={booking.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.03 }} style={{ ...cardBase, position: "relative" }}>
+              <span aria-hidden style={{ position: "absolute", insetInlineStart: -23, insetBlockStart: 20, display: "grid", width: 14, height: 14, placeItems: "center", color: booking.status === "CANCELLED" ? "var(--error)" : booking.status === "CONFIRMED" ? "var(--accent-fg)" : "var(--warning)", background: booking.status === "CONFIRMED" ? "var(--accent)" : "var(--bg-card)", border: `2px solid ${booking.status === "CANCELLED" ? "var(--error)" : booking.status === "CONFIRMED" ? "var(--accent)" : "var(--warning)"}`, borderRadius: "50%" }}>
+                {booking.status === "CANCELLED" ? "×" : null}
+              </span>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flex: 1, minWidth: 220 }}>
                   <span style={{ width: 42, height: 42, borderRadius: "50%", background: "var(--accent-bg)", color: "var(--accent)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

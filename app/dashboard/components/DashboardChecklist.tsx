@@ -7,12 +7,12 @@ import { CheckCircle2, Circle } from "lucide-react";
 type Completeness = { score: number; missing: string[] };
 
 const ITEMS = [
-  { label: "Add profile photo", match: "profile photo", href: "/settings" },
-  { label: "Write bio (min 50 chars)", match: "bio", href: "/settings" },
-  { label: "Set hourly rate", match: "rate", href: "/settings" },
-  { label: "Add at least one subject", match: "subject", href: "/settings" },
-  { label: "Upload a credential", match: "credential", href: "/settings" },
-  { label: "Complete your first booking", match: "booking", href: "/dashboard/bookings" },
+  { label: "Verify your email", match: "email", href: "/settings", icon: "✉" },
+  { label: "Add profile photo", match: "profile photo", href: "/settings", icon: "📷" },
+  { label: "Write your bio", match: "bio", href: "/settings", icon: "✍" },
+  { label: "Add your subjects", match: "subject", href: "/settings", icon: "📚" },
+  { label: "Upload a credential", match: "credential", href: "/settings", icon: "🎓" },
+  { label: "Get your first booking", match: "booking", href: "/dashboard/bookings", icon: "📅" },
 ];
 
 export default function DashboardChecklist({ tutorId }: { tutorId: string }) {
@@ -34,10 +34,25 @@ export default function DashboardChecklist({ tutorId }: { tutorId: string }) {
   }, [tutorId]);
 
   if (!data) return null;
+
   if (data.score >= 100) {
     return (
-      <div style={{ backgroundColor: "var(--success-bg)", border: "1px solid var(--success)", color: "var(--success)", borderRadius: 16, padding: "1rem 1.25rem", marginBottom: "1.25rem", fontWeight: 800 }}>
-        Profile Complete 🎉
+      <div
+        style={{
+          backgroundColor: "var(--success-bg)",
+          border: "1px solid var(--accent-border)",
+          color: "var(--success)",
+          borderRadius: 14,
+          padding: "1rem 1.25rem",
+          fontWeight: 800,
+          fontSize: 14,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <CheckCircle2 size={18} aria-hidden />
+        Profile complete
       </div>
     );
   }
@@ -45,19 +60,98 @@ export default function DashboardChecklist({ tutorId }: { tutorId: string }) {
   const missingText = data.missing.join(" ").toLowerCase();
 
   return (
-    <section style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 18, padding: "1.25rem", marginBottom: "1.25rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: "1rem" }}>
-        <h2 style={{ color: "var(--text)", margin: 0, fontSize: "1rem", fontWeight: 850 }}>Profile checklist</h2>
-        <span style={{ color: "var(--accent)", fontSize: 13, fontWeight: 850 }}>{data.score}% complete</span>
+    <section
+      style={{
+        backgroundColor: "var(--bg-card)",
+        border: "1px solid var(--border-light)",
+        borderRadius: 16,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          padding: "1rem 1.25rem",
+          borderBottom: "1px solid var(--border-light)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            alignItems: "center",
+            marginBottom: 10,
+          }}
+        >
+          <h2 style={{ color: "var(--text)", margin: 0, fontSize: "0.95rem", fontWeight: 800 }}>
+            Tutor Onboarding
+          </h2>
+          <span style={{ color: "var(--accent)", fontSize: 12, fontWeight: 800 }}>{data.score}%</span>
+        </div>
+        <div
+          style={{
+            height: 6,
+            overflow: "hidden",
+            background: "var(--border-light)",
+            borderRadius: 99,
+          }}
+        >
+          <div
+            style={{
+              width: `${data.score}%`,
+              height: "100%",
+              background: "var(--accent)",
+              borderRadius: 99,
+              transition: "width 0.8s ease",
+            }}
+          />
+        </div>
       </div>
-      <div style={{ display: "grid", gap: 8 }}>
-        {ITEMS.map((item) => {
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {ITEMS.map((item, index) => {
           const incomplete = missingText.includes(item.match);
           const Icon = incomplete ? Circle : CheckCircle2;
           return (
-            <Link key={item.label} href={item.href} style={{ display: "flex", alignItems: "center", gap: 10, color: incomplete ? "var(--text)" : "var(--text-muted)", textDecoration: "none", backgroundColor: "var(--bg-alt)", border: "1px solid var(--border-light)", borderRadius: 12, padding: "0.75rem 0.875rem", fontSize: 14, fontWeight: 700 }}>
-              <Icon size={17} strokeWidth={2} color={incomplete ? "var(--accent)" : "var(--success)"} aria-hidden />
-              {item.label}
+            <Link
+              key={item.label}
+              href={item.href}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "0.65rem 1.25rem",
+                color: incomplete ? "var(--text)" : "var(--text-muted)",
+                textDecoration: "none",
+                borderTop: index > 0 ? "1px solid var(--border-light)" : "none",
+                fontSize: 13,
+                fontWeight: incomplete ? 700 : 600,
+                transition: "background var(--transition-fast)",
+              }}
+            >
+              <Icon
+                size={16}
+                strokeWidth={2}
+                color={incomplete ? "var(--text-muted)" : "var(--success)"}
+                aria-hidden
+              />
+              <span style={{ flex: 1 }}>{item.label}</span>
+              {incomplete && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 800,
+                    padding: "2px 6px",
+                    borderRadius: 99,
+                    background: "var(--warning-bg)",
+                    color: "var(--warning)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  To do
+                </span>
+              )}
             </Link>
           );
         })}

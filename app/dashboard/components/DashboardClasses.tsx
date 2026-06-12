@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import DeleteClassButton from "@/app/DeleteClassButton";
 import type { CenterClass, CenterData, OwnedClass } from "./DashboardTypes";
 
@@ -9,82 +9,213 @@ type Props =
   | { mode: "tutor"; classes: OwnedClass[]; deleteClass: (formData: FormData) => Promise<void>; centerData?: undefined; isMobile: boolean }
   | { mode: "center"; classes: CenterClass[]; centerData: CenterData; deleteClass?: undefined; isMobile: boolean };
 
-function PackageOptionsEditor({ classId }: { classId: string }) {
-  const [enabled, setEnabled] = useState(false);
-  const [options, setOptions] = useState([{ sessions: 4, discountPct: 10 }, { sessions: 8, discountPct: 15 }]);
-  const [saving, setSaving] = useState(false);
+const SUBJECT_COLORS: Record<string, string> = {
+  Mathematics: "#1a4d3a",
+  Physics: "#1c6e7a",
+  Chemistry: "#5d3a5f",
+  English: "#8a5a14",
+  Arabic: "#0d5946",
+  Biology: "#2d6e3a",
+  History: "#7a4a1c",
+  default: "#0d5946",
+};
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/classes/${classId}/packages`, { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled && data) {
-          setEnabled(Boolean(data.packagesEnabled));
-          if (Array.isArray(data.packageOptions) && data.packageOptions.length > 0) setOptions(data.packageOptions);
-        }
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [classId]);
-
-  async function save() {
-    setSaving(true);
-    await fetch(`/api/classes/${classId}/packages`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ packagesEnabled: enabled, packageOptions: options }),
-    }).catch(() => undefined);
-    setSaving(false);
-  }
-
-  return (
-    <details style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border-light)" }}>
-      <summary style={{ color: "var(--text)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>Package Options</summary>
-      <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-        <label style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-muted)", fontSize: 13 }}>
-          <input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} />
-          Enable session packages
-        </label>
-        {options.map((option, index) => (
-          <div key={index} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <input aria-label="Session count" value={option.sessions} type="number" min={2} max={20} onChange={(event) => setOptions((items) => items.map((item, i) => i === index ? { ...item, sessions: Number(event.target.value) } : item))} style={{ backgroundColor: "var(--bg-alt)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "8px 10px" }} />
-            <input aria-label="Discount percent" value={option.discountPct} type="number" min={0} max={50} onChange={(event) => setOptions((items) => items.map((item, i) => i === index ? { ...item, discountPct: Number(event.target.value) } : item))} style={{ backgroundColor: "var(--bg-alt)", color: "var(--text)", border: "1px solid var(--border-light)", borderRadius: 8, padding: "8px 10px" }} />
-          </div>
-        ))}
-        <button type="button" onClick={save} disabled={saving} className="btn-secondary" style={{ justifySelf: "start", padding: "7px 12px", fontSize: 12 }}>{saving ? "Saving..." : "Save packages"}</button>
-      </div>
-    </details>
-  );
+function subjectColor(subject: string): string {
+  return SUBJECT_COLORS[subject] ?? SUBJECT_COLORS.default;
 }
 
 export default function DashboardClasses(props: Props) {
-  const title = props.mode === "center" ? "Center Classes" : "Your Classes";
+  const title = props.mode === "center" ? "Center Classes" : "My Classes";
+  const { classes, isMobile } = props;
+
   return (
-    <section style={{ marginBottom: props.isMobile ? "1.25rem" : "1.5rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: "1rem" }}>
-        <h2 style={{ color: "var(--text)", fontSize: 17, margin: 0 }}>{title}</h2>
-        <Link href="/create-class" className="btn-primary" style={{ textDecoration: "none", padding: "7px 14px", fontSize: 13 }}>New Class</Link>
+    <section
+      style={{
+        backgroundColor: "var(--bg-card)",
+        border: "1px solid var(--border-light)",
+        borderRadius: 16,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: isMobile ? "0.75rem 1rem" : "1rem 1.25rem",
+          borderBottom: "1px solid var(--border-light)",
+        }}
+      >
+        <h2 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "var(--text)" }}>{title}</h2>
+        <Link
+          href="/create-class"
+          className="btn-primary"
+          style={{ textDecoration: "none", padding: "5px 12px", fontSize: 12 }}
+        >
+          <Plus size={13} aria-hidden />
+          New Class
+        </Link>
       </div>
-      <div style={{ display: "grid", gap: 12 }}>
-        {props.classes.map((cls) => (
-          <article key={cls.id} style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: 16, padding: "1rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <span>
-                <strong style={{ display: "block", color: "var(--text)", fontSize: 14 }}>{cls.title}</strong>
-                <span style={{ color: "var(--text-muted)", fontSize: 12 }}>{cls.subject} - {cls.bookingsCount}{cls.capacity ? `/${cls.capacity}` : ""} enrolled - {cls.priceEgp} EGP</span>
-              </span>
-              <span style={{ display: "flex", gap: 8 }}>
-                <Link href={`/classes/${cls.id}`} className="btn-secondary" style={{ textDecoration: "none", padding: "7px 12px", fontSize: 12 }}>View</Link>
-                {props.mode === "tutor" && <DeleteClassButton classId={cls.id} deleteAction={props.deleteClass} />}
-              </span>
+
+      {/* Create new class CTA when empty */}
+      {classes.length === 0 ? (
+        <div style={{ padding: "2.5rem 1.25rem", textAlign: "center" }}>
+          <Link
+            href="/create-class"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "0.75rem 1.5rem",
+              color: "var(--accent)",
+              background: "var(--accent-bg-soft)",
+              border: "1px dashed var(--accent-border)",
+              borderRadius: 10,
+              fontSize: 13,
+              fontWeight: 700,
+              textDecoration: "none",
+            }}
+          >
+            <Plus size={16} aria-hidden />
+            Create your first class
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/* Create-new shortcut row */}
+          <Link
+            href="/create-class"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "0.65rem 1.25rem",
+              color: "var(--accent)",
+              background: "var(--accent-bg-soft)",
+              borderBottom: "1px solid var(--border-light)",
+              fontSize: 12,
+              fontWeight: 700,
+              textDecoration: "none",
+            }}
+          >
+            <Plus size={14} aria-hidden />
+            Create new class
+          </Link>
+
+          {/* Table header */}
+          {!isMobile && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 80px 90px 100px",
+                padding: "0.5rem 1.25rem",
+                borderBottom: "1px solid var(--border-light)",
+                color: "var(--text-muted)",
+                fontSize: 10,
+                fontWeight: 800,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              <span>Class</span>
+              <span style={{ textAlign: "center" }}>Grade</span>
+              <span style={{ textAlign: "end" }}>Price</span>
+              <span style={{ textAlign: "end" }}>Actions</span>
             </div>
-            {props.mode === "tutor" && <PackageOptionsEditor classId={cls.id} />}
-          </article>
-        ))}
-      </div>
+          )}
+
+          {/* Table rows */}
+          {classes.map((cls, index) => (
+            <div
+              key={cls.id}
+              style={{
+                display: isMobile ? "flex" : "grid",
+                gridTemplateColumns: isMobile ? undefined : "1fr 80px 90px 100px",
+                flexDirection: isMobile ? "column" : undefined,
+                alignItems: isMobile ? "flex-start" : "center",
+                gap: isMobile ? 8 : 0,
+                padding: isMobile ? "0.75rem 1rem" : "0.75rem 1.25rem",
+                borderTop: index > 0 || !isMobile ? "1px solid var(--border-light)" : "none",
+              }}
+            >
+              {/* Class name + subject */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: "2px 8px",
+                    borderRadius: 99,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: subjectColor(cls.subject),
+                    background: `${subjectColor(cls.subject)}15`,
+                    flexShrink: 0,
+                  }}
+                >
+                  {cls.subject}
+                </span>
+                <span
+                  style={{
+                    overflow: "hidden",
+                    color: "var(--text)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {cls.title}
+                </span>
+              </div>
+
+              {/* Grade */}
+              <span
+                style={{
+                  textAlign: isMobile ? "left" : "center",
+                  color: "var(--text-muted)",
+                  fontSize: 12,
+                }}
+              >
+                {(cls as OwnedClass).gradeLevel ?? "All levels"}
+              </span>
+
+              {/* Price */}
+              <span
+                style={{
+                  textAlign: isMobile ? "left" : "end",
+                  color: "var(--accent)",
+                  fontSize: 13,
+                  fontWeight: 700,
+                }}
+              >
+                {cls.priceEgp === 0 ? "Free" : `EGP ${cls.priceEgp}`}
+              </span>
+
+              {/* Actions */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: 6,
+                  justifyContent: isMobile ? "flex-start" : "flex-end",
+                }}
+              >
+                <Link
+                  href={`/classes/${cls.id}`}
+                  className="btn-secondary"
+                  style={{ textDecoration: "none", padding: "4px 10px", fontSize: 11 }}
+                >
+                  View
+                </Link>
+                {props.mode === "tutor" && (
+                  <DeleteClassButton classId={cls.id} deleteAction={props.deleteClass} />
+                )}
+              </div>
+            </div>
+          ))}
+        </>
+      )}
     </section>
   );
 }

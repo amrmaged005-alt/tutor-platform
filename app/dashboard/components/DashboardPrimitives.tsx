@@ -76,7 +76,6 @@ export function SectionHeader({ title, count, action }: { title: string; count?:
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: "1rem" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ width: 4, height: 18, background: "linear-gradient(180deg, var(--accent), transparent)", borderRadius: 2 }} />
         <h2 style={{ color: "var(--text)", fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>{title}</h2>
         {count !== undefined && (
           <span style={{ backgroundColor: "var(--bg-alt)", color: "var(--text-muted)", fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>

@@ -73,7 +73,7 @@ export default function DashboardPayouts() {
           </table>
         </div>
       )}
-      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .skeleton { background: var(--color-border, var(--border-light)); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }`}</style>
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .skeleton { background: var(--border-light); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }`}</style>
     </section>
   );
 }

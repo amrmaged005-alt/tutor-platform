@@ -1,6 +1,6 @@
 export default function DashboardLoading() {
     return (
-        <div style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)" }}>
+        <div role="status" aria-label="Loading dashboard" aria-busy="true" style={{ minHeight: "100vh", backgroundColor: "var(--bg-card)" }}>
             <div style={{ maxWidth: 1100, margin: "0 auto", padding: "2rem 1.5rem 5rem" }}>
 
                 {/* Welcome hero skeleton */}
@@ -44,7 +44,6 @@ export default function DashboardLoading() {
                             style={{
                                 backgroundColor: "var(--bg-card)",
                                 border: "1px solid var(--border-light)",
-                                borderLeft: "3px solid var(--text-secondary)",
                                 borderRadius: 16,
                                 padding: "1.25rem 1.5rem",
                                 animationDelay: `${i * 0.08}s`,

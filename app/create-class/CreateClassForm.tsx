@@ -112,7 +112,7 @@ export default function CreateClassForm() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 100%)", fontFamily: "system-ui, sans-serif", padding: "2rem", position: "relative" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 100%)", padding: "2rem", position: "relative" }}>
 
       <div style={{ maxWidth: 660, margin: "0 auto 1.5rem", position: "relative", zIndex: 1 }}>
         <Link href="/dashboard" style={{ color: "var(--text-muted)", fontSize: 14, textDecoration: "none" }}>
