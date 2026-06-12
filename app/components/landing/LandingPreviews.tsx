@@ -126,10 +126,3 @@ export function Counter({ target, suffix = "" }: { target: number; suffix?: stri
   return <span ref={ref}>{display.toLocaleString()}{suffix}</span>;
 }
 
-interface BookPageData {
-  id: string;
-  tab: string;
-  left: React.ReactNode;
-  right: React.ReactNode;
-}
-

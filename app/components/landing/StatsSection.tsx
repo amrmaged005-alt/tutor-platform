@@ -1,12 +1,14 @@
 "use client";
 
+import { useI18n } from "@/app/components/i18n";
 import type { LandingStats } from "./LandingData";
 
 export default function StatsSection({ stats = { tutors: 0, classes: 0, bookings: 0 } }: { stats?: LandingStats }) {
+  const { t } = useI18n();
   const items = [
-    ["Tutors", stats.tutors],
-    ["Classes", stats.classes],
-    ["Bookings", stats.bookings],
+    [t("landing.stats.tutors"), stats.tutors],
+    [t("landing.stats.classes"), stats.classes],
+    [t("landing.stats.bookings"), stats.bookings],
   ];
   return (
     <section style={{ backgroundColor: "var(--bg)", borderTop: "1px solid var(--border-light)", padding: "3rem 1rem" }}>

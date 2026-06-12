@@ -186,10 +186,10 @@ export const BOOK_CSS_C = `
   overflow: hidden;
   background: var(--paper-alt);
   box-shadow:
-    0 40px 80px rgba(24,23,21,0.25),
-    0 12px 24px rgba(24,23,21,0.12),
+    0 40px 80px oklch(20% 0.04 70 / 0.26),
+    0 12px 24px oklch(20% 0.04 70 / 0.13),
     0 0 0 1px rgba(216,212,199,0.6);
-  transform: rotate(-1.2deg);
+  will-change: transform;
   z-index: 3;
 }
 .hero-frame img {
@@ -275,6 +275,63 @@ export const BOOK_CSS_C = `
 }
 :root[data-theme="dark"] .hero-frame { box-shadow: 0 50px 100px rgba(0,0,0,0.65), 0 12px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(73,68,49,0.5); }
 :root[data-theme="dark"] .hero-frame-tape { background: linear-gradient(180deg, rgba(198,146,86,0.55), rgba(140,98,40,0.45)); }
+
+/* Social proof chips (aria-hidden decorative) */
+.social-proof-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 7px 11px;
+  box-shadow: 0 8px 24px oklch(25% 0.04 160 / 0.14);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.social-proof-chip .spc-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--chapter-soft);
+  color: var(--chapter);
+  display: grid;
+  place-items: center;
+  font-weight: 850;
+  font-size: 11px;
+  flex: 0 0 auto;
+}
+.social-proof-chip .spc-name {
+  font-size: 11.5px;
+  font-weight: 750;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.social-proof-chip .spc-rating {
+  font-size: 10px;
+  color: var(--rating);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+@media (max-width: 900px) {
+  .social-proof-chip { display: none; }
+}
+
+/* Grain overlay — fixed, pointer-events-none */
+.book-grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  opacity: 0.03;
+  filter: url(#book-grain);
+  background: transparent;
+  mix-blend-mode: overlay;
+}
+:root[data-theme="dark"] .book-grain-overlay { opacity: 0.065; }
 
 /* Compose grid for pages that mix copy + plates */
 .compose-grid {

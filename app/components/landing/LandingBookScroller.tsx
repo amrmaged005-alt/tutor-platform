@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  AnimatePresence,
   motion,
   useMotionValue,
   useMotionValueEvent,
@@ -119,8 +120,8 @@ export function BookScroller({ pages }: { pages: BookPageData[] }) {
   const prefersReduced = useReducedMotion();
   const [isMobile, setIsMobile] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [railVisible, setRailVisible] = useState(true);
   const activeIndexRef = useRef(activeIndex);
-  const wheelLockRef = useRef(0);
   const rawProgress = useMotionValue(0);
   const smoothProgress = useSpring(rawProgress, {
     stiffness: 220,
@@ -181,6 +182,18 @@ export function BookScroller({ pages }: { pages: BookPageData[] }) {
     };
   }, [rawProgress]);
 
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setRailVisible(Boolean(entry?.isIntersecting)),
+      { threshold: 0.04 }
+    );
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, []);
+
   useMotionValueEvent(rawProgress, "change", (latest) => {
     const nextIndex = Math.min(pages.length - 1, Math.max(0, Math.round(latest * (pages.length - 1))));
     setActiveIndex((current) => current === nextIndex ? current : nextIndex);
@@ -194,37 +207,42 @@ export function BookScroller({ pages }: { pages: BookPageData[] }) {
 
   return (
     <>
-      <nav className="bookmark-rail" aria-label="Landing page chapters">
-        {pages.map((page, index) => (
-          <a
-            key={page.id}
-            href={`#${page.id}`}
-            className={activeIndex === index ? "active" : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              scrollToIndex(index);
-            }}
-          >
-            {page.tab}
-          </a>
-        ))}
-      </nav>
+      {railVisible && (
+        <nav className="bookmark-rail" aria-label="Landing page chapters">
+          {pages.map((page, index) => (
+            <a
+              key={page.id}
+              href={`#${page.id}`}
+              className={activeIndex === index ? "active" : undefined}
+              style={{ position: "relative" }}
+              onClick={(event) => {
+                event.preventDefault();
+                scrollToIndex(index);
+              }}
+            >
+              <AnimatePresence>
+                {activeIndex === index && (
+                  <motion.span
+                    layoutId="bookmark-active-dot"
+                    className="bookmark-active-dot"
+                    aria-hidden="true"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </AnimatePresence>
+              {page.tab}
+            </a>
+          ))}
+        </nav>
+      )}
 
       <div
         ref={ref}
         className="book-scroll"
         style={{ "--page-count": pages.length, position: "relative" } as React.CSSProperties}
-        onWheel={(event) => {
-          if (Math.abs(event.deltaY) < 18) return;
-          const now = Date.now();
-          if (now - wheelLockRef.current < 560) {
-            event.preventDefault();
-            return;
-          }
-          wheelLockRef.current = now;
-          event.preventDefault();
-          scrollToIndex(activeIndexRef.current + (event.deltaY > 0 ? 1 : -1));
-        }}
       >
         {pages.map((page, index) => (
           <span
@@ -273,100 +291,67 @@ function MobileBookScroller({
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const activeIndexRef = useRef(activeIndex);
-  const wheelLockRef = useRef(0);
+  const [railVisible, setRailVisible] = useState(true);
 
   useEffect(() => {
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
 
   const scrollToIndex = useCallback((index: number) => {
-    const root = rootRef.current;
-    if (!root) return;
     const next = Math.min(pages.length - 1, Math.max(0, index));
     activeIndexRef.current = next;
     setActiveIndex(next);
-    root.scrollTo({
-      top: root.clientHeight * next,
+    document.getElementById(`mobile-${pages[next]?.id}`)?.scrollIntoView({
+      block: "start",
       behavior: "smooth",
     });
-  }, [pages.length, setActiveIndex]);
+  }, [pages, setActiveIndex]);
 
-  // Lock body scroll only while this scroller is mounted.
   useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const prev = {
-      bodyOverflow: body.style.overflow,
-      htmlOverflow: html.style.overflow,
-      bodyOverscroll: body.style.overscrollBehaviorY,
-    };
-    body.style.overflow = "hidden";
-    html.style.overflow = "hidden";
-    body.style.overscrollBehaviorY = "none";
-    return () => {
-      body.style.overflow = prev.bodyOverflow;
-      html.style.overflow = prev.htmlOverflow;
-      body.style.overscrollBehaviorY = prev.bodyOverscroll;
-    };
+    const root = rootRef.current;
+    if (!root) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setRailVisible(Boolean(entry?.isIntersecting)),
+      { threshold: 0.04 }
+    );
+    observer.observe(root);
+    return () => observer.disconnect();
   }, []);
 
-  // Track which page is closest to the viewport center for active state — works
-  // hand-in-hand with native CSS scroll-snap, no manual touch intent needed.
+  // Track which mobile page is most visible while keeping page scroll native.
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
 
-    let frame = 0;
-    const compute = () => {
-      frame = 0;
-      const h = root.clientHeight || 1;
-      const idx = Math.round(root.scrollTop / h);
-      const clamped = Math.min(pages.length - 1, Math.max(0, idx));
-      setActiveIndex((current) => (current === clamped ? current : clamped));
-    };
-    const schedule = () => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(compute);
-    };
-    compute();
-    root.addEventListener("scroll", schedule, { passive: true });
-    return () => {
-      if (frame) window.cancelAnimationFrame(frame);
-      root.removeEventListener("scroll", schedule);
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        const rawIndex = visible?.target.getAttribute("data-mobile-page-index");
+        if (rawIndex === undefined || rawIndex === null) return;
+        const next = Number(rawIndex);
+        if (!Number.isFinite(next)) return;
+        setActiveIndex((current) => (current === next ? current : next));
+      },
+      { threshold: [0.35, 0.55, 0.75] }
+    );
+
+    root.querySelectorAll("[data-mobile-page-index]").forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
   }, [pages.length, setActiveIndex]);
-
-  // Non-passive wheel listener so desktop mouse wheels actually advance one page
-  // per gesture (touch already uses native scroll-snap and needs no JS).
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-
-    const onWheel = (event: WheelEvent) => {
-      if (Math.abs(event.deltaY) < 14) return;
-      const now = Date.now();
-      if (now - wheelLockRef.current < 520) {
-        event.preventDefault();
-        return;
-      }
-      wheelLockRef.current = now;
-      event.preventDefault();
-      const direction = event.deltaY > 0 ? 1 : -1;
-      scrollToIndex(activeIndexRef.current + direction);
-    };
-
-    root.addEventListener("wheel", onWheel, { passive: false });
-    return () => root.removeEventListener("wheel", onWheel);
-  }, [scrollToIndex]);
 
   // Keyboard support so the page is operable without touch/mouse.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
       if (event.key === "ArrowDown" || event.key === "PageDown") {
+        if (activeIndexRef.current >= pages.length - 1) return;
         event.preventDefault();
         scrollToIndex(activeIndexRef.current + 1);
       } else if (event.key === "ArrowUp" || event.key === "PageUp") {
+        if (activeIndexRef.current <= 0) return;
         event.preventDefault();
         scrollToIndex(activeIndexRef.current - 1);
       } else if (event.key === "Home") {
@@ -383,27 +368,43 @@ function MobileBookScroller({
 
   return (
     <>
-      <nav className="bookmark-rail" aria-label="Landing page chapters">
-        {pages.map((page, index) => (
-          <a
-            key={page.id}
-            href={`#${page.id}`}
-            className={activeIndex === index ? "active" : undefined}
-            onClick={(event) => {
-              event.preventDefault();
-              scrollToIndex(index);
-            }}
-          >
-            {page.tab}
-          </a>
-        ))}
-      </nav>
+      {railVisible && (
+        <nav className="bookmark-rail" aria-label="Landing page chapters">
+          {pages.map((page, index) => (
+            <a
+              key={page.id}
+              href={`#${page.id}`}
+              className={activeIndex === index ? "active" : undefined}
+              style={{ position: "relative" }}
+              onClick={(event) => {
+                event.preventDefault();
+                scrollToIndex(index);
+              }}
+            >
+              <AnimatePresence>
+                {activeIndex === index && (
+                  <motion.span
+                    layoutId="bookmark-active-dot-mobile"
+                    className="bookmark-active-dot"
+                    aria-hidden="true"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </AnimatePresence>
+              {page.tab}
+            </a>
+          ))}
+        </nav>
+      )}
 
       <div ref={rootRef} className="book-mobile-scroll">
         {pages.map((page, index) => (
           <section
             key={page.id}
-            id={page.id}
+            id={`mobile-${page.id}`}
             data-mobile-page-index={index}
             className={`book-mobile-page ${activeIndex === index ? "is-active" : ""}`}
             aria-label={page.tab}

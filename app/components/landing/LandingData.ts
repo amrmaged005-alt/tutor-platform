@@ -20,6 +20,7 @@ export interface FeaturedTutor {
   avgRating: number | null;
   reviewCount: number;
   isVerified: boolean;
+  isOnline?: boolean;
 }
 
 export interface FeaturedClass {

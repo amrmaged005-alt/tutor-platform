@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { TrendingUp } from "lucide-react";
 import ClassCard, { type ClassCardData } from "@/app/classes/components/ClassCard";
+import { useI18n } from "@/app/components/i18n";
 
 export default function TrendingSection() {
+  const { t } = useI18n();
   const [items, setItems] = useState<ClassCardData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,17 +43,17 @@ export default function TrendingSection() {
       <div style={{ maxWidth: 1120, margin: "0 auto" }}>
         <h2 style={{ color: "var(--text)", fontSize: "clamp(1.35rem, 2.5vw, 1.8rem)", margin: "0 0 1rem", fontWeight: 850, display: "flex", alignItems: "center", gap: 8 }}>
           <TrendingUp size={22} strokeWidth={2} color="var(--rating)" aria-hidden />
-          Trending This Week
+          {t("landing.trending.title")}
         </h2>
         {!loading && items.length === 0 ? (
-          <p style={{ color: "var(--text-muted)", margin: 0 }}>Trending classes will appear here once bookings start coming in.</p>
+          <p style={{ color: "var(--text-muted)", margin: 0 }}>{t("landing.trending.empty")}</p>
         ) : <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(220px, 260px)", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
           {loading
-            ? [0, 1, 2, 3].map((item) => <div key={item} role="status" aria-label="Loading trending classes" style={{ height: 190, borderRadius: 16, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} />)
+            ? [0, 1, 2, 3].map((item) => <div key={item} role="status" aria-label={t("landing.trending.loading")} style={{ height: 190, borderRadius: 16, backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} />)
             : items.map((cls, index) => (
               <div key={cls.id} style={{ position: "relative" }}>
                 <span style={{ position: "absolute", top: 8, insetInlineStart: 8, zIndex: 3, backgroundColor: "var(--warning-bg)", color: "var(--rating)", border: "1px solid var(--warning)", borderRadius: 999, padding: "3px 8px", fontSize: 11, fontWeight: 800 }}>
-                  Trending
+                  {t("landing.trending.badge")}
                 </span>
                 <ClassCard cls={cls} index={index} compact />
               </div>

@@ -13,7 +13,6 @@ import {
   MessageSquare,
   Search,
   ShieldCheck,
-  Sparkles,
   Star,
   TrendingUp,
   Users,
@@ -273,6 +272,28 @@ export default function HeroSection({
       }}
     >
       <style>{BOOK_CSS}</style>
+      {/* SVG grain filter definition — referenced by .book-grain-overlay */}
+      <svg
+        aria-hidden="true"
+        style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
+      >
+        <defs>
+          <filter id="book-grain" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.72"
+              numOctaves="4"
+              stitchTiles="stitch"
+              result="noise"
+            />
+            <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise" />
+            <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="blended" />
+            <feComposite in="blended" in2="SourceGraphic" operator="in" />
+          </filter>
+        </defs>
+      </svg>
+      {/* Grain overlay — pointer-events: none, fixed, very subtle */}
+      <div className="book-grain-overlay" aria-hidden="true" />
       <div className="book-shell">
         <BookScroller pages={pages} />
       </div>

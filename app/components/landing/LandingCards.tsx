@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Image from "next/image";
@@ -34,6 +36,12 @@ export function StatCard({ value, suffix, label }: { value: number; suffix?: str
   );
 }
 
+const PROOF_CHIPS = [
+  { name: "Layla A.", rating: "5.0", initial: "L", delay: 0.4, top: "11%", end: "4%" },
+  { name: "Karim M.", rating: "4.9", initial: "K", delay: 0.7, top: "46%", end: "-2%" },
+  { name: "Sara H.", rating: "5.0", initial: "S", delay: 1.0, top: "74%", end: "6%" },
+];
+
 export function CoverVisual({ stats }: { stats: LandingStats }) {
   const prefersReduced = useReducedMotion();
   const { lang } = useI18n();
@@ -54,7 +62,46 @@ export function CoverVisual({ stats }: { stats: LandingStats }) {
         </strong>
         <span>{stats.tutors.toLocaleString()}+ {c.fieldGuide.toLowerCase()}</span>
       </div>
-      <div className="hero-frame">
+
+      {PROOF_CHIPS.map((chip) => (
+        <motion.div
+          key={chip.name}
+          aria-hidden="true"
+          className="social-proof-chip"
+          style={{
+            position: "absolute",
+            top: chip.top,
+            insetInlineEnd: chip.end,
+            zIndex: 6,
+          }}
+          initial={prefersReduced ? false : { opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: chip.delay, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="spc-avatar" aria-hidden="true">{chip.initial}</div>
+          <div>
+            <div className="spc-name">{chip.name}</div>
+            <div className="spc-rating">
+              <Star size={10} fill="var(--rating)" color="var(--rating)" />
+              {chip.rating}
+            </div>
+          </div>
+        </motion.div>
+      ))}
+
+      <motion.div
+        className="hero-frame"
+        animate={prefersReduced ? {} : {
+          rotate: [-1.2, -4.2, 1.8, -1.2],
+          y: [0, -6, 3, 0],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          ease: "easeInOut",
+          times: [0, 0.33, 0.66, 1],
+        }}
+      >
         <span className="hero-frame-tape" aria-hidden="true" />
         <Image
           src="/landing/hero-student.webp"
@@ -64,7 +111,7 @@ export function CoverVisual({ stats }: { stats: LandingStats }) {
           priority
           sizes="(max-width: 900px) 78vw, 340px"
         />
-      </div>
+      </motion.div>
       <div className="hero-back-plate" aria-hidden="true">
         <Image
           src="/landing/tutor-session.webp"
@@ -263,14 +310,33 @@ export function TocCard({ item, index }: { item: TocData; index: number }) {
 
 export function StepRow({ step, index }: { step: StepData; index: number }) {
   const Icon = step.icon;
+  const ref = useRef<HTMLDivElement | null>(null);
+  const inView = useInView(ref, { once: true, amount: 0.4 });
+  const prefersReduced = useReducedMotion();
+
   return (
-    <div className="step-row">
+    <motion.div
+      ref={ref}
+      className={`step-row${inView ? " step-revealed" : ""}`}
+      initial={prefersReduced ? false : { opacity: 0, y: 16 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{
+        duration: 0.42,
+        delay: index * 0.12,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+    >
       <div className="step-icon"><Icon size={19} strokeWidth={2} /></div>
       <div>
-        <h3>{String(index + 1).padStart(2, "0")} - {step.title}</h3>
+        <h3>
+          <span style={{ color: "var(--bronze)", fontVariantNumeric: "tabular-nums", marginInlineEnd: 4 }}>
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          {" "}{step.title}
+        </h3>
         <p>{step.desc}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -284,18 +350,23 @@ export function TutorCard({ tutor }: { tutor: FeaturedTutor }) {
     <Link className="catalog-card" href={`/tutors/${tutor.id}`}>
       <div className="card-top">
         <div style={{ display: "flex", gap: 12, minWidth: 0 }}>
-          {tutor.photoUrl ? (
-            <Image
-              className="avatar-mark"
-              src={tutor.photoUrl}
-              alt={name}
-              width={42}
-              height={42}
-              unoptimized={tutor.photoUrl.startsWith("data:") || tutor.photoUrl.startsWith("blob:")}
-            />
-          ) : (
-            <div className="avatar-mark">{initial}</div>
-          )}
+          <div className="avatar-wrap">
+            {tutor.photoUrl ? (
+              <Image
+                className="avatar-mark"
+                src={tutor.photoUrl}
+                alt={name}
+                width={42}
+                height={42}
+                unoptimized={tutor.photoUrl.startsWith("data:") || tutor.photoUrl.startsWith("blob:")}
+              />
+            ) : (
+              <div className="avatar-mark">{initial}</div>
+            )}
+            {tutor.isOnline && (
+              <span className="online-dot" aria-hidden="true" />
+            )}
+          </div>
           <div style={{ minWidth: 0 }}>
             <h3>{name}</h3>
             <div className="meta-line">
@@ -324,7 +395,8 @@ export function ClassCard({ cls }: { cls: FeaturedClass }) {
   const format = cls.format === "ONLINE" ? c.online : cls.format === "HYBRID" ? c.hybrid : c.inPerson;
 
   return (
-    <Link className="catalog-card" href={`/classes/${cls.id}`}>
+    <Link className="catalog-card class-card" href={`/classes/${cls.id}`}>
+      <span className="class-card-top-bar" aria-hidden="true" />
       <div className="card-top">
         <div>
           <div className="badge-line" style={{ marginTop: 0, marginBottom: 10 }}>
@@ -339,10 +411,14 @@ export function ClassCard({ cls }: { cls: FeaturedClass }) {
           </div>
         </div>
         <div style={{ textAlign: "right", flex: "0 0 auto" }}>
-          <strong style={{ color: cls.priceEgp === 0 ? "var(--success)" : "var(--text)", fontSize: 16 }}>
-            {cls.priceEgp === 0 ? c.free : `${cls.priceEgp.toLocaleString()} EGP`}
-          </strong>
-          <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{provider}</div>
+          {cls.priceEgp === 0 ? (
+            <strong style={{ color: "var(--success)", fontSize: 16 }}>{c.free}</strong>
+          ) : (
+            <span className="book-badge price-badge-bronze" style={{ fontSize: 13 }}>
+              {cls.priceEgp.toLocaleString()} EGP
+            </span>
+          )}
+          <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 4 }}>{provider}</div>
         </div>
       </div>
       <p>{cls.description || c.descFallback(cls.gradeLevel || c.gradeDefault)}</p>
@@ -376,3 +452,36 @@ export function OutcomeNote({ title, body, icon: Icon }: { title: string; body: 
   );
 }
 
+export function SocialProofAvatars() {
+  const chips = PROOF_CHIPS;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 8 }}>
+      {chips.map((chip, i) => (
+        <div
+          key={chip.name}
+          aria-hidden="true"
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: "50%",
+            background: "var(--chapter-soft)",
+            border: "2px solid var(--bg-card)",
+            display: "grid",
+            placeItems: "center",
+            fontSize: 11,
+            fontWeight: 850,
+            color: "var(--chapter)",
+            marginInlineStart: i > 0 ? -10 : 0,
+            zIndex: chips.length - i,
+            position: "relative",
+          }}
+        >
+          {chip.initial}
+        </div>
+      ))}
+      <span style={{ fontSize: 11.5, color: "var(--muted)", marginInlineStart: 8, fontWeight: 700 }}>
+        +{chips.length * 400}
+      </span>
+    </div>
+  );
+}

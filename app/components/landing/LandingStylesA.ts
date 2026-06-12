@@ -11,6 +11,7 @@ export const BOOK_CSS_A = `
   --sheet-border: rgba(216,212,199,0.86);
   --wash-a: rgba(13,89,70,0.055);
   --wash-b: rgba(138,90,20,0.05);
+  --bronze: #8a5a14;
   --bookmark-bg: color-mix(in srgb, var(--bg-card) 90%, transparent);
   --book-backdrop:
     radial-gradient(ellipse at 50% 0%, rgba(13,89,70,0.10), transparent 42%),
@@ -42,6 +43,7 @@ export const BOOK_CSS_A = `
     linear-gradient(180deg, #15140f, #1c1b15);
   --ink: var(--text);
   --muted: #c9c5b8;
+  --bronze: #c8881e;
 }
 .book-landing * { box-sizing: border-box; }
 .book-shell {
@@ -65,7 +67,7 @@ export const BOOK_CSS_A = `
 }
 .book-anchor {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   width: 1px;
   height: 1px;
   pointer-events: none;
@@ -90,7 +92,7 @@ export const BOOK_CSS_A = `
   border-left: 0;
   border-right: 0;
   border-radius: 0;
-  box-shadow: 0 18px 46px var(--paper-shadow), 0 4px 12px rgba(24,23,21,0.05);
+  box-shadow: 0 18px 46px oklch(25% 0.04 160 / 0.22), 0 4px 12px oklch(20% 0.02 70 / 0.06);
   overflow: hidden;
   isolation: isolate;
   transform-style: preserve-3d;
@@ -110,7 +112,7 @@ export const BOOK_CSS_A = `
 .book-spread::after {
   content: "";
   position: absolute;
-  right: 0;
+  inset-inline-end: 0;
   top: 18px;
   bottom: 18px;
   width: 10px;
@@ -140,10 +142,8 @@ export const BOOK_CSS_A = `
   padding: clamp(20px, 3vw, 42px) clamp(24px, 3.5vw, 48px);
   display: flex;
   flex-direction: column;
-  /* When content overflows the spread height, scroll inside the page instead
-     of being clipped. Keeps the book metaphor while preventing data loss. */
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--paper-edge) transparent;
 }
@@ -153,7 +153,6 @@ export const BOOK_CSS_A = `
   background: var(--paper-edge);
   border-radius: 99px;
 }
-/* Soft fade at the bottom of each page hints there's more to scroll */
 .book-page::after {
   content: "";
   position: sticky;
@@ -170,7 +169,7 @@ export const BOOK_CSS_A = `
 .chapter-tab {
   position: absolute;
   top: 24px;
-  right: -1px;
+  inset-inline-end: -1px;
   z-index: 5;
   writing-mode: vertical-rl;
   text-orientation: mixed;
@@ -191,7 +190,7 @@ export const BOOK_CSS_A = `
   color: var(--chapter);
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   margin-bottom: 14px;
 }
@@ -204,19 +203,21 @@ export const BOOK_CSS_A = `
 .book-heading {
   font-size: clamp(1.85rem, 3.6vw, 3.4rem);
   line-height: 1.02;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.055em;
   margin: 0 0 18px;
   color: var(--ink);
-  font-weight: 850;
+  font-weight: 900;
+  text-wrap: balance;
 }
 .book-heading.medium {
   font-size: clamp(1.55rem, 2.8vw, 2.4rem);
   line-height: 1.08;
+  letter-spacing: -0.04em;
 }
 .book-copy {
   color: var(--muted);
   font-size: clamp(1rem, 1.4vw, 1.12rem);
-  line-height: 1.72;
+  line-height: 1.78;
   margin: 0;
 }
 .book-actions {
@@ -237,9 +238,21 @@ export const BOOK_CSS_A = `
   text-decoration: none;
   font-weight: 750;
   font-size: 14px;
+  position: relative;
+  overflow: hidden;
   transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 .book-btn { background: var(--accent); color: var(--accent-fg); border: 1px solid var(--accent); }
+.book-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.26) 50%, transparent 100%);
+  transform: translateX(-200%);
+  transition: transform 600ms ease;
+  pointer-events: none;
+}
+.book-btn:hover::after { transform: translateX(200%); }
 .book-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
 .book-btn-secondary { background: rgba(251,250,246,0.48); color: var(--ink); border: 1px solid var(--border); }
 .book-btn-secondary { background: var(--sheet); }
@@ -267,7 +280,7 @@ export const BOOK_CSS_A = `
 }
 .cover-board {
   background: linear-gradient(145deg, #0d5946, #073327);
-  box-shadow: 0 30px 60px rgba(13,89,70,0.25), inset 8px 0 18px rgba(255,255,255,0.08);
+  box-shadow: 0 30px 60px oklch(22% 0.12 160 / 0.28), inset 8px 0 18px rgba(255,255,255,0.08);
   color: #fbfaf6;
   padding: 28px;
   display: flex;
@@ -278,7 +291,7 @@ export const BOOK_CSS_A = `
   background: var(--paper);
   border: 1px solid var(--paper-edge);
   transform: translateX(42px) rotateY(-18deg) rotateZ(1deg);
-  box-shadow: 0 18px 42px rgba(24,23,21,0.14);
+  box-shadow: 0 18px 42px oklch(20% 0.04 70 / 0.14);
 }
 .cover-page-back {
   background: var(--paper-alt);
