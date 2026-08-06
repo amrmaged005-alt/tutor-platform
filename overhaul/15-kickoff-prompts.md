@@ -1,5 +1,11 @@
 # 15 — Kickoff Prompts
 
+> **SUPERSEDED 2026-08-06 for the Claude prompt.** The Claude kickoff below assumes Wave 0 has not
+> started. Wave 0 is merged and Wave 1 is mid-review. Use
+> `overhaul/handoffs/NEXT-SESSION-PROMPT.md` instead — it is the same loop updated for current
+> state. The Codex prompt below is still current.
+
+
 Two self-sufficient prompts, one per tool. Each assumes the receiving session has **no memory of this conversation** — everything it needs is a file path into `overhaul/` or `audit/`. Paste the Claude Code prompt into a Claude Code session in this repo; paste the Codex prompt into a Codex session (CLI, worktree, or cloud) in the same repo. They coordinate through git branches and `overhaul/progress-log.md`, not through each other directly.
 
 Both are written for **continuous, unattended execution** — work through every ready task without stopping to ask permission per-task. Each still stops itself at the boundaries defined below (genuine decision blocks, Type E merge authority, and end-of-available-work) — those aren't optional pauses, they're where stopping is actually correct.
