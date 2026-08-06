@@ -29,7 +29,7 @@ are unmet (below).
   Constraints in [overhaul/13](../13-open-owner-decisions.md) § "Decision #5 — resolved".
 - Three defaulted-decision packets issued, overriding Codex's `skipped-blocked-decision` entries for
   T1-04 / T4-01 / T4-05 → [overhaul/16](../16-defaulted-decision-packets.md).
-- Four Claude-owned contracts written → [overhaul/17](../17-claude-owned-contracts.md).
+- Four Claude-owned contracts written → [overhaul/17](../17-claude-contracts.md).
 - Closure matrix updated; **zero Critical/High findings remain `blocked-by-decision`.**
 
 **In progress — the actual pickup point:**
@@ -94,7 +94,7 @@ are unmet (below).
 - **Governing prompt:** [overhaul/15-kickoff-prompts.md](../15-kickoff-prompts.md)
 - **Task registry:** [overhaul/tasks.json](../tasks.json) · **waves:** [overhaul/06](../06-parallel-execution-waves.md)
 - **Verdicts written this session:** [handoff/2026-08-06-to-codex.md](2026-08-06-to-codex.md)
-- **Contracts:** [overhaul/17](../17-claude-owned-contracts.md) · **defaulted packets:** [overhaul/16](../16-defaulted-decision-packets.md)
+- **Contracts:** [overhaul/17](../17-claude-contracts.md) · **defaulted packets:** [overhaul/16](../16-defaulted-decision-packets.md)
 - **Closure matrix:** [overhaul/audit-closure.csv](../audit-closure.csv)
 - **T1-11 before-state:** [overhaul/baseline/build-routes-before-T1-11.txt](../baseline/build-routes-before-T1-11.txt) (0 static / 0 ISR / 117 dynamic)
 - **This session's commits on `main`:** `9753e27` `89db9af` `5b43161` `446f2ca` `7394235`
