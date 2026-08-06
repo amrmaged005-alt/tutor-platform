@@ -21,6 +21,19 @@ function GoogleIcon() {
   );
 }
 
+function safeCallback(raw: string | null): string {
+  if (!raw) return "/dashboard";
+
+  try {
+    const url = new URL(raw, window.location.origin);
+    return url.origin === window.location.origin
+      ? `${url.pathname}${url.search}${url.hash}`
+      : "/dashboard";
+  } catch {
+    return "/dashboard";
+  }
+}
+
 export default function LoginPage() {
   const { t } = useI18n();
   const [error, setError] = useState("");
@@ -64,10 +77,7 @@ export default function LoginPage() {
       return;
     }
     const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-    window.location.href =
-      callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
-        ? callbackUrl
-        : "/dashboard";
+    window.location.href = safeCallback(callbackUrl);
   }
 
   return (
