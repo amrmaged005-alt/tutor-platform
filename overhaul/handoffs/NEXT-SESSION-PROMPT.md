@@ -30,11 +30,11 @@ Codex is working from — do not re-derive it), `overhaul/tasks.json`,
 
 ## Environment gotchas that cost real time last session
 
-1. **`gh` is at `C:\Program Files\GitHub CLI\gh.exe`** and may not be on PATH. If `gh auth status` says
-   not logged in, the working pattern is:
-   `TOK=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill | sed -n 's/^password=//p'); export GH_TOKEN="$TOK"`
-   `gh auth login --with-token` **rejects** that token (no `read:org`); `GH_TOKEN` bypasses the check.
-   Never write the token to a file.
+1. **`gh` is authenticated and working** — logged in as `amrmaged005-alt`, scopes `gist`, `read:org`,
+   `repo`, token in the OS keyring. `gh pr create/list/view` all work with no token juggling. The only
+   catch: it lives at `C:\Program Files\GitHub CLI\gh.exe` and may not be on PATH in a shell started
+   before it was installed — call it by full path if `gh` is not found. No `GH_TOKEN` export is needed
+   and no token is stored in any project file.
 2. **Worktrees have no `.env`.** A build failing there is probably environmental, not a regression —
    `main` fails identically without `.env`. Copy `.env` in, build, then delete it. This exact thing made
    a green branch look broken.
@@ -107,5 +107,6 @@ fixtures script (`prisma/fixtures-acceptance.ts`, password `FixturePass!234`, ac
 `tutor-full@`, `tutor-limited@`, `tutor-viewonly@` `fixtures.coursaty.test`) is namespaced, idempotent,
 and safe to re-run; `--clean` removes it.
 
-**Outstanding owner action:** `gh auth login` (device flow) to mint a properly scoped token, so the
-`GH_TOKEN` workaround above is no longer needed.
+**No outstanding owner actions.** `gh` is authenticated, `origin/main` is synced, the baseline exists,
+and all four live branches have open PRs carrying their verdicts. The one open *decision* is T1-13 —
+whether new tutoring centres need to be onboardable before launch — and it blocks nothing in Wave 1.
