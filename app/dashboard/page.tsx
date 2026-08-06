@@ -6,10 +6,10 @@ import { cancelBooking, deleteClass } from "./dashboard-actions";
 
 export default async function DashboardPage() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user?.id) redirect("/login");
 
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email! },
+    where: { id: session.user.id },
     include: {
       bookings: {
         where: { status: { not: "CANCELLED" } },
@@ -17,28 +17,7 @@ export default async function DashboardPage() {
         orderBy: { createdAt: "desc" },
       },
       ownedClasses: {
-        include: {
-          _count: {
-            select: { bookings: { where: { status: { not: "CANCELLED" } } } },
-          },
-          bookings: {
-            include: { student: true },
-            orderBy: { createdAt: "desc" },
-          },
-          reviews: {
-            where: { isApproved: true },
-            include: { student: { select: { fullName: true, name: true, email: true } } },
-            orderBy: { createdAt: "desc" },
-          },
-        },
         orderBy: { createdAt: "desc" },
-      },
-      classTutors: {
-        include: {
-          class: {
-            include: { _count: { select: { bookings: true } } },
-          },
-        },
       },
       center: true,
     },
@@ -47,6 +26,69 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const role = user.role;
+  const isRestrictedCenterTutor =
+    role === "TUTOR" &&
+    Boolean(user.centerId) &&
+    user.centerAccessLevel !== "FULL";
+
+  // Revenue and student PII are fetched only for tutors with full access.
+  // Restricted center tutors must not receive these fields in the RSC payload.
+  const [managedBookings, approvedReviews] = isRestrictedCenterTutor
+    ? [[], []]
+    : await Promise.all([
+        prisma.booking.findMany({
+          where: { class: { ownerId: user.id } },
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            classId: true,
+            status: true,
+            paymentStatus: true,
+            amountEgp: true,
+            paidAt: true,
+            notes: true,
+            student: {
+              select: {
+                fullName: true,
+                email: true,
+                phone: true,
+              },
+            },
+          },
+        }),
+        prisma.review.findMany({
+          where: {
+            isApproved: true,
+            class: { ownerId: user.id },
+          },
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+            tutorResponse: true,
+            class: { select: { title: true } },
+            student: {
+              select: {
+                fullName: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        }),
+      ]);
+
+  const managedBookingsByClass = new Map<
+    string,
+    (typeof managedBookings)[number][]
+  >();
+  for (const booking of managedBookings) {
+    const classBookings = managedBookingsByClass.get(booking.classId) ?? [];
+    classBookings.push(booking);
+    managedBookingsByClass.set(booking.classId, classBookings);
+  }
 
   let centerData: any = null;
   if (role === "CENTER_ADMIN" && user.centerId) {
@@ -114,40 +156,43 @@ export default async function DashboardPage() {
         location: (b.class as any).location ?? null,
       },
     })),
-    ownedClasses: user.ownedClasses.map((cls) => ({
-      id: cls.id,
-      title: cls.title,
-      subject: cls.subject,
-      format: cls.format,
-      paymentType: cls.paymentType,
-      priceEgp: cls.priceEgp,
-      capacity: cls.capacity,
-      gradeLevel: cls.gradeLevel,
-      schedule: (cls as any).schedule ?? null,
-      imageUrl: (cls as any).imageUrl ?? null,
-      bookingsCount: cls._count.bookings,
-      bookings: cls.bookings.map((bk) => ({
-        id: bk.id,
-        status: bk.status,
-        paymentStatus: bk.paymentStatus,
-        amountEgp: bk.amountEgp,
-        paidAt: bk.paidAt?.toISOString() ?? null,
-        notes: bk.notes,
-        studentName:
-          (bk.student as any).fullName ?? bk.student.email ?? "Student",
-        studentEmail: bk.student.email ?? null,
-        studentPhone: (bk.student as any).phone ?? null,
-      })),
-    })),
-    tutorReviews: user.ownedClasses.flatMap((cls) => (cls as any).reviews.map((review: any) => ({
+    ownedClasses: user.ownedClasses.map((cls) => {
+      const classBookings = managedBookingsByClass.get(cls.id) ?? [];
+      return {
+        id: cls.id,
+        title: cls.title,
+        subject: cls.subject,
+        format: cls.format,
+        paymentType: cls.paymentType,
+        priceEgp: cls.priceEgp,
+        capacity: cls.capacity,
+        gradeLevel: cls.gradeLevel,
+        schedule: (cls as any).schedule ?? null,
+        imageUrl: (cls as any).imageUrl ?? null,
+        bookingsCount: classBookings.filter((bk) => bk.status !== "CANCELLED").length,
+        bookings: classBookings.map((bk) => ({
+          id: bk.id,
+          status: bk.status,
+          paymentStatus: bk.paymentStatus,
+          amountEgp: bk.amountEgp,
+          paidAt: bk.paidAt?.toISOString() ?? null,
+          notes: bk.notes,
+          studentName:
+            bk.student.fullName ?? bk.student.email ?? "Student",
+          studentEmail: bk.student.email ?? null,
+          studentPhone: bk.student.phone ?? null,
+        })),
+      };
+    }),
+    tutorReviews: approvedReviews.map((review) => ({
       id: review.id,
       rating: review.rating,
       comment: review.comment ?? null,
       createdAt: review.createdAt.toISOString(),
       tutorResponse: review.tutorResponse ?? null,
-      classTitle: cls.title,
+      classTitle: review.class.title,
       studentName: review.student?.fullName ?? review.student?.name ?? review.student?.email ?? "Student",
-    }))),
+    })),
     centerData: centerData
       ? {
         id: centerData.id,

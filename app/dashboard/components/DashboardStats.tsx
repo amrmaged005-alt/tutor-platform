@@ -151,6 +151,10 @@ export default function DashboardStats({
   const { t, lang } = useI18n();
   const { user, bookings, ownedClasses, tutorReviews, centerData } = data;
   const role = user.role;
+  const canSeeRevenue =
+    role !== "TUTOR" ||
+    !user.centerId ||
+    user.centerAccessLevel === "FULL";
   const firstName = (user.fullName || user.name || t("dash.greeting.fallbackName")).split(" ")[0];
   const { key: greetingKey, emoji } = getGreeting();
   const greeting = t(greetingKey);
@@ -177,7 +181,9 @@ export default function DashboardStats({
       ? [
           { label: t("dash.stat.totalBookings"), value: stats.totalBookings, icon: "students", color: "var(--accent)", meta: t("dash.meta.enrolledStudents"), trend: stats.totalBookings > 0 ? "up" as const : undefined },
           { label: t("dash.tab.classes"), value: ownedClasses.length, icon: "classes", color: "var(--accent-hover)", meta: t("dash.meta.activeClasses") },
-          { label: t("dash.stat.grossRevenue"), value: t("common.priceEgp", { price: stats.totalRevenue.toLocaleString() }), icon: "revenue", color: "var(--success)", meta: stats.totalRevenue > 0 ? t("dash.meta.lifetimeEarnings") : undefined, trend: stats.totalRevenue > 0 ? ("up" as const) : undefined },
+          ...(canSeeRevenue
+            ? [{ label: t("dash.stat.grossRevenue"), value: t("common.priceEgp", { price: stats.totalRevenue.toLocaleString() }), icon: "revenue", color: "var(--success)", meta: stats.totalRevenue > 0 ? t("dash.meta.lifetimeEarnings") : undefined, trend: stats.totalRevenue > 0 ? ("up" as const) : undefined }]
+            : []),
           {
             label: t("dash.stat.avgRating"),
             value: avgRating ? `${avgRating} ★` : "—",
