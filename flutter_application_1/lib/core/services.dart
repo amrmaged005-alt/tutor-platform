@@ -166,30 +166,39 @@ class MarketplaceRepository {
           'sortBy': sortBy,
         },
       );
-      final items = (data['classes'] as List<dynamic>? ?? [])
-          .whereType<Map<String, dynamic>>()
-          .map(AppClass.fromJson)
-          .toList();
-      if (items.isNotEmpty) {
-        final merged = await _withLocalClasses(items);
-        final available = await _applyEnrollments(merged);
-        _classCache[key] = available;
-        return available;
+      final rawItems = data['items'];
+      if (rawItems is! List<dynamic>) {
+        throw const FormatException(
+          'Expected the classes search response to contain an items list.',
+        );
       }
-    } catch (_) {}
-    await Future<void>.delayed(const Duration(milliseconds: 380));
-    final fallback = MockData.filteredClasses(
-      search: search,
-      subject: subject,
-      format: format,
-      city: city,
-      maxPrice: maxPrice,
-      sortBy: sortBy,
-    );
-    final merged = await _withLocalClasses(fallback);
-    final available = await _applyEnrollments(merged);
-    _classCache[key] = available;
-    return available;
+      final items = rawItems.map((item) {
+        if (item is! Map<String, dynamic>) {
+          throw const FormatException(
+            'Expected every classes search item to be an object.',
+          );
+        }
+        return AppClass.fromJson(item);
+      }).toList();
+      final merged = await _withLocalClasses(items);
+      final available = await _applyEnrollments(merged);
+      _classCache[key] = available;
+      return available;
+    } on ApiException {
+      await Future<void>.delayed(const Duration(milliseconds: 380));
+      final fallback = MockData.filteredClasses(
+        search: search,
+        subject: subject,
+        format: format,
+        city: city,
+        maxPrice: maxPrice,
+        sortBy: sortBy,
+      );
+      final merged = await _withLocalClasses(fallback);
+      final available = await _applyEnrollments(merged);
+      _classCache[key] = available;
+      return available;
+    }
   }
 
   Future<List<AppClass>> classPage({
