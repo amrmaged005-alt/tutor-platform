@@ -141,10 +141,49 @@ credentials — Codex cannot self-certify and I cannot fabricate them.
 
 ## Blocked on the owner
 
-1. **Seeded test accounts** — gate `T1-05` (FULL/LIMITED/VIEW_ONLY), `T1-08` (auth flows), and
-   `T1-01` (concurrency/cron evidence). Nothing else unblocks these.
-2. **Playwright baseline** — still not captured. The MCP server did not load after the session
-   restart; no `playwright` tools are exposed. Blocks Wave 2 entirely.
-3. **PR creation** — GitHub integration returns `403 Resource not accessible by integration` and `gh`
-   is not installed, so branches are being merged locally rather than through PRs. That diverges from
-   the `T0-06` workflow decision; worth a deliberate call rather than drift.
+**UPDATE 16:55 — two of the three are now RESOLVED.**
+
+### Test fixtures — RESOLVED
+
+`prisma/fixtures-acceptance.ts` exists, has been run, and was verified live against the dev DB.
+
+```bash
+npx tsx prisma/fixtures-acceptance.ts          # create / reset (idempotent)
+npx tsx prisma/fixtures-acceptance.ts --clean  # remove
+```
+
+| Account | Role / access | Purpose |
+|---|---|---|
+| `student@fixtures.coursaty.test` | STUDENT | booking + auth flows |
+| `tutor-full@fixtures.coursaty.test` | TUTOR / FULL | T1-05 control case |
+| `tutor-limited@fixtures.coursaty.test` | TUTOR / LIMITED | T1-05 — must receive no revenue/PII |
+| `tutor-viewonly@fixtures.coursaty.test` | TUTOR / VIEW_ONLY | T1-05 — must receive no revenue/PII |
+
+Password for all four: `FixturePass!234` (bcrypt cost 12, matching
+[signup route:62](../../app/api/signup/route.ts#L62) — a cheaper hash would exercise a different
+lockout path than production).
+
+Also seeded: each tutor owns a class with a **500 EGP PAID booking**, so a failing gate has real
+revenue and real student PII to leak — and a **capacity-1 class with zero bookings**
+(`Concurrency Test Class (1 seat)`) as the T1-01 last-seat race target. Re-running resets that class
+to empty, so the race test stays valid across runs.
+
+This unblocks the evidence Codex logged as missing for **T1-05**, **T1-08**, and **T1-01**.
+
+Not folded into `prisma/seed.ts` by design, not oversight: that file is demo content using bare
+`create()` with no passwords and default `FULL` access — the opposite properties acceptance evidence
+needs. Header documents it.
+
+### Playwright — PARTIALLY resolved
+
+Chromium is installed (Chrome Headless Shell 151.0.7922.34), so that is no longer the blocker. What
+remains is **one interactive approval** of the project-scoped MCP server in `.mcp.json` after a Claude
+Code restart. No agent can self-grant it. Baseline capture — and therefore Wave 2 — waits on that
+single click.
+
+### PR creation — still open, lowest priority
+
+GitHub integration returns `403 Resource not accessible by integration`; `gh` is not installed.
+Branches are being merged locally instead. Defensible with no second human reviewer, but it does cost
+Codex's automatic PR review as an independent check on Claude's reviews — which already proved its
+worth by catching the T1-03 miss.
