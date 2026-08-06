@@ -64,7 +64,10 @@ export default function LoginPage() {
       return;
     }
     const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-    window.location.href = callbackUrl?.startsWith("/") ? callbackUrl : "/dashboard";
+    window.location.href =
+      callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
+        ? callbackUrl
+        : "/dashboard";
   }
 
   return (
