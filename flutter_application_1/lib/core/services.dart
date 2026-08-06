@@ -184,7 +184,8 @@ class MarketplaceRepository {
       final available = await _applyEnrollments(merged);
       _classCache[key] = available;
       return available;
-    } on ApiException {
+    } on ApiException catch (error) {
+      if (error.statusCode != null) rethrow;
       await Future<void>.delayed(const Duration(milliseconds: 380));
       final fallback = MockData.filteredClasses(
         search: search,
