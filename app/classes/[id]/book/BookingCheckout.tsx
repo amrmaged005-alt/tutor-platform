@@ -1,28 +1,12 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-import {
-  ArrowLeft,
-  Banknote,
-  BookOpen,
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Clock3,
-  CreditCard,
-  LayoutDashboard,
-  Loader2,
-  MessageCircle,
-  School,
-  ShieldCheck,
-  Star,
-  UserRound,
-  UsersRound,
-  Wifi,
-} from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowLeft, BookOpen, CalendarDays, Check, ChevronRight, LayoutDashboard, Loader2, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
+import PromoCodeInput, { type PromoResult } from "@/components/ui/PromoCodeInput";
 import CoursatyLogo from "@/components/ui/CoursatyLogo";
 import { useI18n } from "@/app/components/i18n";
 import { classBanner, subjectAccent } from "@/app/lib/imagery";
@@ -41,81 +25,28 @@ interface ClassSummary {
   tutorName: string;
 }
 
+const STEPS = ["booking.checkout.step.schedule", "booking.checkout.step.details", "booking.checkout.step.pay"] as const;
 type Translator = ReturnType<typeof useI18n>["t"];
-type PaymentMethod = "card" | "fawry" | "bank" | "cash";
-
-const CALENDAR_DAYS = [
-  { day: 27, muted: true },
-  { day: 28, muted: true },
-  { day: 29, muted: true },
-  { day: 30, muted: true },
-  { day: 1 },
-  { day: 2 },
-  { day: 3, available: true },
-  { day: 4 },
-  { day: 5 },
-  { day: 6 },
-  { day: 7, selected: true },
-  { day: 8 },
-  { day: 9 },
-  { day: 10 },
-  { day: 11 },
-  { day: 12 },
-  { day: 13 },
-  { day: 14 },
-  { day: 15 },
-  { day: 16, available: true },
-  { day: 17 },
-  { day: 18 },
-  { day: 19 },
-  { day: 20, today: true },
-  { day: 21 },
-  { day: 22 },
-  { day: 23 },
-  { day: 24 },
-  { day: 25 },
-  { day: 26 },
-  { day: 27 },
-  { day: 28 },
-  { day: 29 },
-  { day: 30 },
-  { day: 31 },
-];
-const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const TIME_OPTIONS = ["09:00 AM", "11:00 AM", "01:00 PM", "03:00 PM", "05:00 PM"];
-const PLATFORM_FEE = 20;
 
 export default function BookingCheckout({ cls }: { cls: ClassSummary }) {
   const reduceMotion = useReducedMotion();
+  const router = useRouter();
   const { lang, setLang, t } = useI18n();
-  const [selectedDay, setSelectedDay] = useState(7);
-  const [selectedTime, setSelectedTime] = useState("11:00 AM");
-  const [studentName, setStudentName] = useState("Omar Hossam");
-  const [school, setSchool] = useState("IGCSE - Al Nafees International School");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [step, setStep] = useState(0);
+  const [promoCode, setPromoCode] = useState<string | null>(null);
+  const [promoResult, setPromoResult] = useState<PromoResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [alreadyBookedId, setAlreadyBookedId] = useState<string | null>(null);
+  const direction = lang === "ar" ? -1 : 1;
+  const rtlFlip = lang === "ar" ? "scaleX(-1)" : undefined;
+  const finalPrice = promoResult?.finalPrice ?? cls.priceEgp;
 
-  const cashAvailable = cls.paymentType === "IN_PERSON";
-  const total = cls.priceEgp + PLATFORM_FEE;
-  const paymentType = paymentMethod === "cash" && cashAvailable ? "IN_PERSON" : "ONLINE";
-  const paymentMethodLabel =
-    paymentMethod === "cash" ? "Cash at center/tutor" : paymentMethod === "bank" ? "Bank transfer" : paymentMethod === "fawry" ? "Fawry Pay" : "Card";
-  const note = useMemo(
-    () =>
-      [
-        `Schedule: May ${selectedDay}, 2025 at ${selectedTime}`,
-        `Student: ${studentName || "Not provided"}`,
-        school ? `School: ${school}` : null,
-        `Payment method: ${paymentMethodLabel}`,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-    [paymentMethodLabel, school, selectedDay, selectedTime, studentName],
-  );
+  const handlePromoApply = useCallback((code: string, result: PromoResult) => {
+    setPromoCode(code);
+    setPromoResult(result);
+  }, []);
 
   const handleBook = useCallback(async () => {
     if (submitting) return;
@@ -125,7 +56,11 @@ export default function BookingCheckout({ cls }: { cls: ClassSummary }) {
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ classId: cls.id, paymentType, note }),
+        body: JSON.stringify({
+          classId: cls.id,
+          paymentType: cls.paymentType,
+          ...(promoCode ? { promoCode } : {}),
+        }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -133,7 +68,7 @@ export default function BookingCheckout({ cls }: { cls: ClassSummary }) {
           setAlreadyBookedId(data.bookingId);
           return;
         }
-        setError(data.error ?? "Could not create booking. Please try again.");
+        setError(t("signup.error.generic"));
         return;
       }
       if (data.paymentUrl) {
@@ -142,14 +77,14 @@ export default function BookingCheckout({ cls }: { cls: ClassSummary }) {
       }
       setDone(true);
       window.setTimeout(() => {
-        window.location.href = data.bookingId ? `/booking-confirmed?bookingId=${data.bookingId}` : "/dashboard";
+        router.push(data.bookingId ? `/booking-confirmed?bookingId=${data.bookingId}` : "/dashboard");
       }, 700);
     } catch {
-      setError("Network error. Please try again.");
+      setError(t("common.networkError"));
     } finally {
       setSubmitting(false);
     }
-  }, [cls.id, note, paymentType, submitting]);
+  }, [cls.id, cls.paymentType, promoCode, router, submitting, t]);
 
   if (alreadyBookedId) {
     return <AlreadyBookedState bookingId={alreadyBookedId} cls={cls} t={t} />;
@@ -157,358 +92,277 @@ export default function BookingCheckout({ cls }: { cls: ClassSummary }) {
 
   if (done) {
     return (
-      <main className="booking-state" aria-busy="true">
+      <main style={{ minHeight: "62vh", display: "grid", placeItems: "center", color: "var(--text)", textAlign: "center" }} aria-busy="true">
         <div>
-          <span className="booking-success-icon">
-            <Check size={28} aria-hidden />
-          </span>
-          <h1>Booking received</h1>
-          <p>Opening your confirmation...</p>
+          <span style={{ display: "inline-grid", width: 62, height: 62, placeItems: "center", color: "var(--success)", background: "var(--success-bg)", borderRadius: "50%" }}><Check size={28} aria-hidden /></span>
+          <h1 style={{ margin: "14px 0 4px", fontSize: "1.45rem" }}>{t("booking.checkout.received")}</h1>
+          <p style={{ margin: 0, color: "var(--text-muted)", fontSize: 14 }}>{t("booking.checkout.openingConfirmation")}</p>
         </div>
-        <CheckoutStyles />
       </main>
     );
   }
 
   return (
-    <main className="booking-page">
-      <div className="booking-shell">
-        <header className="booking-topbar">
-          <Link href={`/classes/${cls.id}`} aria-label="Back to class" className="icon-link">
-            <ArrowLeft size={21} aria-hidden />
-          </Link>
-          <CoursatyLogo compact />
-          <button type="button" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="language-toggle">
-            <span className={lang === "ar" ? "active" : ""}>AR</span>
-            <span className={lang === "en" ? "active" : ""}>EN</span>
-          </button>
-        </header>
+    <main style={{ maxWidth: 860, margin: "0 auto", padding: "1rem 1rem 5rem", color: "var(--text)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 18 }}>
+        <Link href={`/classes/${cls.id}`} aria-label={t("booking.checkout.backToClass")} style={{ display: "inline-flex", alignItems: "center", color: "var(--text-secondary)", textDecoration: "none" }}>
+          <ArrowLeft size={20} aria-hidden style={{ transform: rtlFlip }} />
+        </Link>
+        <CoursatyLogo compact />
+        <button type="button" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="btn-secondary" style={{ minHeight: 44, padding: "6px 12px", fontSize: 11 }}>
+          {lang === "en" ? "AR | EN" : "عربي | EN"}
+        </button>
+      </div>
 
-        <StepIndicator />
+      <StepIndicator step={step} t={t} />
+      <CheckoutClassSummary cls={cls} t={t} />
 
-        <div className="checkout-layout">
-          <div className="checkout-main">
-            <ClassSummaryCard cls={cls} />
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(250px, 280px)", gap: 14, alignItems: "start" }} className="checkout-grid">
+        <section style={{ minHeight: 330, padding: "1.25rem", background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: "var(--radius-lg)" }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={reduceMotion ? false : { opacity: 0, x: 10 * direction }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={reduceMotion ? undefined : { opacity: 0, x: -10 * direction }}
+              transition={{ duration: 0.2 }}
+            >
+              {step === 0 && <ScheduleStep cls={cls} t={t} />}
+              {step === 1 && <DetailsStep cls={cls} t={t} />}
+              {step === 2 && (
+                <PaymentStep
+                  cls={cls}
+                  promoResult={promoResult}
+                  onApply={handlePromoApply}
+                  onClear={() => {
+                    setPromoCode(null);
+                    setPromoResult(null);
+                  }}
+                  disabled={submitting}
+                  t={t}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
 
-            <section className="checkout-card date-card" aria-labelledby="date-title">
-              <div className="section-heading">
-                <h2 id="date-title">1. Choose date</h2>
-                <button type="button" className="month-button" aria-label="Change month">
-                  May 2025 <ChevronRight size={16} aria-hidden />
+          {error && <p role="alert" style={{ margin: "16px 0 0", padding: "10px 12px", color: "var(--error)", background: "var(--error-bg)", border: "1px solid var(--error-border)", borderRadius: "var(--radius-md)", fontSize: 13 }}>{error}</p>}
+
+          <div style={{ marginTop: 22 }}>
+            {step < STEPS.length - 1 ? (
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                <button type="button" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0 || submitting} className="btn-secondary">
+                  {t("booking.checkout.back")}
+                </button>
+                <button type="button" onClick={() => setStep((current) => Math.min(STEPS.length - 1, current + 1))} className="btn-primary" style={{ flex: 1 }}>
+                  {t("booking.checkout.continue")} <ChevronRight size={15} aria-hidden style={{ transform: rtlFlip }} />
                 </button>
               </div>
-              <div className="week-row" aria-hidden>
-                {WEEK_DAYS.map((day) => (
-                  <span key={day}>{day}</span>
-                ))}
-              </div>
-              <div className="calendar-grid">
-                {CALENDAR_DAYS.map((date, index) => {
-                  const isSelected = selectedDay === date.day && !date.muted;
-                  const disabled = date.muted;
-                  return (
-                    <button
-                      key={`${date.day}-${index}`}
-                      type="button"
-                      disabled={disabled}
-                      aria-pressed={isSelected}
-                      aria-label={`${date.day} May${date.available ? ", available" : ""}${date.today ? ", today" : ""}`}
-                      onClick={() => setSelectedDay(date.day)}
-                      className={`date-button ${isSelected ? "selected" : ""} ${date.available ? "available" : ""} ${date.today ? "today" : ""}`}
-                    >
-                      {date.day}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="legend-row" aria-label="Calendar legend">
-                <LegendDot label="Selected" className="selected-dot" />
-                <LegendDot label="Today" className="today-dot" />
-                <LegendDot label="Available" className="available-dot" />
-                <LegendDot label="Unavailable" className="unavailable-dot" />
-              </div>
-            </section>
-
-            <section className="checkout-card" aria-labelledby="time-title">
-              <h2 id="time-title">2. Choose time</h2>
-              <div className="time-row">
-                {TIME_OPTIONS.map((time) => (
-                  <button
-                    key={time}
-                    type="button"
-                    aria-pressed={selectedTime === time}
-                    onClick={() => setSelectedTime(time)}
-                    className={selectedTime === time ? "time-button selected" : "time-button"}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="checkout-card" aria-labelledby="student-title">
-              <h2 id="student-title">3. Student details</h2>
-              <div className="field-stack">
-                <label className="checkout-field">
-                  <UserRound size={20} aria-hidden />
-                  <span>
-                    <small>Student full name</small>
-                    <input value={studentName} onChange={(event) => setStudentName(event.target.value)} />
-                  </span>
-                </label>
-                <label className="checkout-field">
-                  <School size={20} aria-hidden />
-                  <span>
-                    <small>Grade / School (optional)</small>
-                    <input value={school} onChange={(event) => setSchool(event.target.value)} />
-                  </span>
-                </label>
-              </div>
-            </section>
-
-            <section className="checkout-card" aria-labelledby="payment-title">
-              <h2 id="payment-title">4. Payment method</h2>
-              <div className={cashAvailable ? "payment-grid has-cash" : "payment-grid"}>
-                <PaymentOption
-                  id="card"
-                  label="Card"
-                  meta="Visa, MasterCard"
-                  active={paymentMethod === "card"}
-                  onSelect={setPaymentMethod}
-                  icon={<CreditCard size={24} aria-hidden />}
-                />
-                <PaymentOption
-                  id="fawry"
-                  label="Fawry Pay"
-                  meta="Fawry"
-                  active={paymentMethod === "fawry"}
-                  onSelect={setPaymentMethod}
-                  icon={<span className="fawry-logo">Fawry</span>}
-                />
-                <PaymentOption
-                  id="bank"
-                  label="Bank Transfer"
-                  meta="Manual review"
-                  active={paymentMethod === "bank"}
-                  onSelect={setPaymentMethod}
-                  icon={<Banknote size={24} aria-hidden />}
-                />
-                {cashAvailable && (
-                  <PaymentOption
-                    id="cash"
-                    label="Cash"
-                    meta="At center/tutor"
-                    active={paymentMethod === "cash"}
-                    onSelect={setPaymentMethod}
-                    icon={<Banknote size={24} aria-hidden />}
-                  />
+            ) : (
+              <div>
+                <button type="button" onClick={handleBook} disabled={submitting} className="btn-primary btn-primary-shimmer" style={{ width: "100%", minHeight: 50, fontSize: 15, fontWeight: 700 }}>
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span key={submitting ? "submitting" : "ready"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                      {submitting ? (
+                        <>
+                          <Loader2 size={17} style={{ animation: "spin 0.8s linear infinite" }} aria-hidden />
+                          {t("booking.checkout.confirming")}
+                        </>
+                      ) : (
+                        <>
+                          {finalPrice === 0 ? t("booking.checkout.bookFree") : t("booking.checkout.confirm")}
+                          <ChevronRight size={17} aria-hidden style={{ transform: rtlFlip }} />
+                        </>
+                      )}
+                    </motion.span>
+                  </AnimatePresence>
+                </button>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginTop: 10, color: "var(--text-muted)", fontSize: 12 }}>
+                  <BookOpen size={13} aria-hidden />
+                  {t("booking.checkout.secure")}
+                </div>
+                {submitting && (
+                  <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, color: "var(--text-muted)", fontSize: 12, fontWeight: 600 }}>
+                    <Loader2 size={13} style={{ animation: "spin 0.8s linear infinite" }} aria-hidden />
+                    {t("booking.checkout.processing")}
+                  </motion.div>
                 )}
+                <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--border-light)" }}>
+                  <button type="button" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={submitting} className="btn-secondary" style={{ fontSize: 13, padding: "7px 14px" }}>
+                    {t("booking.checkout.back")}
+                  </button>
+                </div>
               </div>
-              {cashAvailable && (
-                <p className="payment-note">
-                  Cash is available because this class poster accepts physical payment. Your booking is confirmed now, then payment is handled in person.
-                </p>
-              )}
-            </section>
+            )}
           </div>
-
-          <aside className="checkout-side">
-            <OrderSummary
-              cls={cls}
-              selectedDay={selectedDay}
-              selectedTime={selectedTime}
-              total={total}
-              detailsOpen={detailsOpen}
-              setDetailsOpen={setDetailsOpen}
-              submitting={submitting}
-              error={error}
-              handleBook={handleBook}
-              reduceMotion={Boolean(reduceMotion)}
-            />
-          </aside>
-        </div>
+        </section>
+        <OrderSummary cls={cls} promoResult={promoResult} finalPrice={finalPrice} t={t} />
       </div>
-      <CheckoutStyles />
+      <style>{`
+        @media (max-width: 760px) { .checkout-grid { grid-template-columns: 1fr !important; } }
+        @media (prefers-reduced-motion: reduce) { .btn-primary-shimmer::after { animation: none !important; } }
+      `}</style>
     </main>
   );
 }
 
-function StepIndicator() {
+function StepIndicator({ step, t }: { step: number; t: Translator }) {
   return (
-    <ol className="booking-steps" aria-label="Booking steps">
-      {["Schedule", "Details", "Pay"].map((label, index) => (
-        <li key={label} className={index === 0 ? "active" : ""} aria-current={index === 0 ? "step" : undefined}>
-          <span>{index + 1}</span>
-          <strong>{label}</strong>
-        </li>
-      ))}
+    <ol style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", margin: "0 0 22px", padding: 0, listStyle: "none" }}>
+      {STEPS.map((label, index) => {
+        const complete = index < step;
+        const active = index === step;
+        return (
+          <li key={label} aria-current={active ? "step" : undefined} style={{ position: "relative", display: "grid", justifyItems: "center", gap: 6, color: active || complete ? "var(--accent)" : "var(--text-muted)", fontSize: 12, fontWeight: 800 }}>
+            {index > 0 && <span style={{ position: "absolute", insetInlineEnd: "50%", insetBlockStart: 15, width: "100%", height: 2, background: complete || active ? "var(--accent)" : "var(--border)", zIndex: 0 }} />}
+            <span style={{ zIndex: 1, display: "grid", width: 30, height: 30, placeItems: "center", color: active || complete ? "var(--accent-fg)" : "var(--text-muted)", background: active || complete ? "var(--accent)" : "var(--bg-card)", border: `1px solid ${active || complete ? "var(--accent)" : "var(--border)"}`, borderRadius: "50%" }}>
+              {complete ? <Check size={15} aria-hidden /> : index + 1}
+            </span>
+            {t(label)}
+          </li>
+        );
+      })}
     </ol>
   );
 }
 
-function ClassSummaryCard({ cls }: { cls: ClassSummary }) {
+function ScheduleStep({ cls, t }: { cls: ClassSummary; t: Translator }) {
   return (
-    <section className="class-summary-card">
-      <div className="class-thumb" style={{ backgroundColor: subjectAccent(cls.subject) }}>
-        <Image src={classBanner(`${cls.subject}-${cls.id}`, 260, 210)} alt="" fill sizes="(max-width: 720px) 106px, 142px" style={{ objectFit: "cover" }} priority />
-        <span>{cls.subject}</span>
+    <div style={{ display: "grid", gap: 16 }}>
+      <span style={{ display: "inline-grid", width: 48, height: 48, placeItems: "center", color: "var(--accent)", background: "var(--accent-bg)", borderRadius: 12 }}>
+        <CalendarDays size={22} aria-hidden />
+      </span>
+      <div>
+        <h2 style={{ margin: "0 0 7px", fontSize: "1.1rem" }}>{t("booking.checkout.scheduleTitle")}</h2>
+        <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.65 }}>{t("booking.checkout.scheduleBody")}</p>
       </div>
-      <div className="class-info">
-        <h1>{cls.title}</h1>
-        <p>
-          with {cls.tutorName} <ShieldCheck size={15} aria-hidden />
-        </p>
-        <div className="class-meta">
-          <span>
-            <Star size={15} fill="currentColor" aria-hidden /> 4.9 (128)
-          </span>
-          <span>
-            <UsersRound size={15} aria-hidden /> {cls.spotsLeft ?? 20} seats left
-          </span>
-          <span>
-            <Wifi size={15} aria-hidden /> {cls.format === "ONLINE" ? "Online session" : cls.city ?? "In person"}
-          </span>
-          <span>
-            <Clock3 size={15} aria-hidden /> 60 min
-          </span>
-        </div>
+      <div style={{ padding: "14px 16px", color: "var(--text)", background: "var(--accent-bg-soft)", border: "1px solid var(--accent-border)", borderRadius: "var(--radius-md)" }}>
+        <span style={{ display: "block", marginBottom: 4, color: "var(--accent)", fontSize: 12, fontWeight: 800 }}>{t("booking.schedule")}</span>
+        <strong style={{ fontSize: 15 }}>{cls.schedule ?? t("booking.checkout.scheduleMissing")}</strong>
       </div>
-      <div className="class-price">
-        <strong>EGP {cls.priceEgp}</strong>
-        <span>per session</span>
-      </div>
+    </div>
+  );
+}
+
+function CheckoutClassSummary({ cls, t }: { cls: ClassSummary; t: Translator }) {
+  return (
+    <section style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12, padding: "0.75rem", background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: "var(--radius-lg)" }}>
+      <span style={{ position: "relative", display: "block", width: 78, height: 72, flexShrink: 0, overflow: "hidden", borderRadius: 10, backgroundColor: subjectAccent(cls.subject) }}>
+        <Image src={classBanner(`${cls.subject}-${cls.id}`, 160, 150)} alt="" fill sizes="78px" style={{ objectFit: "cover", opacity: 0.6, mixBlendMode: "luminosity" }} />
+        <span aria-hidden style={{ position: "absolute", inset: 0, background: `linear-gradient(150deg, ${subjectAccent(cls.subject)}cc, ${subjectAccent(cls.subject)}44)`, display: "grid", placeItems: "center", color: "#fff" }}>
+          <BookOpen size={26} strokeWidth={1.6} aria-hidden />
+        </span>
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <strong style={{ display: "block", overflow: "hidden", color: "var(--text)", fontSize: 15, textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cls.title}</strong>
+        <small style={{ display: "block", marginTop: 2, color: "var(--text-muted)", fontSize: 11 }}>{t("booking.checkout.withTutor", { name: cls.tutorName })}</small>
+        <span style={{ display: "flex", gap: 10, marginTop: 8, color: "var(--text-secondary)", fontSize: 11, flexWrap: "wrap" }}>
+          <span>{cls.format === "ONLINE" ? t("booking.checkout.onlineSession") : cls.city ?? t("booking.checkout.inPerson")}</span>
+          <span>{cls.schedule ?? t("booking.checkout.scheduleMissing")}</span>
+          {cls.spotsLeft !== null && <span>{t("booking.checkout.seatsLeft", { count: cls.spotsLeft })}</span>}
+        </span>
+      </span>
+      <strong style={{ color: "var(--accent)", fontSize: 16, whiteSpace: "nowrap" }}>{cls.priceEgp} EGP</strong>
     </section>
   );
 }
 
-function LegendDot({ label, className }: { label: string; className: string }) {
+function DetailsStep({ cls, t }: { cls: ClassSummary; t: Translator }) {
+  const details = [
+    t("booking.checkout.nextDashboard"),
+    t("booking.checkout.nextTutor", { name: cls.tutorName }),
+    t("booking.checkout.nextMessages"),
+  ];
   return (
-    <span>
-      <i className={className} aria-hidden />
-      {label}
-    </span>
+    <>
+      <h2 style={{ margin: "0 0 6px", fontSize: "1.1rem" }}>{t("booking.checkout.whatNext")}</h2>
+      <p style={{ margin: "0 0 18px", color: "var(--text-secondary)", fontSize: 14 }}>{t("booking.checkout.whatNextBody")}</p>
+      <div style={{ display: "grid", gap: 12 }}>
+        {details.map((item) => (
+          <div key={item} style={{ display: "flex", gap: 9, alignItems: "flex-start", color: "var(--text-secondary)", fontSize: 14 }}>
+            <Check size={16} color="var(--accent)" aria-hidden />
+            {item}
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
-function PaymentOption({
-  id,
-  label,
-  meta,
-  active,
-  onSelect,
-  icon,
+function PaymentStep({
+  cls,
+  promoResult,
+  onApply,
+  onClear,
+  disabled,
+  t,
 }: {
-  id: PaymentMethod;
-  label: string;
-  meta: string;
-  active: boolean;
-  onSelect: (value: PaymentMethod) => void;
-  icon: React.ReactNode;
+  cls: ClassSummary;
+  promoResult: PromoResult | null;
+  onApply: (code: string, result: PromoResult) => void;
+  onClear: () => void;
+  disabled: boolean;
+  t: Translator;
 }) {
   return (
-    <button type="button" className={active ? "payment-option active" : "payment-option"} onClick={() => onSelect(id)} aria-pressed={active}>
-      <span className="radio-dot" aria-hidden />
-      <span className="payment-icon">{icon}</span>
-      <span>
-        <strong>{label}</strong>
-        <small>{meta}</small>
-      </span>
-    </button>
+    <>
+      <h2 style={{ margin: "0 0 6px", fontSize: "1.1rem" }}>{t("booking.checkout.paymentTitle")}</h2>
+      <p style={{ margin: "0 0 18px", color: "var(--text-secondary)", fontSize: 14 }}>
+        {t(cls.paymentType === "ONLINE" ? "booking.checkout.paymentOnline" : "booking.paymentCash")}
+      </p>
+      <PromoCodeInput
+        classId={cls.id}
+        priceEgp={cls.priceEgp}
+        onApply={onApply}
+        onClear={onClear}
+        disabled={disabled}
+      />
+      {promoResult && (
+        <p style={{ margin: "12px 0 0", color: "var(--success)", fontSize: 13, fontWeight: 700 }}>
+          {t("booking.checkout.promoApplied", { amount: promoResult.discountEgp })}
+        </p>
+      )}
+    </>
   );
 }
 
 function OrderSummary({
   cls,
-  selectedDay,
-  selectedTime,
-  total,
-  detailsOpen,
-  setDetailsOpen,
-  submitting,
-  error,
-  handleBook,
-  reduceMotion,
+  promoResult,
+  finalPrice,
+  t,
 }: {
   cls: ClassSummary;
-  selectedDay: number;
-  selectedTime: string;
-  total: number;
-  detailsOpen: boolean;
-  setDetailsOpen: (value: boolean) => void;
-  submitting: boolean;
-  error: string | null;
-  handleBook: () => void;
-  reduceMotion: boolean;
+  promoResult: PromoResult | null;
+  finalPrice: number;
+  t: Translator;
 }) {
   return (
-    <section className="order-summary" aria-labelledby="order-title">
-      <div className="order-heading">
-        <h2 id="order-title">Order summary</h2>
-        <button type="button" onClick={() => setDetailsOpen(!detailsOpen)}>
-          Details <ChevronDown size={15} aria-hidden />
-        </button>
+    <aside style={{ position: "sticky", top: 84, padding: "1.25rem", background: "var(--bg-card)", border: "1px solid var(--border-light)", borderRadius: "var(--radius-lg)" }}>
+      <span style={{ display: "inline-grid", width: 42, height: 42, placeItems: "center", color: "var(--accent)", background: "var(--accent-bg)", borderRadius: 10 }}><BookOpen size={20} aria-hidden /></span>
+      <h2 style={{ margin: "12px 0 3px", fontSize: "1rem" }}>{cls.title}</h2>
+      <p style={{ margin: "0 0 14px", color: "var(--text-muted)", fontSize: 12 }}>{cls.subject} · {cls.tutorName}</p>
+        <div style={{ display: "grid", gap: 8, paddingTop: 12, borderTop: "1px solid var(--border-light)" }}>
+          <PriceRow label={t("booking.checkout.classPrice")} value={`${cls.priceEgp} EGP`} />
+          {promoResult && (
+            <PriceRow
+              label={t("booking.checkout.discount", { amount: promoResult.discountPct })}
+              value={`-${promoResult.discountEgp} EGP`}
+              highlight
+            />
+          )}
+          <PriceRow label={t("booking.checkout.total")} value={`${finalPrice} EGP`} bold />
       </div>
-      <div className="summary-rows">
-        <PriceRow label="Class session" value={`EGP ${cls.priceEgp}`} />
-        <PriceRow label="Platform fee" value={`EGP ${PLATFORM_FEE}`} />
-        {detailsOpen && (
-          <>
-            <PriceRow label="Date" value={`May ${selectedDay}`} />
-            <PriceRow label="Time" value={selectedTime} />
-          </>
-        )}
-      </div>
-      <div className="summary-total">
-        <strong>Total</strong>
-        <span>EGP {total}</span>
-      </div>
-      <button type="button" onClick={handleBook} disabled={submitting} className="confirm-button">
-        {submitting ? (
-          <>
-            <Loader2 size={18} aria-hidden /> Confirming booking
-          </>
-        ) : (
-          <>
-            Confirm booking <ChevronRight size={21} aria-hidden />
-          </>
-        )}
-        <small>
-          <ShieldCheck size={12} aria-hidden /> Secure payment
-        </small>
-      </button>
-      {submitting && (
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="processing-banner"
-          aria-live="polite"
-        >
-          <Loader2 size={20} aria-hidden />
-          Processing your booking...
-        </motion.div>
-      )}
-      {error && (
-        <p role="alert" className="booking-error">
-          {error}
-        </p>
-      )}
-      <div className="trust-line">
-        <ShieldCheck size={18} aria-hidden />
-        <span>
-          <strong>Protected checkout</strong>
-          Confirmation is saved to your dashboard.
-        </span>
-      </div>
-    </section>
+    </aside>
   );
 }
 
 function AlreadyBookedState({ bookingId, cls, t }: { bookingId: string; cls: ClassSummary; t: Translator }) {
+  const router = useRouter();
   const [openingMessages, setOpeningMessages] = useState(false);
 
   async function messageTutor() {
     if (!cls.tutorId) {
-      window.location.href = "/messages";
+      router.push("/messages");
       return;
     }
 
@@ -519,919 +373,38 @@ function AlreadyBookedState({ bookingId, cls, t }: { bookingId: string; cls: Cla
       body: JSON.stringify({ tutorId: cls.tutorId }),
     });
     const data = await response.json().catch(() => null);
-    window.location.href = response.ok && data?.threadId ? `/messages/${data.threadId}` : "/messages";
+    router.push(response.ok && data?.threadId ? `/messages/${data.threadId}` : "/messages");
   }
 
   return (
-    <main className="booking-state">
-      <section>
-        <span className="booking-success-icon">
+    <main style={{ minHeight: "72vh", display: "grid", placeItems: "center", padding: "1.5rem", color: "var(--text)" }}>
+      <section style={{ width: "min(100%, 520px)", padding: "1.5rem", textAlign: "center", background: "var(--bg-card)", border: "1px solid var(--accent-border)", borderRadius: "var(--radius-lg)" }}>
+        <span style={{ display: "inline-grid", width: 58, height: 58, placeItems: "center", color: "var(--accent)", background: "var(--accent-bg)", borderRadius: "50%" }}>
           <Check size={26} aria-hidden />
         </span>
-        <h1>{t("booking.checkout.alreadyTitle")}</h1>
-        <p>{t("booking.checkout.alreadyBody")}</p>
-        <div className="state-actions">
-          <Link href={`/dashboard?bookingId=${bookingId}`} className="state-primary">
+        <h1 style={{ margin: "14px 0 7px", fontSize: "1.55rem" }}>{t("booking.checkout.alreadyTitle")}</h1>
+        <p style={{ margin: "0 auto 20px", maxWidth: 420, color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.65 }}>{t("booking.checkout.alreadyBody")}</p>
+        <div style={{ display: "grid", gap: 9 }}>
+          <Link href={`/dashboard?bookingId=${bookingId}`} className="btn-primary" style={{ justifyContent: "center" }}>
             <BookOpen size={16} aria-hidden /> {t("booking.checkout.viewBooking")}
           </Link>
-          <Link href="/dashboard" className="state-secondary">
+          <Link href="/dashboard" className="btn-secondary" style={{ justifyContent: "center" }}>
             <LayoutDashboard size={16} aria-hidden /> {t("booking.checkout.goDashboard")}
           </Link>
-          <button type="button" onClick={messageTutor} disabled={openingMessages} className="state-secondary">
-            {openingMessages ? <Loader2 size={16} aria-hidden /> : <MessageCircle size={16} aria-hidden />}
+          <button type="button" onClick={messageTutor} disabled={openingMessages} className="btn-secondary" style={{ justifyContent: "center" }}>
+            {openingMessages ? <Loader2 size={16} style={{ animation: "spin 0.8s linear infinite" }} aria-hidden /> : <MessageCircle size={16} aria-hidden />}
             {t(openingMessages ? "booking.checkout.openingMessages" : "booking.checkout.messageTutor")}
           </button>
         </div>
       </section>
-      <CheckoutStyles />
     </main>
   );
 }
 
-function PriceRow({ label, value }: { label: string; value: string }) {
+function PriceRow({ label, value, bold, highlight }: { label: string; value: string; bold?: boolean; highlight?: boolean }) {
   return (
-    <div className="price-row">
-      <span>{label}</span>
-      <strong>{value}</strong>
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, color: highlight ? "var(--success)" : bold ? "var(--text)" : "var(--text-secondary)", fontSize: bold ? 15 : 13, fontWeight: bold ? 850 : 600 }}>
+      <span>{label}</span><span>{value}</span>
     </div>
-  );
-}
-
-function CheckoutStyles() {
-  return (
-    <style>{`
-      .booking-page {
-        min-height: 100vh;
-        color: var(--text);
-        background:
-          radial-gradient(circle at 12% 0%, rgba(13, 89, 70, 0.08), transparent 28rem),
-          linear-gradient(180deg, #fbfaf6 0%, var(--bg) 100%);
-      }
-
-      .booking-shell {
-        width: min(100%, 1180px);
-        margin: 0 auto;
-        padding: 20px 20px 44px;
-      }
-
-      .booking-topbar {
-        display: grid;
-        grid-template-columns: 44px 1fr auto;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 18px;
-      }
-
-      .booking-topbar > :nth-child(2) {
-        justify-self: center;
-      }
-
-      .icon-link,
-      .language-toggle,
-      .month-button {
-        color: var(--text);
-        background: transparent;
-        border: 0;
-        text-decoration: none;
-      }
-
-      .icon-link {
-        display: grid;
-        width: 42px;
-        height: 42px;
-        place-items: center;
-        border-radius: 999px;
-      }
-
-      .language-toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        min-height: 34px;
-        padding: 6px 10px;
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        background: rgba(251, 250, 246, 0.78);
-        color: var(--text-muted);
-        font-size: 12px;
-        font-weight: 800;
-      }
-
-      .language-toggle .active {
-        color: var(--accent);
-      }
-
-      .booking-steps {
-        position: relative;
-        display: grid;
-        width: min(100%, 590px);
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0;
-        margin: 0 auto 24px;
-        padding: 0;
-        list-style: none;
-      }
-
-      .booking-steps:before {
-        position: absolute;
-        top: 15px;
-        right: 16.5%;
-        left: 16.5%;
-        height: 3px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--accent) 0 32%, var(--border-light) 32% 100%);
-        content: "";
-      }
-
-      .booking-steps li {
-        position: relative;
-        z-index: 1;
-        display: grid;
-        justify-items: center;
-        gap: 6px;
-        color: var(--text-muted);
-        font-size: 13px;
-      }
-
-      .booking-steps span {
-        display: grid;
-        width: 31px;
-        height: 31px;
-        place-items: center;
-        border: 2px solid var(--border);
-        border-radius: 999px;
-        background: var(--bg-card);
-        font-weight: 850;
-      }
-
-      .booking-steps strong {
-        font-weight: 850;
-      }
-
-      .booking-steps .active {
-        color: var(--accent);
-      }
-
-      .booking-steps .active span {
-        color: var(--accent-fg);
-        border-color: var(--accent);
-        background: var(--accent);
-      }
-
-      .checkout-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 350px;
-        gap: 18px;
-        align-items: start;
-      }
-
-      .checkout-main {
-        display: grid;
-        gap: 14px;
-      }
-
-      .checkout-card,
-      .class-summary-card,
-      .order-summary {
-        border: 1px solid var(--border-light);
-        border-radius: 16px;
-        background: rgba(251, 250, 246, 0.92);
-      }
-
-      .class-summary-card {
-        display: grid;
-        grid-template-columns: 142px minmax(0, 1fr) auto;
-        gap: 16px;
-        align-items: center;
-        min-height: 142px;
-        padding: 16px;
-      }
-
-      .class-thumb {
-        position: relative;
-        min-height: 110px;
-        overflow: hidden;
-        border-radius: 12px;
-      }
-
-      .class-thumb:after {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(13, 89, 70, 0.3));
-        content: "";
-      }
-
-      .class-thumb span {
-        position: absolute;
-        top: 9px;
-        left: 9px;
-        z-index: 1;
-        padding: 4px 8px;
-        border-radius: 999px;
-        color: var(--accent-fg);
-        background: var(--accent);
-        font-size: 11px;
-        font-weight: 850;
-      }
-
-      .class-info h1 {
-        margin: 0 0 6px;
-        color: var(--text);
-        font-family: Lora, Georgia, serif;
-        font-size: clamp(1.25rem, 2vw, 1.75rem);
-        line-height: 1.1;
-      }
-
-      .class-info p {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin: 0;
-        color: var(--text-secondary);
-        font-size: 14px;
-      }
-
-      .class-info p svg {
-        color: var(--accent);
-      }
-
-      .class-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 16px;
-        margin-top: 14px;
-        color: var(--text-secondary);
-        font-size: 13px;
-      }
-
-      .class-meta span {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-      }
-
-      .class-meta span:first-child {
-        color: var(--rating-gold);
-      }
-
-      .class-price {
-        align-self: end;
-        text-align: right;
-      }
-
-      .class-price strong {
-        display: block;
-        color: var(--accent);
-        font-size: 1.45rem;
-        line-height: 1;
-      }
-
-      .class-price span {
-        display: block;
-        margin-top: 5px;
-        color: var(--text-muted);
-        font-size: 12px;
-      }
-
-      .checkout-card {
-        padding: 18px 20px;
-      }
-
-      .checkout-card h2 {
-        margin: 0;
-        color: var(--text);
-        font-size: 1rem;
-        font-weight: 850;
-      }
-
-      .section-heading,
-      .order-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      .month-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--text-secondary);
-        font-size: 14px;
-        font-weight: 750;
-      }
-
-      .week-row,
-      .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-      }
-
-      .week-row {
-        margin-top: 20px;
-        color: var(--text-muted);
-        font-size: 12px;
-        text-align: center;
-      }
-
-      .calendar-grid {
-        gap: 7px;
-        margin-top: 10px;
-      }
-
-      .date-button {
-        aspect-ratio: 1;
-        min-width: 0;
-        border: 0;
-        border-radius: 999px;
-        color: var(--text-secondary);
-        background: transparent;
-        font-size: 15px;
-        font-weight: 750;
-      }
-
-      .date-button:disabled {
-        color: rgba(111, 107, 97, 0.42);
-      }
-
-      .date-button.available {
-        background: var(--accent-bg);
-        color: var(--accent);
-      }
-
-      .date-button.today {
-        border: 2px solid var(--accent);
-        color: var(--accent);
-        background: transparent;
-      }
-
-      .date-button.selected {
-        color: var(--accent-fg);
-        background: var(--accent);
-      }
-
-      .legend-row {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 14px 22px;
-        margin-top: 18px;
-        color: var(--text-muted);
-        font-size: 12px;
-      }
-
-      .legend-row span {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-      }
-
-      .legend-row i {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 999px;
-      }
-
-      .selected-dot {
-        background: var(--accent);
-      }
-
-      .today-dot {
-        border: 2px solid var(--accent);
-      }
-
-      .available-dot {
-        background: var(--accent-bg);
-      }
-
-      .unavailable-dot {
-        background: var(--border);
-      }
-
-      .time-row {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 12px;
-        margin-top: 14px;
-      }
-
-      .time-button {
-        min-height: 45px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        color: var(--text-secondary);
-        background: var(--bg-card);
-        font-size: 14px;
-        font-weight: 780;
-      }
-
-      .time-button.selected {
-        color: var(--accent-fg);
-        border-color: var(--accent);
-        background: var(--accent);
-      }
-
-      .field-stack {
-        display: grid;
-        gap: 10px;
-        margin-top: 14px;
-      }
-
-      .checkout-field {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-height: 58px;
-        padding: 8px 12px;
-        border: 1px solid var(--border);
-        border-radius: 13px;
-        background: var(--bg-card);
-        color: var(--text-secondary);
-      }
-
-      .checkout-field:focus-within {
-        border-color: var(--accent);
-        outline: 2px solid rgba(13, 89, 70, 0.14);
-        outline-offset: 1px;
-      }
-
-      .checkout-field span {
-        display: grid;
-        flex: 1;
-        gap: 2px;
-      }
-
-      .checkout-field small {
-        color: var(--text-muted);
-        font-size: 11px;
-      }
-
-      .checkout-field input {
-        width: 100%;
-        min-width: 0;
-        padding: 0;
-        border: 0;
-        outline: 0;
-        color: var(--text);
-        background: transparent;
-        font: inherit;
-        font-size: 14px;
-      }
-
-      .payment-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-        margin-top: 14px;
-      }
-
-      .payment-grid.has-cash {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-
-      .payment-option {
-        display: grid;
-        grid-template-columns: auto auto minmax(0, 1fr);
-        align-items: center;
-        gap: 9px;
-        min-height: 66px;
-        padding: 10px;
-        border: 1px solid var(--border);
-        border-radius: 13px;
-        color: var(--text-secondary);
-        background: var(--bg-card);
-        text-align: left;
-      }
-
-      .payment-option.active {
-        border-color: var(--accent);
-        color: var(--text);
-        outline: 2px solid rgba(13, 89, 70, 0.1);
-      }
-
-      .radio-dot {
-        display: grid;
-        width: 19px;
-        height: 19px;
-        place-items: center;
-        border: 2px solid var(--border);
-        border-radius: 999px;
-      }
-
-      .payment-option.active .radio-dot {
-        border-color: var(--accent);
-      }
-
-      .payment-option.active .radio-dot:after {
-        width: 7px;
-        height: 7px;
-        border-radius: inherit;
-        background: var(--accent);
-        content: "";
-      }
-
-      .payment-icon {
-        display: grid;
-        min-width: 28px;
-        color: var(--text-secondary);
-      }
-
-      .payment-option strong,
-      .payment-option small {
-        display: block;
-      }
-
-      .payment-option strong {
-        font-size: 13px;
-      }
-
-      .payment-option small {
-        margin-top: 2px;
-        color: var(--text-muted);
-        font-size: 11px;
-      }
-
-      .fawry-logo {
-        display: inline-grid;
-        min-width: 44px;
-        height: 18px;
-        place-items: center;
-        border-radius: 3px;
-        color: #244498;
-        background: #ffe01b;
-        font-size: 10px;
-        font-weight: 900;
-      }
-
-      .payment-note {
-        margin: 12px 0 0;
-        padding: 10px 12px;
-        border: 1px solid rgba(13, 89, 70, 0.14);
-        border-radius: 12px;
-        color: var(--text-secondary);
-        background: var(--accent-bg-soft);
-        font-size: 12px;
-        line-height: 1.45;
-      }
-
-      .checkout-side {
-        position: sticky;
-        top: 18px;
-      }
-
-      .order-summary {
-        padding: 18px;
-      }
-
-      .order-heading h2 {
-        margin: 0;
-        font-size: 1.05rem;
-      }
-
-      .order-heading button {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        border: 0;
-        color: var(--text-secondary);
-        background: transparent;
-        font-size: 12px;
-        font-weight: 750;
-      }
-
-      .summary-rows {
-        display: grid;
-        gap: 9px;
-        margin-top: 14px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid var(--border-light);
-      }
-
-      .price-row,
-      .summary-total {
-        display: flex;
-        justify-content: space-between;
-        gap: 14px;
-      }
-
-      .price-row {
-        color: var(--text-secondary);
-        font-size: 13px;
-      }
-
-      .price-row strong {
-        color: var(--text);
-        font-weight: 750;
-      }
-
-      .summary-total {
-        align-items: center;
-        margin-top: 12px;
-        font-size: 1.05rem;
-        font-weight: 900;
-      }
-
-      .summary-total span {
-        color: var(--accent);
-      }
-
-      .confirm-button {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        width: 100%;
-        min-height: 62px;
-        margin-top: 16px;
-        padding: 11px 16px;
-        border: 0;
-        border-radius: 14px;
-        color: var(--accent-fg);
-        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-        font-size: 1.05rem;
-        font-weight: 900;
-        letter-spacing: 0.08em;
-      }
-
-      .confirm-button small {
-        grid-column: 1 / -1;
-        display: inline-flex;
-        align-items: center;
-        justify-self: center;
-        gap: 5px;
-        margin-top: 3px;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0;
-        opacity: 0.9;
-      }
-
-      .confirm-button svg:first-child,
-      .processing-banner svg,
-      .state-secondary svg:first-child {
-        animation: spin 0.8s linear infinite;
-      }
-
-      .processing-banner {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 11px;
-        min-height: 48px;
-        margin-top: 11px;
-        border: 1px solid rgba(13, 89, 70, 0.22);
-        border-radius: 12px;
-        color: var(--accent);
-        background: var(--accent-bg);
-        font-size: 14px;
-        font-weight: 850;
-        letter-spacing: 0.08em;
-      }
-
-      .booking-error {
-        margin: 12px 0 0;
-        padding: 10px 12px;
-        border: 1px solid var(--error-border);
-        border-radius: 12px;
-        color: var(--error);
-        background: var(--error-bg);
-        font-size: 13px;
-      }
-
-      .trust-line {
-        display: flex;
-        gap: 10px;
-        margin-top: 14px;
-        padding: 12px;
-        border: 1px solid var(--border-light);
-        border-radius: 12px;
-        color: var(--text-secondary);
-        background: var(--accent-bg-soft);
-        font-size: 12px;
-      }
-
-      .trust-line svg {
-        flex: 0 0 auto;
-        color: var(--accent);
-      }
-
-      .trust-line strong {
-        display: block;
-        color: var(--accent);
-      }
-
-      .booking-state {
-        min-height: 72vh;
-        display: grid;
-        place-items: center;
-        padding: 1.5rem;
-        color: var(--text);
-        text-align: center;
-      }
-
-      .booking-state section {
-        width: min(100%, 520px);
-        padding: 1.5rem;
-        border: 1px solid var(--accent-border);
-        border-radius: 16px;
-        background: var(--bg-card);
-      }
-
-      .booking-success-icon {
-        display: inline-grid;
-        width: 58px;
-        height: 58px;
-        place-items: center;
-        border-radius: 999px;
-        color: var(--accent);
-        background: var(--accent-bg);
-      }
-
-      .booking-state h1 {
-        margin: 14px 0 7px;
-        font-size: 1.55rem;
-      }
-
-      .booking-state p {
-        margin: 0 auto 20px;
-        max-width: 420px;
-        color: var(--text-secondary);
-        font-size: 14px;
-        line-height: 1.65;
-      }
-
-      .state-actions {
-        display: grid;
-        gap: 9px;
-      }
-
-      .state-primary,
-      .state-secondary {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        min-height: 44px;
-        border-radius: 12px;
-        font-weight: 800;
-        text-decoration: none;
-      }
-
-      .state-primary {
-        color: var(--accent-fg);
-        background: var(--accent);
-      }
-
-      .state-secondary {
-        border: 1px solid var(--border);
-        color: var(--text);
-        background: var(--bg-card);
-      }
-
-      @media (max-width: 900px) {
-        .booking-shell {
-          max-width: 540px;
-          padding: 14px 10px 28px;
-        }
-
-        .checkout-layout {
-          grid-template-columns: 1fr;
-        }
-
-        .checkout-side {
-          position: static;
-        }
-
-        .class-summary-card {
-          grid-template-columns: 106px minmax(0, 1fr) auto;
-          gap: 12px;
-          padding: 10px;
-        }
-
-        .class-thumb {
-          min-height: 116px;
-        }
-
-        .class-info h1 {
-          font-size: 1.1rem;
-        }
-
-        .class-info p {
-          font-size: 12px;
-        }
-
-        .class-meta {
-          gap: 8px 12px;
-          font-size: 11px;
-        }
-
-        .class-price strong {
-          font-size: 1.1rem;
-        }
-      }
-
-      @media (max-width: 560px) {
-        .booking-page {
-          background: linear-gradient(180deg, #fbfaf6, var(--bg));
-        }
-
-        .booking-shell {
-          padding-inline: 8px;
-        }
-
-        .booking-topbar {
-          margin-bottom: 14px;
-        }
-
-        .booking-steps {
-          margin-bottom: 12px;
-        }
-
-        .checkout-card {
-          padding: 14px 10px;
-          border-radius: 14px;
-        }
-
-        .class-summary-card {
-          grid-template-columns: 106px minmax(0, 1fr) auto;
-          align-items: stretch;
-          border-radius: 14px;
-        }
-
-        .class-price {
-          text-align: right;
-        }
-
-        .class-meta span {
-          min-width: max-content;
-        }
-
-        .date-button {
-          font-size: 14px;
-        }
-
-        .legend-row {
-          gap: 12px 14px;
-          font-size: 10px;
-        }
-
-        .time-row {
-          grid-template-columns: repeat(5, minmax(0, 1fr));
-          gap: 8px;
-        }
-
-        .time-button {
-          min-height: 38px;
-          padding: 0 4px;
-          font-size: 12px;
-        }
-
-        .payment-grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 8px;
-        }
-
-        .payment-grid.has-cash {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .payment-option {
-          grid-template-columns: auto minmax(0, 1fr);
-          min-height: 56px;
-          gap: 7px;
-          padding: 8px;
-        }
-
-        .payment-icon {
-          display: none;
-        }
-
-        .payment-option strong {
-          font-size: 11px;
-        }
-
-        .payment-option small {
-          font-size: 9px;
-        }
-
-        .order-summary {
-          padding: 14px 12px;
-          border-radius: 14px;
-        }
-
-        .confirm-button {
-          min-height: 60px;
-          font-size: 1rem;
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .confirm-button svg:first-child,
-        .processing-banner svg,
-        .state-secondary svg:first-child {
-          animation: none;
-        }
-      }
-    `}</style>
   );
 }

@@ -5,9 +5,32 @@ import { auth } from "@/lib/auth";
 import { classSelect, requireMobileUser, serializeClass, type MobileUser } from "../mobile/_utils";
 import { isRateLimited, bookingLimiter } from "@/lib/ratelimit";
 
-async function requireBookingUser(req: NextRequest): Promise<MobileUser | NextResponse> {
+const LOCK_DURATION_MINUTES = 10;
+const MAX_SERIALIZABLE_ATTEMPTS = 2;
+type BookingUser = MobileUser & { phone: string | null };
+
+function getPrismaErrorCode(error: unknown): string | null {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code?: unknown }).code === "string"
+  ) {
+    return (error as { code: string }).code;
+  }
+  return null;
+}
+
+async function requireBookingUser(req: NextRequest): Promise<BookingUser | NextResponse> {
   if (req.headers.get("authorization")?.toLowerCase().startsWith("bearer ")) {
-    return requireMobileUser(req);
+    const mobileUser = await requireMobileUser(req);
+    if (mobileUser instanceof NextResponse) return mobileUser;
+
+    const contact = await prisma.user.findUnique({
+      where: { id: mobileUser.id },
+      select: { phone: true },
+    });
+    return { ...mobileUser, phone: contact?.phone ?? null };
   }
 
   const session = await auth();
@@ -22,6 +45,7 @@ async function requireBookingUser(req: NextRequest): Promise<MobileUser | NextRe
       email: true,
       fullName: true,
       name: true,
+      phone: true,
       role: true,
       isSuspended: true,
     },
@@ -35,6 +59,7 @@ async function requireBookingUser(req: NextRequest): Promise<MobileUser | NextRe
     id: user.id,
     email: user.email,
     name: user.fullName ?? user.name ?? "",
+    phone: user.phone,
     role: user.role,
   };
 }
@@ -96,7 +121,10 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null);
   const classId = String(body?.classId ?? "");
-  const sessionCount = Math.min(Math.max(Number(body?.sessionCount ?? 1), 1), 5);
+  const rawSessionCount = Number(body?.sessionCount ?? 1);
+  const sessionCount = Number.isFinite(rawSessionCount)
+    ? Math.min(Math.max(Math.trunc(rawSessionCount), 1), 5)
+    : 1;
   const requestedPaymentType = body?.paymentType === "ONLINE" ? "ONLINE" : "IN_PERSON";
   const note = typeof body?.note === "string" ? body.note.slice(0, 500) : "";
   const packageOption: { sessions: number; discountPct: number } | null =
@@ -107,135 +135,306 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Class is required." }, { status: 400 });
   }
 
-  const cls = await prisma.class.findUnique({
-    where: { id: classId },
-    select: {
-      id: true,
-      title: true,
-      isActive: true,
-      capacity: true,
-      priceEgp: true,
-      paymentType: true,
-      packagesEnabled: true,
-      packageOptions: true,
-      _count: { select: { bookings: { where: { status: { not: "CANCELLED" } } } } },
-    },
-  });
+  const { getPlatformFeePct } = await import("@/lib/config");
+  const feePct = await getPlatformFeePct();
+  type TransactionResult =
+    | {
+        kind: "booked";
+        bookingId: string;
+        amountEgp: number;
+        isOnline: boolean;
+      }
+    | { kind: "already-booked"; bookingId: string }
+    | { kind: "class-unavailable" }
+    | { kind: "full" }
+    | { kind: "invalid-package" }
+    | { kind: "invalid-promo"; error: string };
 
-  if (!cls || !cls.isActive) {
-    return NextResponse.json({ error: "This class is no longer available." }, { status: 404 });
+  let transactionResult: TransactionResult | null = null;
+
+  for (let attempt = 0; attempt < MAX_SERIALIZABLE_ATTEMPTS; attempt += 1) {
+    try {
+      transactionResult = await prisma.$transaction(
+        async (tx): Promise<TransactionResult> => {
+          const now = new Date();
+          const cls = await tx.class.findUnique({
+            where: { id: classId },
+            select: {
+              id: true,
+              isActive: true,
+              capacity: true,
+              priceEgp: true,
+              paymentType: true,
+              packagesEnabled: true,
+              packageOptions: true,
+            },
+          });
+
+          if (!cls || !cls.isActive) {
+            return { kind: "class-unavailable" };
+          }
+
+          // An online-only class must never be downgraded to cash by a client request.
+          // In-person classes may still opt into Paymob from the mobile checkout.
+          const paymentType =
+            cls.paymentType === "ONLINE" ? "ONLINE" : requestedPaymentType;
+
+          let packageSessions = sessionCount;
+          let packageDiscount = 0;
+          if (packageOption && cls.packagesEnabled) {
+            const options = (cls.packageOptions ?? []) as Array<{
+              sessions: number;
+              discountPct: number;
+            }>;
+            const matched = options.find(
+              (option) =>
+                option.sessions === packageOption.sessions &&
+                option.discountPct === packageOption.discountPct
+            );
+            if (!matched) {
+              return { kind: "invalid-package" };
+            }
+            packageSessions = matched.sessions;
+            packageDiscount = matched.discountPct;
+          }
+
+          const baseAmount = Math.round(
+            cls.priceEgp * packageSessions * (1 - packageDiscount / 100)
+          );
+          let promoDiscountEgp = 0;
+          let appliedPromoCode: string | null = null;
+          let promoRecordId: string | null = null;
+
+          if (promoCodeInput) {
+            const promo = await tx.promoCode.findUnique({
+              where: { code: promoCodeInput },
+            });
+            if (!promo || !promo.isActive) {
+              return { kind: "invalid-promo", error: "Invalid promo code" };
+            }
+            if (promo.expiresAt && promo.expiresAt < now) {
+              return {
+                kind: "invalid-promo",
+                error: "Promo code has expired",
+              };
+            }
+            if (promo.maxUses !== null && promo.usedCount >= promo.maxUses) {
+              return {
+                kind: "invalid-promo",
+                error: "Promo code has reached its usage limit",
+              };
+            }
+            promoDiscountEgp = Math.round(
+              (baseAmount * promo.discountPct) / 100
+            );
+            appliedPromoCode = promo.code;
+            promoRecordId = promo.id;
+          }
+
+          const existing = await tx.booking.findUnique({
+            where: { classId_studentId: { classId, studentId: user.id } },
+            select: {
+              id: true,
+              status: true,
+              lockedUntil: true,
+            },
+          });
+
+          const hasActiveExistingBooking =
+            existing?.status === "CONFIRMED" ||
+            (existing?.status === "PENDING" &&
+              existing.lockedUntil !== null &&
+              existing.lockedUntil > now);
+
+          if (existing && hasActiveExistingBooking) {
+            return { kind: "already-booked", bookingId: existing.id };
+          }
+
+          const activeCount = await tx.booking.count({
+            where: {
+              classId,
+              OR: [
+                { status: "CONFIRMED" },
+                { status: "PENDING", lockedUntil: { gt: now } },
+              ],
+            },
+          });
+
+          if (activeCount >= cls.capacity) {
+            return { kind: "full" };
+          }
+
+          const amountEgp = Math.max(0, baseAmount - promoDiscountEgp);
+          const isOnline = paymentType === "ONLINE" && amountEgp > 0;
+          const isFree = amountEgp === 0;
+          const platformFee = Math.round((amountEgp * feePct) / 100);
+          const packageNote = packageOption
+            ? `Package: ${packageSessions} sessions, ${packageDiscount}% off`
+            : null;
+          const promoNote = appliedPromoCode
+            ? `Promo: ${appliedPromoCode} (-${promoDiscountEgp} EGP)`
+            : null;
+          const notes = [
+            note,
+            packageNote,
+            promoNote,
+            `Sessions: ${packageSessions}`,
+            `Payment: ${paymentType}`,
+          ]
+            .filter(Boolean)
+            .join("\n");
+          const lockedUntil = isOnline
+            ? new Date(now.getTime() + LOCK_DURATION_MINUTES * 60 * 1000)
+            : null;
+          const bookingData = {
+            status: isOnline ? ("PENDING" as const) : ("CONFIRMED" as const),
+            paymentStatus: isFree ? ("PAID" as const) : ("UNPAID" as const),
+            paidAt: isFree ? now : null,
+            amountEgp,
+            notes,
+            platformFeeEgp: platformFee,
+            tutorPayoutEgp: amountEgp - platformFee,
+            promoCode: appliedPromoCode,
+            promoDiscountEgp: promoDiscountEgp || null,
+            lockedAt: isOnline ? now : null,
+            lockedUntil,
+            paymobOrderId: null,
+            paymobPaymentKey: null,
+          };
+
+          const booking = existing
+            ? await tx.booking.update({
+                where: { id: existing.id },
+                data: bookingData,
+              })
+            : await tx.booking.create({
+                data: { classId, studentId: user.id, ...bookingData },
+              });
+
+          if (promoRecordId) {
+            await tx.promoCode.update({
+              where: { id: promoRecordId },
+              data: { usedCount: { increment: 1 } },
+            });
+          }
+
+          return {
+            kind: "booked",
+            bookingId: booking.id,
+            amountEgp,
+            isOnline,
+          };
+        },
+        { isolationLevel: "Serializable" }
+      );
+      break;
+    } catch (error) {
+      const code = getPrismaErrorCode(error);
+      if (code === "P2034" && attempt + 1 < MAX_SERIALIZABLE_ATTEMPTS) {
+        continue;
+      }
+      if (code === "P2034" || code === "P2002") {
+        const existing = await prisma.booking.findUnique({
+          where: { classId_studentId: { classId, studentId: user.id } },
+          select: { id: true, status: true, lockedUntil: true },
+        });
+        const now = new Date();
+        if (
+          existing &&
+          (existing.status === "CONFIRMED" ||
+            (existing.status === "PENDING" &&
+              existing.lockedUntil !== null &&
+              existing.lockedUntil > now))
+        ) {
+          transactionResult = {
+            kind: "already-booked",
+            bookingId: existing.id,
+          };
+          break;
+        }
+        return NextResponse.json(
+          {
+            error: "Another booking is being processed. Please try again.",
+            code: "BOOKING_CONFLICT",
+          },
+          { status: 409 }
+        );
+      }
+      throw error;
+    }
   }
 
-  // An online-only class must never be downgraded to cash by a client request.
-  // In-person classes may still opt into Paymob from the mobile checkout.
-  const paymentType = cls.paymentType === "ONLINE" ? "ONLINE" : requestedPaymentType;
-
-  const existing = await prisma.booking.findUnique({
-    where: { classId_studentId: { classId, studentId: user.id } },
-    select: { id: true, status: true },
-  });
-
-  if (existing && existing.status !== "CANCELLED") {
+  if (!transactionResult) {
     return NextResponse.json(
-      { error: "You have already booked this class.", bookingId: existing.id },
+      {
+        error: "Another booking is being processed. Please try again.",
+        code: "BOOKING_CONFLICT",
+      },
       { status: 409 }
     );
   }
 
-  if (cls.capacity && cls._count.bookings >= cls.capacity) {
-    return NextResponse.json({ error: "Sorry, this class is fully booked." }, { status: 409 });
-  }
-
-  // Validate package option if provided
-  let packageSessions = sessionCount;
-  let packageDiscount  = 0;
-  if (packageOption && cls.packagesEnabled) {
-    const options = (cls.packageOptions ?? []) as Array<{ sessions: number; discountPct: number }>;
-    const matched = options.find(
-      (o) => o.sessions === packageOption.sessions && o.discountPct === packageOption.discountPct
+  if (transactionResult.kind === "class-unavailable") {
+    return NextResponse.json(
+      { error: "This class is no longer available." },
+      { status: 404 }
     );
-    if (!matched) {
-      return NextResponse.json({ error: "Invalid package option." }, { status: 400 });
-    }
-    packageSessions = matched.sessions;
-    packageDiscount  = matched.discountPct;
   }
-
-  const baseAmount = Math.round(cls.priceEgp * packageSessions * (1 - packageDiscount / 100));
-
-  // T12: Apply promo code if provided
-  let promoDiscountEgp = 0;
-  let appliedPromoCode: string | null = null;
-  let promoRecordId: string | null = null;
-  if (promoCodeInput) {
-    const promo = await prisma.promoCode.findUnique({ where: { code: promoCodeInput } });
-    if (!promo || !promo.isActive) {
-      return NextResponse.json({ error: "Invalid promo code" }, { status: 400 });
-    }
-    if (promo.expiresAt && promo.expiresAt < new Date()) {
-      return NextResponse.json({ error: "Promo code has expired" }, { status: 400 });
-    }
-    if (promo.maxUses !== null && promo.usedCount >= promo.maxUses) {
-      return NextResponse.json({ error: "Promo code has reached its usage limit" }, { status: 400 });
-    }
-    promoDiscountEgp = Math.round((baseAmount * promo.discountPct) / 100);
-    appliedPromoCode = promo.code;
-    promoRecordId = promo.id;
+  if (transactionResult.kind === "already-booked") {
+    return NextResponse.json(
+      {
+        error: "You have already booked this class.",
+        bookingId: transactionResult.bookingId,
+      },
+      { status: 409 }
+    );
   }
-
-  const { getPlatformFeePct } = await import("@/lib/config");
-  const feePct = await getPlatformFeePct();
-
-  const amountEgp = Math.max(0, baseAmount - promoDiscountEgp);
-  const packageNote = packageOption ? `Package: ${packageSessions} sessions, ${packageDiscount}% off` : null;
-  const promoNote = appliedPromoCode ? `Promo: ${appliedPromoCode} (-${promoDiscountEgp} EGP)` : null;
-  const notes = [note, packageNote, promoNote, `Sessions: ${packageSessions}`, `Payment: ${paymentType}`].filter(Boolean).join("\n");
-  const isOnline = paymentType === "ONLINE" && amountEgp > 0;
-  const platformFee = Math.round((amountEgp * feePct) / 100);
-  const bookingData = {
-    status: isOnline ? "PENDING" as const : "CONFIRMED" as const,
-    paymentStatus: isOnline ? "UNPAID" as const : "PAID" as const,
-    paidAt: isOnline ? null : new Date(),
-    amountEgp,
-    notes,
-    platformFeeEgp: platformFee,
-    tutorPayoutEgp: amountEgp - platformFee,
-    promoCode: appliedPromoCode,
-    promoDiscountEgp: promoDiscountEgp || null,
-  };
-
-  const booking = existing
-    ? await prisma.booking.update({ where: { id: existing.id }, data: bookingData })
-    : await prisma.booking.create({
-        data: { classId, studentId: user.id, ...bookingData },
-      });
-
-  // Increment promo code usage count after successful booking creation
-  if (promoRecordId) {
-    await prisma.promoCode.update({
-      where: { id: promoRecordId },
-      data: { usedCount: { increment: 1 } },
-    });
+  if (transactionResult.kind === "full") {
+    return NextResponse.json(
+      { error: "Sorry, this class is fully booked." },
+      { status: 409 }
+    );
+  }
+  if (transactionResult.kind === "invalid-package") {
+    return NextResponse.json(
+      { error: "Invalid package option." },
+      { status: 400 }
+    );
+  }
+  if (transactionResult.kind === "invalid-promo") {
+    return NextResponse.json(
+      { error: transactionResult.error },
+      { status: 400 }
+    );
   }
 
   let paymentUrl: string | null = null;
-  if (isOnline) {
+  if (transactionResult.isOnline) {
     try {
       const [firstName, ...rest] = user.name.trim().split(/\s+/);
       paymentUrl = await createPaymobPayment({
-        amountEGP: amountEgp,
-        bookingId: booking.id,
+        amountEGP: transactionResult.amountEgp,
+        bookingId: transactionResult.bookingId,
         user: {
-          email: user.email ?? "student@coursaty.com",
-          firstName: firstName || "Coursaty",
-          lastName: rest.join(" ") || "Student",
-          phone: "01000000000",
+          email: user.email ?? "",
+          firstName: firstName || "",
+          lastName: rest.join(" ") || firstName || "",
+          phone: user.phone ?? "",
         },
       });
     } catch (error) {
-      await prisma.booking.update({
-        where: { id: booking.id },
-        data: { paymentStatus: "FAILED" },
+      await prisma.booking.updateMany({
+        where: {
+          id: transactionResult.bookingId,
+          status: "PENDING",
+          paymentStatus: "UNPAID",
+        },
+        data: {
+          status: "CANCELLED",
+          paymentStatus: "FAILED",
+          lockedAt: null,
+          lockedUntil: null,
+        },
       });
       console.error("Paymob start error:", error);
       return NextResponse.json(
@@ -247,9 +446,9 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    bookingId: booking.id,
+    bookingId: transactionResult.bookingId,
     paymentUrl,
-    message: isOnline
+    message: transactionResult.isOnline
       ? "Booking created. Continue to secure online payment."
       : "Booking confirmed. Please pay at the center.",
   });
