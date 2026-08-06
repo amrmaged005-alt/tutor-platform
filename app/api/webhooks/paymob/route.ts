@@ -4,6 +4,16 @@ import { prisma } from "@/lib/prisma";
 import { log } from "@/lib/audit";
 import { getHmacSecret } from "@/lib/paymob";
 
+const MAX_SERIALIZABLE_ATTEMPTS = 2;
+const PAYMENT_CONFLICT_REFUND_REASON =
+  "Payment received after the booking seat was no longer available; refund review required.";
+
+function getPrismaErrorCode(error: unknown): string | undefined {
+  return typeof error === "object" && error !== null && "code" in error
+    ? String(error.code)
+    : undefined;
+}
+
 function verifyPaymobHmac(params: Record<string, string>, hmac: string): boolean {
   const secret = getHmacSecret();
 
@@ -106,11 +116,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Currency mismatch" }, { status: 400 });
     }
 
-    const alreadyProcessed = await prisma.webhookEvent.findUnique({
+    const existingEvent = await prisma.webhookEvent.findUnique({
       where: { paymobTransactionId: transactionId },
     });
 
-    if (alreadyProcessed) {
+    if (existingEvent?.processed) {
       console.log(`Webhook already processed: ${transactionId}`);
       return NextResponse.json({ received: true });
     }
@@ -119,15 +129,17 @@ export async function POST(req: NextRequest) {
       where: { paymobOrderId },
     });
 
-    await prisma.webhookEvent.create({
-      data: {
-        paymobTransactionId: transactionId,
-        type: transactionType,
-        processed: false,
-        bookingId: booking?.id ?? null,
-        payload: body,
-      },
-    });
+    if (!existingEvent) {
+      await prisma.webhookEvent.create({
+        data: {
+          paymobTransactionId: transactionId,
+          type: transactionType,
+          processed: false,
+          bookingId: booking?.id ?? null,
+          payload: body,
+        },
+      });
+    }
 
     if (!booking) {
       console.error(`Webhook: no booking found for paymobOrderId ${paymobOrderId}`);
@@ -149,59 +161,202 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    // Guard against re-confirming an already-confirmed booking (idempotency).
-    if (booking.paymentStatus === "PAID" && success) {
-      console.log(`Webhook: booking ${booking.id} already confirmed, skipping.`);
-      await prisma.webhookEvent.update({
-        where: { paymobTransactionId: transactionId },
-        data: { processed: true },
-      });
-      return NextResponse.json({ received: true });
-    }
-
     if (success) {
-      await prisma.booking.update({
-        where: { id: booking.id },
-        data: {
-          status: "CONFIRMED",
-          paymentStatus: "PAID",
-          paidAt: new Date(),
-          lockedAt: null,
-          lockedUntil: null,
-        },
-      });
+      let outcome:
+        | { kind: "confirmed"; bookingId: string }
+        | { kind: "already-settled"; bookingId: string }
+        | { kind: "payment-conflict"; bookingId: string; reason: string }
+        | undefined;
+
+      for (let attempt = 0; attempt < MAX_SERIALIZABLE_ATTEMPTS; attempt += 1) {
+        try {
+          outcome = await prisma.$transaction(
+            async (tx) => {
+              const now = new Date();
+              const current = await tx.booking.findUnique({
+                where: { id: booking.id },
+                include: { class: { select: { capacity: true } } },
+              });
+
+              if (!current) {
+                throw new Error(`Booking ${booking.id} disappeared during webhook processing`);
+              }
+
+              // A different success event may already have confirmed the same
+              // Paymob order. Preserve the confirmed booking and mark this event
+              // processed without consuming another seat.
+              if (
+                current.paymentStatus === "PAID" ||
+                current.paymentStatus === "REFUNDED" ||
+                current.paymentStatus === "PARTIALLY_REFUNDED"
+              ) {
+                await tx.webhookEvent.update({
+                  where: { paymobTransactionId: transactionId },
+                  data: { processed: true, processingError: null },
+                });
+                return {
+                  kind: "already-settled" as const,
+                  bookingId: current.id,
+                };
+              }
+
+              const hasValidSeatLock =
+                current.status === "PENDING" &&
+                current.paymentStatus === "UNPAID" &&
+                current.lockedUntil !== null &&
+                current.lockedUntil > now;
+
+              let conflictReason: string | null = null;
+              if (!hasValidSeatLock) {
+                conflictReason = "SEAT_LOCK_EXPIRED_OR_RELEASED";
+              } else {
+                const occupiedSeats = await tx.booking.count({
+                  where: {
+                    classId: current.classId,
+                    id: { not: current.id },
+                    OR: [
+                      { status: "CONFIRMED" },
+                      { status: "PENDING", lockedUntil: { gt: now } },
+                    ],
+                  },
+                });
+
+                if (occupiedSeats >= current.class.capacity) {
+                  conflictReason = "CLASS_CAPACITY_EXCEEDED";
+                }
+              }
+
+              if (conflictReason) {
+                // Paymob has captured the customer's money, so record the
+                // payment truthfully without restoring the released seat.
+                // refundReason puts the booking into the existing admin refund
+                // queue for explicit reconciliation.
+                await tx.booking.update({
+                  where: { id: current.id },
+                  data: {
+                    status: "CANCELLED",
+                    paymentStatus: "PAID",
+                    paidAt: now,
+                    lockedAt: null,
+                    lockedUntil: null,
+                    refundReason:
+                      current.refundReason ?? PAYMENT_CONFLICT_REFUND_REASON,
+                  },
+                });
+                await tx.webhookEvent.update({
+                  where: { paymobTransactionId: transactionId },
+                  data: { processed: true, processingError: conflictReason },
+                });
+                return {
+                  kind: "payment-conflict" as const,
+                  bookingId: current.id,
+                  reason: conflictReason,
+                };
+              }
+
+              await tx.booking.update({
+                where: { id: current.id },
+                data: {
+                  status: "CONFIRMED",
+                  paymentStatus: "PAID",
+                  paidAt: now,
+                  lockedAt: null,
+                  lockedUntil: null,
+                },
+              });
+              await tx.webhookEvent.update({
+                where: { paymobTransactionId: transactionId },
+                data: { processed: true, processingError: null },
+              });
+              return { kind: "confirmed" as const, bookingId: current.id };
+            },
+            { isolationLevel: "Serializable" }
+          );
+          break;
+        } catch (error) {
+          if (
+            getPrismaErrorCode(error) === "P2034" &&
+            attempt + 1 < MAX_SERIALIZABLE_ATTEMPTS
+          ) {
+            continue;
+          }
+          throw error;
+        }
+      }
+
+      if (!outcome) {
+        throw new Error("Paymob success transaction completed without an outcome");
+      }
+
+      if (outcome.kind === "already-settled") {
+        console.log(`Webhook: booking ${outcome.bookingId} already settled, skipping.`);
+        return NextResponse.json({ received: true });
+      }
 
       await log({
         action: "payment.received",
         targetType: "Booking",
-        targetId: booking.id,
+        targetId: outcome.bookingId,
         metadata: {
           paymobOrderId,
           transactionId,
           amountCents: body.obj?.amount_cents,
+          seatGranted: outcome.kind === "confirmed",
+          requiresRefund: outcome.kind === "payment-conflict",
+          conflictReason:
+            outcome.kind === "payment-conflict" ? outcome.reason : undefined,
         },
       });
 
-      console.log(`Booking confirmed: ${booking.id}`);
+      if (outcome.kind === "payment-conflict") {
+        console.error(
+          `Payment received after seat release for booking ${outcome.bookingId}: ${outcome.reason}`
+        );
+      } else {
+        console.log(`Booking confirmed: ${outcome.bookingId}`);
+      }
     } else {
-      await prisma.booking.update({
-        where: { id: booking.id },
-        data: {
-          status: "CANCELLED",
-          paymentStatus: "FAILED",
-          lockedAt: null,
-          lockedUntil: null,
-        },
+      const failed = await prisma.$transaction(async (tx) => {
+        const current = await tx.booking.findUnique({
+          where: { id: booking.id },
+          select: { promoCode: true },
+        });
+        const result = await tx.booking.updateMany({
+          where: {
+            id: booking.id,
+            status: "PENDING",
+            paymentStatus: "UNPAID",
+          },
+          data: {
+            status: "CANCELLED",
+            paymentStatus: "FAILED",
+            lockedAt: null,
+            lockedUntil: null,
+          },
+        });
+        if (result.count === 1 && current?.promoCode) {
+          await tx.promoCode.updateMany({
+            where: { code: current.promoCode, usedCount: { gt: 0 } },
+            data: { usedCount: { decrement: 1 } },
+          });
+        }
+        return result;
       });
 
-      await log({
-        action: "payment.failed",
-        targetType: "Booking",
-        targetId: booking.id,
-        metadata: { paymobOrderId, transactionId },
-      });
+      if (failed.count === 1) {
+        await log({
+          action: "payment.failed",
+          targetType: "Booking",
+          targetId: booking.id,
+          metadata: { paymobOrderId, transactionId },
+        });
 
-      console.log(`Booking failed: ${booking.id}`);
+        console.log(`Booking failed: ${booking.id}`);
+      } else {
+        console.log(
+          `Webhook: ignored stale failure for settled booking ${booking.id}.`
+        );
+      }
     }
 
     await prisma.webhookEvent.update({
@@ -212,6 +367,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Webhook handler error:", error);
+    if (getPrismaErrorCode(error) === "P2034") {
+      // Do not acknowledge a serialization failure: Paymob must retry so a
+      // captured payment cannot remain in an unprocessed event indefinitely.
+      return NextResponse.json({ received: false }, { status: 503 });
+    }
     return NextResponse.json({ received: true });
   }
 }

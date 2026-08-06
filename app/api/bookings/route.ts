@@ -5,7 +5,8 @@ import { auth } from "@/lib/auth";
 import { classSelect, requireMobileUser, serializeClass, type MobileUser } from "../mobile/_utils";
 import { isRateLimited, bookingLimiter } from "@/lib/ratelimit";
 
-const LOCK_DURATION_MINUTES = 10;
+// Allow enough time for common Egyptian bank OTP/3DS flows before the seat is reclaimed.
+const LOCK_DURATION_MINUTES = 15;
 const MAX_SERIALIZABLE_ATTEMPTS = 2;
 type BookingUser = MobileUser & { phone: string | null };
 
@@ -423,18 +424,30 @@ export async function POST(req: NextRequest) {
         },
       });
     } catch (error) {
-      await prisma.booking.updateMany({
-        where: {
-          id: transactionResult.bookingId,
-          status: "PENDING",
-          paymentStatus: "UNPAID",
-        },
-        data: {
-          status: "CANCELLED",
-          paymentStatus: "FAILED",
-          lockedAt: null,
-          lockedUntil: null,
-        },
+      await prisma.$transaction(async (tx) => {
+        const pendingBooking = await tx.booking.findUnique({
+          where: { id: transactionResult.bookingId },
+          select: { promoCode: true },
+        });
+        const cancelled = await tx.booking.updateMany({
+          where: {
+            id: transactionResult.bookingId,
+            status: "PENDING",
+            paymentStatus: "UNPAID",
+          },
+          data: {
+            status: "CANCELLED",
+            paymentStatus: "FAILED",
+            lockedAt: null,
+            lockedUntil: null,
+          },
+        });
+        if (cancelled.count === 1 && pendingBooking?.promoCode) {
+          await tx.promoCode.updateMany({
+            where: { code: pendingBooking.promoCode, usedCount: { gt: 0 } },
+            data: { usedCount: { decrement: 1 } },
+          });
+        }
       });
       console.error("Paymob start error:", error);
       return NextResponse.json(

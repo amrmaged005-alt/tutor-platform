@@ -19,27 +19,46 @@ export async function GET(req: NextRequest) {
     where: {
       paymentStatus: "UNPAID",
       lockedUntil: { lt: now, not: null },
-      status: { not: "CANCELLED" },
+      status: "PENDING",
     },
-    select: { id: true },
+    select: { id: true, promoCode: true },
   });
 
   if (expired.length === 0) {
     return NextResponse.json({ cleaned: 0 });
   }
 
-  const ids = expired.map((b) => b.id);
-  await prisma.booking.updateMany({
-    where: { id: { in: ids } },
-    data: {
-      lockedAt: null,
-      lockedUntil: null,
-      status: "CANCELLED",
-    },
+  const cleanedIds = await prisma.$transaction(async (tx) => {
+    const cleaned: string[] = [];
+    for (const booking of expired) {
+      const result = await tx.booking.updateMany({
+        where: {
+          id: booking.id,
+          status: "PENDING",
+          paymentStatus: "UNPAID",
+          lockedUntil: { lt: now, not: null },
+        },
+        data: {
+          lockedAt: null,
+          lockedUntil: null,
+          status: "CANCELLED",
+        },
+      });
+      if (result.count !== 1) continue;
+
+      cleaned.push(booking.id);
+      if (booking.promoCode) {
+        await tx.promoCode.updateMany({
+          where: { code: booking.promoCode, usedCount: { gt: 0 } },
+          data: { usedCount: { decrement: 1 } },
+        });
+      }
+    }
+    return cleaned;
   });
 
   await Promise.all(
-    ids.map((id) =>
+    cleanedIds.map((id) =>
       log({
         action: "booking.expired",
         targetType: "Booking",
@@ -49,5 +68,5 @@ export async function GET(req: NextRequest) {
     )
   );
 
-  return NextResponse.json({ cleaned: ids.length });
+  return NextResponse.json({ cleaned: cleanedIds.length });
 }
