@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AuthShell from "@/components/ui/AuthShell";
 import { FloatingField, FormAlert, PasswordField } from "@/components/ui/AuthFields";
@@ -21,8 +22,22 @@ function GoogleIcon() {
   );
 }
 
+function safeCallback(raw: string | null): string {
+  if (!raw) return "/dashboard";
+
+  try {
+    const url = new URL(raw, window.location.origin);
+    return url.origin === window.location.origin
+      ? `${url.pathname}${url.search}${url.hash}`
+      : "/dashboard";
+  } catch {
+    return "/dashboard";
+  }
+}
+
 export default function LoginPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -64,7 +79,7 @@ export default function LoginPage() {
       return;
     }
     const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-    window.location.href = callbackUrl?.startsWith("/") ? callbackUrl : "/dashboard";
+    router.push(safeCallback(callbackUrl));
   }
 
   return (
