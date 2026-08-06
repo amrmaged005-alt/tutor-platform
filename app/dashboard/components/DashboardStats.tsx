@@ -179,7 +179,11 @@ export default function DashboardStats({
         ]
       : role === "TUTOR"
       ? [
-          { label: t("dash.stat.totalBookings"), value: stats.totalBookings, icon: "students", color: "var(--accent)", meta: t("dash.meta.enrolledStudents"), trend: stats.totalBookings > 0 ? "up" as const : undefined },
+          // Restricted center tutors do not receive roster rows or counts. Hiding
+          // this card avoids presenting the redacted zero as a real enrollment total.
+          ...(canSeeRevenue
+            ? [{ label: t("dash.stat.totalBookings"), value: stats.totalBookings, icon: "students", color: "var(--accent)", meta: t("dash.meta.enrolledStudents"), trend: stats.totalBookings > 0 ? "up" as const : undefined }]
+            : []),
           { label: t("dash.tab.classes"), value: ownedClasses.length, icon: "classes", color: "var(--accent-hover)", meta: t("dash.meta.activeClasses") },
           ...(canSeeRevenue
             ? [{ label: t("dash.stat.grossRevenue"), value: t("common.priceEgp", { price: stats.totalRevenue.toLocaleString() }), icon: "revenue", color: "var(--success)", meta: stats.totalRevenue > 0 ? t("dash.meta.lifetimeEarnings") : undefined, trend: stats.totalRevenue > 0 ? ("up" as const) : undefined }]
