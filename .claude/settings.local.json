@@ -15,7 +15,9 @@
       "Bash(Stop-Process -Force)",
       "Bash(Start-Sleep -Seconds 2)",
       "Bash(Select-Object Id, ProcessName)",
-      "Bash(npx prisma *)"
+      "Bash(npx prisma *)",
+      "mcp__playwright"
     ]
-  }
+  },
+  "enabledMcpjsonServers": ["playwright"]
 }
