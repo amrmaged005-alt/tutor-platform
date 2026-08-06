@@ -159,11 +159,14 @@
       "filesAffected": [
         "app/api/bookings/route.ts",
         "app/actions/bookings.ts",
-        "app/classes/[id]/book/BookingCheckout.tsx"
+        "app/classes/[id]/book/BookingCheckout.tsx",
+        "app/classes/[id]/book/page.tsx",
+        "app/api/cron/cleanup-locks/route.ts",
+        "app/api/webhooks/paymob/route.ts"
       ],
       "risk": "high",
       "branch": "overhaul/booking-seat-lock",
-      "acceptance": "Two concurrent POST /api/bookings for the last seat yield exactly one booking + one rejection; cleanup cron reclaims an abandoned lock within TTL"
+      "acceptance": "Two concurrent POST /api/bookings for the last seat yield exactly one booking + one rejection; cleanup cron reclaims an abandoned lock within TTL. SCOPE EXTENDED 2026-08-06 by Claude (architecture owner) after the second Type E pass: app/api/webhooks/paymob/route.ts and app/api/cron/cleanup-locks/route.ts are now IN SCOPE. BLOCKING DEFECT to fix: the cron cancels an expired PENDING lock, the seat is resold, then the late Paymob webhook sets status CONFIRMED unconditionally (route.ts:163-171) with no capacity or status re-check -> two confirmed bookings on a one-seat class and the first student has paid. Webhook must re-validate capacity in a serializable transaction and, if no seat remains, flag for refund + alert rather than silently confirm. Also reconsider LOCK_DURATION_MINUTES=10 against real Egyptian bank OTP/3DS latency, and stop abandoned online payments from consuming promo usage. app/classes/[id]/book/page.tsx added so T1-02 can supply real schedule data + session profile defaults, which Codex correctly refused to touch while out of scope."
     },
     {
       "id": "T1-02",
@@ -187,7 +190,8 @@
         "T1-01"
       ],
       "filesAffected": [
-        "app/classes/[id]/book/BookingCheckout.tsx"
+        "app/classes/[id]/book/BookingCheckout.tsx",
+        "app/classes/[id]/book/page.tsx"
       ],
       "risk": "high",
       "branch": "overhaul/booking-seat-lock",
