@@ -11,7 +11,8 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const role = body?.role as string | undefined;
 
-  if (!role || !["STUDENT", "TUTOR", "CENTER_ADMIN"].includes(role)) {
+  // Centers self-serve hidden per Open Decision #1 default (overhaul/16, T1-04). Admin-assigned CENTER_ADMIN still supported.
+  if (!role || !["STUDENT", "TUTOR"].includes(role)) {
     return NextResponse.json({ error: "Invalid role", code: "VALIDATION_ERROR" }, { status: 400 });
   }
 
@@ -30,7 +31,8 @@ export async function PATCH(req: NextRequest) {
 
   await prisma.user.update({
     where: { id: session.user.id },
-    data:  { role: role as "STUDENT" | "TUTOR" | "CENTER_ADMIN" },
+    // Centers self-serve hidden per Open Decision #1 default (overhaul/16, T1-04). Admin-assigned CENTER_ADMIN still supported.
+    data:  { role: role as "STUDENT" | "TUTOR" },
   });
 
   return NextResponse.json({ ok: true });

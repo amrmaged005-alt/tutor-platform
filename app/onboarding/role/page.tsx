@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, GraduationCap, Building2 } from "lucide-react";
+import { BookOpen, GraduationCap } from "lucide-react";
 
 const roles = [
   {
@@ -17,12 +17,7 @@ const roles = [
     title: "Tutor",
     description: "Create and manage your own classes and grow your student base.",
   },
-  {
-    id: "CENTER_ADMIN",
-    icon: Building2,
-    title: "Center Admin",
-    description: "Manage a learning center with multiple tutors and classes.",
-  },
+  // Centers self-serve hidden per Open Decision #1 default (overhaul/16, T1-04). Admin-assigned CENTER_ADMIN still supported.
 ] as const;
 
 export default function RoleOnboardingPage() {
