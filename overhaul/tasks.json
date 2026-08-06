@@ -166,7 +166,7 @@
       ],
       "risk": "high",
       "branch": "overhaul/booking-seat-lock",
-      "acceptance": "Two concurrent POST /api/bookings for the last seat yield exactly one booking + one rejection; cleanup cron reclaims an abandoned lock within TTL. SCOPE EXTENDED 2026-08-06 by Claude (architecture owner) after the second Type E pass: app/api/webhooks/paymob/route.ts and app/api/cron/cleanup-locks/route.ts are now IN SCOPE. BLOCKING DEFECT to fix: the cron cancels an expired PENDING lock, the seat is resold, then the late Paymob webhook sets status CONFIRMED unconditionally (route.ts:163-171) with no capacity or status re-check -> two confirmed bookings on a one-seat class and the first student has paid. Webhook must re-validate capacity in a serializable transaction and, if no seat remains, flag for refund + alert rather than silently confirm. Also reconsider LOCK_DURATION_MINUTES=10 against real Egyptian bank OTP/3DS latency, and stop abandoned online payments from consuming promo usage. app/classes/[id]/book/page.tsx added so T1-02 can supply real schedule data + session profile defaults, which Codex correctly refused to touch while out of scope."
+      "acceptance": "Two concurrent POST /api/bookings for the last seat yield exactly one booking + one rejection; cleanup cron reclaims an abandoned lock within TTL. SCOPE EXTENDED 2026-08-06 by Claude (architecture owner) after the second Type E pass: app/api/webhooks/paymob/route.ts and app/api/cron/cleanup-locks/route.ts are now IN SCOPE. BLOCKING DEFECT to fix: the cron cancels an expired PENDING lock, the seat is resold, then the late Paymob webhook sets status CONFIRMED unconditionally (route.ts:163-171) with no capacity or status re-check -> two confirmed bookings on a one-seat class and the first student has paid. Webhook must re-validate capacity in a serializable transaction and, if no seat remains, flag for refund + alert rather than silently confirm. Also reconsider LOCK_DURATION_MINUTES=10 against real Egyptian bank OTP/3DS latency, and stop abandoned online payments from consuming promo usage. app/classes/[id]/book/page.tsx added so T1-02 can supply real schedule data + session profile defaults, which Codex correctly refused to touch while out of scope. REVIEW ROUND 2 - 2026-08-06, both Type E passes re-run by Claude against 6fc2514. The webhook race IS closed and the refund-queue claim is VERIFIED (conflict path writes status=CANCELLED + paymentStatus=PAID + refundReason, and app/api/admin/refund-requests/route.ts selects exactly refundReason!=null AND paymentStatus=PAID, so these do surface). REFUNDED/PARTIALLY_REFUNDED cannot be downgraded, and promo release is exactly-once across cron + failure webhook (both guarded by count===1). ONE BLOCKER REMAINS: the expired-lock branch never checks capacity. hasValidSeatLock requires lockedUntil > now; when it is false the handler goes straight to conflict and CANCELS a booking the customer has just paid for, WITHOUT asking whether a seat is actually free. A student who clears bank OTP at minute 16 of a 15-minute lock on a class with 49 free seats is cancelled and pushed to manual refund. The TTL was raised to 15 minutes precisely because Egyptian bank OTP is slow, so this path will fire in production. REQUIRED FIX: run the occupied-seat count in BOTH branches and raise a conflict only when capacity is genuinely exceeded; reserve outright refund for the case where the seat is truly gone or the student cancelled deliberately. Note the handler cannot currently distinguish a cron-expired cancellation from a user-initiated one - if that distinction is needed to avoid re-confirming a deliberately cancelled booking, add it explicitly rather than inferring it from status."
     },
     {
       "id": "T1-02",
@@ -246,8 +246,8 @@
       ],
       "risk": "medium",
       "branch": "overhaul/centers-creation-or-hide",
-      "acceptance": "PROCEEDING ON DEFAULT (hide) per overhaul/16. Target: a new CENTER_ADMIN can create a center, or the role/nav entry is unreachable",
-      "decisionDefaultApplied": "open-decision-1: HIDE self-serve CENTER_ADMIN signup (see overhaul/16-defaulted-decision-packets.md). Reversible. NOT owner-confirmed - revisit if the owner answers."
+      "acceptance": "PROCEEDING ON DEFAULT (hide) per overhaul/16. Target: the self-serve CENTER_ADMIN role/nav entry is unreachable. CONTRACT CORRECTED 2026-08-06 (Claude): overhaul/16's claim that a platform ADMIN can still assign CENTER_ADMIN is FALSE and must not be used as acceptance evidence. Codex's audit is confirmed - app/admin/AdminClient.tsx:565 is a user-table role FILTER, not an assignment control, and no admin API writes User.role. DECISION: ACCEPT that under the HIDE default there is NO provisioning path for a NEW CENTER_ADMIN, by any actor. Scope is NOT expanded here - building an admin provisioning UI is a separate reviewed contract (see T1-13), not a Wave 1 P1 rider. What ships: signup exposes only STUDENT/TUTOR, ?role=center falls back to STUDENT, onboarding exposes only STUDENT/TUTOR, and authenticated PATCH /api/me/role with CENTER_ADMIN returns 400 VALIDATION_ERROR - all four already verified live by Codex. EXISTING CENTER_ADMIN users are unaffected and keep full access; only new provisioning is closed. Do NOT claim provisioning acceptance in the PR.",
+      "decisionDefaultApplied": "open-decision-1: HIDE self-serve CENTER_ADMIN signup (see overhaul/16-defaulted-decision-packets.md). Reversible. NOT owner-confirmed - revisit if the owner answers. 2026-08-06: the owner should know this now means CENTER_ADMIN is unreachable for new users entirely, because the admin-assignment fallback overhaul/16 assumed does not exist in the codebase. T1-13 tracks restoring a provisioning path."
     },
     {
       "id": "T1-05",
@@ -270,11 +270,12 @@
         "app/dashboard/page.tsx",
         "app/dashboard/components/DashboardStats.tsx",
         "app/api/dashboard/payouts/route.ts",
-        "app/api/dashboard/analytics/route.ts"
+        "app/api/dashboard/analytics/route.ts",
+        "app/dashboard/dashboard-actions.ts"
       ],
       "risk": "high",
       "branch": "overhaul/dashboard-revenue-gate",
-      "acceptance": "All 7 CONN-003 surfaces pass; restricted tutor's server payload contains no revenue/PII fields"
+      "acceptance": "All 7 CONN-003 surfaces pass; restricted tutor's server payload contains no revenue/PII fields. SCOPE EXTENDED 2026-08-06 (Claude): app/dashboard/dashboard-actions.ts added to filesAffected. Codex proved live that an authenticated LIMITED tutor can invoke deleteClass and destroy its own class (303 + row deleted; class and its paid fixture booking were restored). Confirmed by inspection: dashboard-actions.ts:31 gates ONLY centerAccessLevel === 'VIEW_ONLY'. Product copy (centerAdmin.access.limited.hint, 'Sees their class schedule only; no revenue or other students') makes LIMITED schedule-only, so destructive class mutation must be blocked for LIMITED as well as VIEW_ONLY. REQUIRED: audit EVERY exported server action in that file, not just deleteClass - a data-layer read gate does not protect server actions, which are separately addressable POST endpoints. Re-run a real server-action bypass test (authenticated POST to the action endpoint, not a UI click) for BOTH restricted roles and capture the response + post-state for each."
     },
     {
       "id": "T1-06",
@@ -414,11 +415,12 @@
       "dependsOn": [],
       "filesAffected": [
         "app/layout.tsx",
-        "app/Navbar.tsx"
+        "app/Navbar.tsx",
+        "app/api/users/me/route.ts"
       ],
       "risk": "high",
       "branch": "overhaul/perf-suspense-navbar",
-      "acceptance": "npm run build shows static/ISR for landing + auth-independent routes, not f for all 115 routes; full route regression check, not a sample. STATUS 2026-08-06: branch f43e72c adds the Suspense boundary and skeleton, but the full 117-route table remains entirely f - PERF-001 NOT closed. Static/ISR conversion needs Cache Components config + route-data work beyond app/layout.tsx and app/Navbar.tsx. Either amend scope or split the render-mode work into a follow-up before claiming this task."
+      "acceptance": "ARCHITECTURE DECIDED 2026-08-06 (Claude, architecture owner): OPTION A - bounded client-session Navbar. Option B (Cache Components/PPR) is REJECTED for Wave 1: it requires public-route data migration across ~117 routes, which is a larger and riskier refactor than the P0 that gates Wave 2 can carry. Implement: (1) app/layout.tsx no longer calls auth() in the server render path - that call is the sole reason every route is dynamic; (2) app/Navbar.tsx discovers the session AFTER first paint by fetching the EXISTING /api/users/me (do not create a second session endpoint - dead-parallel); (3) add centerId to the /api/users/me payload so CENTER_ADMIN's 'My Center' entry is preserved exactly as today; (4) keep the already-built skeleton as the pre-fetch state. AMENDS the original packet's 'do not remove the server auth() call' instruction - that constraint existed to protect correct nav for signed-in users, which the client fetch satisfies. HARD LIMIT: this moves session DISPLAY to the client only. No server-side authorization gate may move or weaken; proxy.ts and every route/action guard stay exactly as-is. ACCEPTANCE: npm run build's full route table shows landing + auth-independent public routes as static/ISR (compare against overhaul/baseline/build-routes-before-T1-11.txt); routes that independently call auth() (dashboard, admin, etc.) are EXPECTED to stay dynamic and are not failures. Verify signed-out, signed-in TUTOR, and CENTER_ADMIN navbars in en+ar at 1280+390. PERF-001 does NOT close until the full table genuinely contains static/ISR routes."
     },
     {
       "id": "T2-01",
@@ -1266,6 +1268,104 @@
       "risk": "low",
       "branch": "overhaul/image-gen-briefs",
       "acceptance": "Run .agents/skills/impeccable/reference/codex.md's workflow (steps A-F) against REMAINING_LIMITATIONS.md's 6+ queued briefs; Claude reviews for brand/cultural fidelity before shipping"
+    },
+    {
+      "id": "T1-12",
+      "wave": 1,
+      "phase": "Phase 1",
+      "title": "Close the same overbooking race on the mobile booking path",
+      "findingIds": [
+        "CONN-001",
+        "CONN-002"
+      ],
+      "source": "new",
+      "agentOwner": "paired",
+      "reviewer": "claude",
+      "executionType": "E",
+      "priority": "P0",
+      "complexity": "S",
+      "parallelGroup": "1-a",
+      "dependsOn": [],
+      "filesAffected": [
+        "app/api/mobile/book-class/route.ts"
+      ],
+      "risk": "high",
+      "branch": "overhaul/mobile-booking-race",
+      "acceptance": "OPENED 2026-08-06 by Claude on the T1-01 second Type E pass. CONN-001 is only half-closed by T1-01: app/api/mobile/book-class/route.ts still reads _count.bookings (line 34) and compares it to capacity (line 54) OUTSIDE any transaction, then creates the booking - a textbook TOCTOU. Two concurrent mobile bookings for the last seat both pass the check and both write. The web path is now serializable; the mobile path is not, so the overbooking defect remains fully reachable through the app. SECOND, SEPARATE DEFECT: the two paths do not agree on what occupies a seat. Mobile counts every booking with status != CANCELLED; the web path counts CONFIRMED plus PENDING with lockedUntil > now. The same class can therefore be 'full' on mobile and bookable on web. This divergence is the audit's #1 pattern (dead-parallel implementations) expressed as semantics rather than duplicated code. REQUIRED: reuse the SAME serializable transaction + occupied-seat predicate as app/api/bookings/route.ts - extract it to a shared helper rather than writing a second copy. ACCEPTANCE: two concurrent mobile POSTs for the last seat yield exactly one 2xx and one rejection with exactly one booking in the DB; a class at capacity reports identically on both paths. MUST NOT be closed by review alone - run the concurrency test against the capacity-1 fixture class.",
+      "note": "CONN-001 does not close until BOTH T1-01 and T1-12 merge. Do not mark the finding resolved on T1-01 alone."
+    },
+    {
+      "id": "T1-13",
+      "wave": 1,
+      "phase": "Phase 1",
+      "title": "Decide and build a CENTER_ADMIN provisioning path",
+      "findingIds": [
+        "UX-JOURNEY-008"
+      ],
+      "source": "new",
+      "agentOwner": "claude",
+      "reviewer": null,
+      "executionType": "D",
+      "priority": "P2",
+      "complexity": "M",
+      "parallelGroup": "1-b",
+      "dependsOn": [
+        "T1-04"
+      ],
+      "filesAffected": [],
+      "risk": "medium",
+      "branch": "overhaul/center-admin-provisioning",
+      "acceptance": "OPENED 2026-08-06 by Claude. T1-04's HIDE default removes self-serve CENTER_ADMIN signup on the stated assumption (overhaul/16) that a platform ADMIN could still assign the role. That assumption is FALSE: AdminClient.tsx:565 is a table filter and no admin API writes User.role. Net effect of shipping T1-04 as-is: no actor can create a new CENTER_ADMIN by any route. Existing CENTER_ADMIN accounts are unaffected. This task is the OWNER DECISION, not an implementation: does the product need new centers to be onboardable at all before launch? If yes, scope an admin-only role-assignment endpoint + UI (app/admin/** is currently restricted, so this needs an explicit protected-file grant and a full authorization review - it is a privilege-escalation surface by definition). If no, record that centers are onboarded manually via direct DB access and close. Blocking nothing in Wave 1; do not let it silently become a launch blocker."
+    },
+    {
+      "id": "T1-14",
+      "wave": 1,
+      "phase": "Phase 1",
+      "title": "Fix prefix-match open redirect in auth.config.ts redirect callback",
+      "findingIds": [
+        "SEC-006"
+      ],
+      "source": "new",
+      "agentOwner": "paired",
+      "reviewer": "claude",
+      "executionType": "E",
+      "priority": "P1",
+      "complexity": "S",
+      "parallelGroup": "1-c",
+      "dependsOn": [],
+      "filesAffected": [
+        "auth.config.ts"
+      ],
+      "risk": "high",
+      "branch": "overhaul/auth-config-redirect",
+      "acceptance": "OPENED 2026-08-06 by Claude. T1-09 fixed the CLIENT-side callbackUrl guard in app/login/page.tsx and is merged, but auth.config.ts:31-34 independently validates post-login redirects with prefix matching: `if (url.startsWith(baseUrl)) return url`. PROVEN off-origin escapes with baseUrl=https://coursaty.com, 4 of 8 test inputs: 'https://coursaty.com.evil.net/steal' -> origin https://coursaty.com.evil.net; 'https://coursaty.community/steal' -> https://coursaty.community; 'https://coursaty.com@evil.net/' -> https://evil.net (userinfo trick, and it reads as a legitimate link); 'https://coursaty.com.evil.net' -> same off-origin. NOTE the leading-slash inputs ('//evil', '/\\evil') are NOT exploitable here, unlike the T1-09 client-side case, because the value is concatenated AFTER baseUrl and stays on-origin - do not copy T1-09's fix verbatim without re-deriving it for this call site. REQUIRED: parse and compare ORIGINS (new URL(url, baseUrl).origin === new URL(baseUrl).origin), never prefix matching. ACCEPTANCE: a table over all 8 inputs above showing 0 off-origin results, committed as a test. Deliberately a SEPARATE branch - do not fold a security fix into an unrelated merge."
+    },
+    {
+      "id": "T1-15",
+      "wave": 1,
+      "phase": "Phase 1",
+      "title": "Preserve payment-attempt linkage so a superseded Paymob order cannot silently eat money",
+      "findingIds": [
+        "CONN-002"
+      ],
+      "source": "new",
+      "agentOwner": "paired",
+      "reviewer": "claude",
+      "executionType": "E",
+      "priority": "P1",
+      "complexity": "M",
+      "parallelGroup": "1-a",
+      "dependsOn": [
+        "T1-01"
+      ],
+      "filesAffected": [
+        "lib/paymob.ts",
+        "app/api/webhooks/paymob/route.ts",
+        "prisma/schema.prisma"
+      ],
+      "risk": "high",
+      "branch": "overhaul/payment-attempt-history",
+      "acceptance": "OPENED 2026-08-06 by Claude on the T1-01 second Type E pass. lib/paymob.ts:157-163 OVERWRITES booking.paymobOrderId on every initiatePayment call, so retrying payment on the same booking orphans the previous Paymob order. The webhook resolves bookings by findFirst({ where: { paymobOrderId } }), which now matches only the newest attempt. If the SUPERSEDED attempt then succeeds, the webhook hits the !booking branch, logs an error and returns 200 - so Paymob stops retrying, the money is captured, and no booking and NO refundReason row exists. That is silent money loss with no audit trail, and unlike the T1-01 race it leaves nothing in the admin refund queue to find it. Not introduced by T1-01 and deliberately NOT folded into it. REQUIRED: a booking may have many payment attempts - model them (PaymentAttempt rows, or at minimum retain prior order ids) and resolve webhooks against the full attempt history, not a single mutable column. Any webhook that cannot be matched to a booking must persist the raw event and raise an alert, never return 200 silently. TOUCHES prisma/schema.prisma (protected, per overhaul/07) - sequence it and do not edit while another task owns that file."
     }
   ]
 }

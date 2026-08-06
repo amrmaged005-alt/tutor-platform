@@ -6,10 +6,10 @@ Pre-overhaul screenshot baseline. Every Wave 2+ UX/mobile task packet compares a
 ## Status
 
 - **MCP config: done.** `playwright` added to `.mcp.json` at project scope (stdio, `npx @playwright/mcp@latest`).
-- **Capture: PENDING.** Not performed in the coordination session that added the config — the MCP server
-  is only available after a session restart, and capture additionally needs a running dev server
-  (`npm run dev`) with seeded data. This is a blocking prerequisite for **T2-01** and any Wave 2+ task
-  with a `filesAffected` entry under `app/**`.
+- **Capture: COMPLETE — 28/28 on 2026-08-06 at `38a9c3c`.** Method, per-shot auth state, recorded
+  finding evidence, and one honesty caveat about `/centers` are in
+  [CAPTURE-EVIDENCE.md](CAPTURE-EVIDENCE.md). **Read that before comparing against these shots.**
+  The Wave 2 baseline prerequisite is satisfied.
 
 ## Capture matrix (28 screenshots)
 
