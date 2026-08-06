@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AuthShell from "@/components/ui/AuthShell";
 import { FloatingField, FormAlert, PasswordField } from "@/components/ui/AuthFields";
@@ -36,6 +37,7 @@ function safeCallback(raw: string | null): string {
 
 export default function LoginPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -77,7 +79,7 @@ export default function LoginPage() {
       return;
     }
     const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-    window.location.href = safeCallback(callbackUrl);
+    router.push(safeCallback(callbackUrl));
   }
 
   return (
