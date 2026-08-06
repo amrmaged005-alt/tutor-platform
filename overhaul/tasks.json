@@ -1298,24 +1298,28 @@
       "id": "T1-13",
       "wave": 1,
       "phase": "Phase 1",
-      "title": "Decide and build a CENTER_ADMIN provisioning path",
+      "title": "Build the admin-operated CENTER_ADMIN provisioning path",
       "findingIds": [
         "UX-JOURNEY-008"
       ],
       "source": "new",
-      "agentOwner": "claude",
-      "reviewer": null,
-      "executionType": "D",
-      "priority": "P2",
+      "agentOwner": "paired",
+      "reviewer": "claude",
+      "executionType": "E",
+      "priority": "P1",
       "complexity": "M",
       "parallelGroup": "1-b",
       "dependsOn": [
         "T1-04"
       ],
-      "filesAffected": [],
-      "risk": "medium",
+      "filesAffected": [
+        "app/api/admin/users/[id]/role/route.ts (new)",
+        "app/admin/AdminClient.tsx",
+        "lib/audit.ts"
+      ],
+      "risk": "high",
       "branch": "overhaul/center-admin-provisioning",
-      "acceptance": "OPENED 2026-08-06 by Claude. T1-04's HIDE default removes self-serve CENTER_ADMIN signup on the stated assumption (overhaul/16) that a platform ADMIN could still assign the role. That assumption is FALSE: AdminClient.tsx:565 is a table filter and no admin API writes User.role. Net effect of shipping T1-04 as-is: no actor can create a new CENTER_ADMIN by any route. Existing CENTER_ADMIN accounts are unaffected. This task is the OWNER DECISION, not an implementation: does the product need new centers to be onboardable at all before launch? If yes, scope an admin-only role-assignment endpoint + UI (app/admin/** is currently restricted, so this needs an explicit protected-file grant and a full authorization review - it is a privilege-escalation surface by definition). If no, record that centers are onboarded manually via direct DB access and close. Blocking nothing in Wave 1; do not let it silently become a launch blocker."
+      "acceptance": "OWNER DECIDED 2026-08-06: YES - new tutoring centers MUST be onboardable before launch. This is no longer a question, it is a required build, and it is now a launch blocker rather than a P2 curiosity. Context: T1-04's HIDE default removes self-serve CENTER_ADMIN signup on overhaul/16's assumption that a platform ADMIN could still assign the role, which is FALSE (AdminClient.tsx:565 is a table filter; no admin API writes User.role). T1-04 STILL SHIPS AS-IS - self-serve stays hidden - and THIS task supplies the admin-operated path instead. BUILD: an admin-only endpoint that sets User.role to CENTER_ADMIN and links or creates the Center, plus the control in the existing admin users table. THIS IS A PRIVILEGE-ESCALATION SURFACE; every rule below is blocking, not advisory: (1) authorization is re-checked SERVER-SIDE inside the route from the session, never trusted from the client, and reuses the existing requireAdmin pattern from app/api/admin/refund-requests/route.ts - do not write a second admin check (dead-parallel); (2) the role transition is ALLOWLISTED explicitly (STUDENT/TUTOR -> CENTER_ADMIN, and back) - never accept an arbitrary role string from the request body, which would turn this into a way to mint platform ADMINs; (3) this endpoint must NOT be able to grant ADMIN under any input; (4) every call writes an audit row through the existing lib/audit.ts log() with actor, target, previous role and new role - a silent privilege change is unacceptable; (5) rate-limit it like the other sensitive routes. app/admin/** is restricted per overhaul/07 - this task is the explicit grant for exactly the files listed above and nothing else under app/admin/. ACCEPTANCE, all tested by calling the route directly rather than clicking the UI: an ADMIN can promote a STUDENT/TUTOR to CENTER_ADMIN and that user then reaches /centers/[id]/admin; an authenticated TUTOR, an authenticated CENTER_ADMIN, and an anonymous caller each get 403 with NO state change; a body carrying role=ADMIN is rejected; an audit row exists after each successful change. Type E - two review passes, and the second must re-derive the escalation model from scratch instead of confirming the first."
     },
     {
       "id": "T1-14",

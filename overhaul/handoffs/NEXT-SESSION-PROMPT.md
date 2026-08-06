@@ -67,8 +67,14 @@ Codex is working from — do not re-derive it), `overhaul/tasks.json`,
 - **T1-15 (P1)** — `initiatePayment` overwrites `paymobOrderId`, so a superseded attempt that later
   succeeds is captured money with **no booking and no refund row** — nothing in the queue to catch it.
   Touches `prisma/schema.prisma` (protected).
-- **T1-13 (P2, owner decision)** — should new tutoring centres be onboardable before launch? Right now
-  no actor can create a CENTER_ADMIN.
+- **T1-13 (P1 — OWNER ANSWERED YES, now a launch blocker)** — new tutoring centres **must** be
+  onboardable before launch. No longer a question. T1-04 still ships (self-serve stays hidden) and
+  T1-13 supplies the **admin-operated** path: an admin-only endpoint setting `User.role` to
+  `CENTER_ADMIN` + the control in the existing admin users table. **Privilege-escalation surface** —
+  reuse the existing `requireAdmin` pattern, allowlist the role transition explicitly (never accept an
+  arbitrary role string, or it becomes a way to mint platform ADMINs), never allow granting `ADMIN`,
+  audit every call, rate-limit it. `app/admin/**` is restricted; T1-13 is the explicit grant for exactly
+  the 3 files in `tasks.json`. Type E — two passes, second re-derives the escalation model from scratch.
 
 ## The loop
 
@@ -108,5 +114,10 @@ fixtures script (`prisma/fixtures-acceptance.ts`, password `FixturePass!234`, ac
 and safe to re-run; `--clean` removes it.
 
 **No outstanding owner actions.** `gh` is authenticated, `origin/main` is synced, the baseline exists,
-and all four live branches have open PRs carrying their verdicts. The one open *decision* is T1-13 —
-whether new tutoring centres need to be onboardable before launch — and it blocks nothing in Wave 1.
+and all four live branches have open PRs carrying their verdicts. The last open decision — whether new
+tutoring centres must be onboardable before launch — **the owner answered YES**, so T1-13 is now a P1
+build and a launch blocker rather than an open question.
+
+**Codex's restart prompt is `overhaul/handoffs/CODEX-RESTART-PROMPT.md`.** The prompt Codex stopped on
+is stale (it still says `gh` isn't installed, PRs 403, `main` at `5b7349f`, baseline uncaptured — all
+four resolved). Hand Codex the restart file, not the old one.
