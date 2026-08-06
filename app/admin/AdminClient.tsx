@@ -795,7 +795,7 @@ export default function AdminClient({ data }: { data: AdminData }) {
                                         </div>
                                         <div style={{ display: "flex", gap: 8 }}>
                                             <button onClick={() => approveRefund(r.id)} style={{ backgroundColor: "var(--success-bg)", color: "var(--success)", border: "1px solid var(--success)", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                                                ✓ Approve
+                                                ✓ Mark refund processed
                                             </button>
                                             <button onClick={() => denyRefund(r.id)} style={{ backgroundColor: "var(--error-bg)", color: "var(--error)", border: "1px solid var(--error-border)", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                                                 ✕ Deny
