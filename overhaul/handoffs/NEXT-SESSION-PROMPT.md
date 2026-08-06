@@ -1,114 +1,111 @@
 # Prompt for the next Claude Code session
 
-The full `overhaul/15` execution loop, updated for the state as of `38a9c3c`. This supersedes the
-original Claude prompt in `overhaul/15-kickoff-prompts.md` — that one assumed Wave 0 hadn't started.
+State as of `a51b62b` (2026-08-06, late). Supersedes every earlier version of this file.
 Copy everything below the line into a fresh session in `c:\Users\Amr\tutor-platform`.
 
 ---
 
 You are the coordination lead for the TutorPlatform overhaul. A Codex session runs concurrently in
-`../tutor-platform-worktrees/` and writes to the same progress log — check it before claiming
-anything.
+`../tutor-platform-worktrees/` and writes to the same progress log — read it before claiming anything.
 
-**Read, in order:** `overhaul/progress-log.md` (authoritative event trail — read the last ~40 lines
-carefully), `overhaul/handoffs/2026-08-06-from-claude-review-verdicts.md` (Wave 1 verdicts already
-written — do not re-derive them), `overhaul/handoffs/2026-08-06-to-claude.md` (Codex's handoff),
-`overhaul/tasks.json`, `overhaul/03-agent-responsibility-matrix.md`,
-`overhaul/07-shared-foundations-and-file-ownership.md`, `overhaul/09-review-validation-and-handoff.md`.
-Everything else in `overhaul/` is lookup-by-ID reference — don't read it front to back.
+**Read, in order:** `overhaul/progress-log.md` (authoritative event trail — the last ~25 lines are this
+session's verdicts), `overhaul/handoffs/2026-08-06-to-codex-round-2.md` (the current instruction set
+Codex is working from — do not re-derive it), `overhaul/tasks.json`,
+`overhaul/03-agent-responsibility-matrix.md`, `overhaul/07-shared-foundations-and-file-ownership.md`,
+`overhaul/09-review-validation-and-handoff.md`. Everything else in `overhaul/` is lookup-by-ID.
 
-## Step 0 — unblock Wave 2 before anything else
+## What changed last session — don't redo any of it
 
-The T0-01 Playwright baseline is the single blocker holding Wave 2 shut. The MCP server is approved
-and chromium is installed, so `playwright` tools should now be available — verify with a ToolSearch.
+- **T0-01 is DONE.** 28/28 baseline shots at `overhaul/baseline/`. Read
+  `overhaul/baseline/CAPTURE-EVIDENCE.md` before comparing against them — it records per-shot auth
+  state and one honesty caveat about `/centers`. **Wave 2's baseline gate is satisfied; T1-11 is the
+  only remaining Wave 2 blocker.**
+- **`npm audit` is 0.** T1-07/T1-08 merged: `next` 16.3.0, `next-auth` beta.32. Was 18 vulns
+  (2 critical, 12 high).
+- **`origin/main` is synced** (fast-forwarded, nothing rewritten). The old "diff against
+  `git merge-base`, never `main`" gotcha **only applies to branches created before `4b7cb15`**.
+- **PRs work again.** The 403 was the MCP integration's credential, not the owner's account — the owner
+  has ADMIN. Four PRs are open (#1–#4). Codex's automatic PR review is back as the independent check.
+- Merged this session: **T1-07/T1-08**, **T1-10**, **T0-01**.
 
-1. `npm ci` — `node_modules` drifted to 16.3.0 while `main` pins 16.1.6. Do not trust a green build
-   until this runs.
-2. `npx tsx prisma/fixtures-acceptance.ts` — idempotent; creates the test accounts.
-3. `npm run dev`
-4. Capture 7 routes x 2 breakpoints (1280/390) x 2 languages (en/ar) into `overhaul/baseline/`.
-   Matrix, naming convention, and the per-shot evidence to record are in `overhaul/baseline/README.md`.
-   `overhaul/baseline/capture-baseline.mjs` is a written-but-never-run fallback — read its header
-   before using it. Language is client-side only (`localStorage["coursaty-lang"]`), which *is*
-   finding A11Y-001 — record any first-paint LTR flash on the AR shots as baseline evidence, not as
-   a bug to fix now.
-5. Log T0-01 as `merged` and state plainly that Wave 2 entry is now open.
+## Environment gotchas that cost real time last session
+
+1. **`gh` is at `C:\Program Files\GitHub CLI\gh.exe`** and may not be on PATH. If `gh auth status` says
+   not logged in, the working pattern is:
+   `TOK=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill | sed -n 's/^password=//p'); export GH_TOKEN="$TOK"`
+   `gh auth login --with-token` **rejects** that token (no `read:org`); `GH_TOKEN` bypasses the check.
+   Never write the token to a file.
+2. **Worktrees have no `.env`.** A build failing there is probably environmental, not a regression —
+   `main` fails identically without `.env`. Copy `.env` in, build, then delete it. This exact thing made
+   a green branch look broken.
+3. **Playwright MCP cannot take full-page screenshots** — `fullPage: true` blows its fixed 5 s tool
+   timeout on the 10,763 px landing page. Use `overhaul/baseline/capture-baseline.mjs`, with
+   `playwright` junctioned into `node_modules` from the MCP's own copy (match the chromium revision —
+   1.62.1 matches build 1234; 1.63.0-alpha does not). `node_modules` is a build artifact, so this needs
+   no `package.json` change.
+4. **`next lint` no longer exists** in Next 16. The repo's `lint` script already calls `eslint`.
+5. `npm ci` will fail while a dev server holds `next-swc...node`. Stop it first.
+6. Scope grants belong in **`tasks.json`**, not prose. Codex validates `filesAffected` and correctly
+   refuses out-of-scope edits.
+
+## Open PRs — all four have a written verdict already
+
+| PR | Task | State | What's needed |
+|---|---|---|---|
+| [#1](https://github.com/amrmaged005-alt/tutor-platform/pull/1) | T1-01/T1-02 | changes-requested | **One blocker.** The expired-lock branch in the Paymob webhook never checks capacity, so a student who pays at minute 16 of a 15-min lock is cancelled and refund-queued **even when the class is nearly empty**. Fix: count occupied seats in *both* branches; conflict only when capacity is genuinely exceeded. Everything else on this branch is verified good. |
+| [#2](https://github.com/amrmaged005-alt/tutor-platform/pull/2) | T1-05 | changes-requested | LIMITED tutors can call `deleteClass` (`dashboard-actions.ts:31` gates only VIEW_ONLY). Scope already extended. Audit **every** exported action in that file — a data-layer read gate does not protect server actions. Still owed: 7 CONN-003 payloads across FULL/LIMITED/VIEW_ONLY. |
+| [#3](https://github.com/amrmaged005-alt/tutor-platform/pull/3) | T1-04 | awaiting-review | Contract corrected: `overhaul/16`'s "an admin can still assign CENTER_ADMIN" is FALSE. Accepted that HIDE closes new provisioning entirely. **Must not claim provisioning acceptance.** |
+| [#4](https://github.com/amrmaged005-alt/tutor-platform/pull/4) | T1-11 | changes-requested | Architecture decided: **Option A**, bounded client-session Navbar. Files and acceptance in `tasks.json`. **This is the last Wave 2 blocker.** |
+
+## New tasks opened last session — not yet handed to Codex
+
+- **T1-12 (P0)** — `app/api/mobile/book-class/route.ts` still does a non-transactional read-then-create,
+  so the overbooking race is fully reachable from the mobile app. **`CONN-001` does not close on T1-01
+  alone.** The two paths also disagree on what occupies a seat.
+- **T1-14 (P1, security)** — `auth.config.ts:31-34` validates redirects by prefix; 4 proven off-origin
+  escapes including `https://coursaty.com@evil.net`. Separate branch, do not fold in.
+- **T1-15 (P1)** — `initiatePayment` overwrites `paymobOrderId`, so a superseded attempt that later
+  succeeds is captured money with **no booking and no refund row** — nothing in the queue to catch it.
+  Touches `prisma/schema.prisma` (protected).
+- **T1-13 (P2, owner decision)** — should new tutoring centres be onboardable before launch? Right now
+  no actor can create a CENTER_ADMIN.
 
 ## The loop
 
-Work tasks in dependency order per `overhaul/05`'s parallel groups, wave by wave, **without stopping
-for per-task approval**. Do not end your turn to ask "should I continue?" — keep going until the stop
-condition below is genuinely met.
+Work in dependency order per `overhaul/05`, wave by wave, **without stopping for per-task approval**.
 
-1. **Check `overhaul/progress-log.md` first.** If Codex already started or finished a task, skip it.
-2. **`agentOwner: "claude"`** → implement directly.
-3. **`agentOwner: "paired"` or `"codex"`** → write/confirm the task packet (use the Wave 0/1 packets
-   in `overhaul/08` and the contracts in `overhaul/17-claude-contracts.md` as templates), create the
-   branch from `tasks.json`'s `branch` field, and append a `handed-off-to-codex` line. **Do not
-   implement Codex-owned work yourself to move faster** — the split in `overhaul/03` exists so
-   architectural review stays independent of implementation.
-4. **When a branch has new commits**, review it against `overhaul/09`'s gates and its originating
-   packet, and return a verdict in `overhaul/09`'s format.
-5. **Type E tasks** (`executionType: "E"`): perform **both** review passes yourself, re-deriving the
-   risk model from scratch on the second rather than confirming the first. Only you may merge a
-   Type E branch. Never on a single pass.
-6. **Type B / non-E** with green build/lint/test and no protected-file conflict: merge after one pass.
-7. **Respect every freeze and protected-file rule in `overhaul/07`.** If two ready tasks touch the
-   same protected file, sequence them.
-8. **Blocked-on-decision tasks**: T1-04, T4-01, T4-05 already have their `overhaul/13` defaults
-   applied and packets issued in `overhaul/16` — they are *not* blocked; proceed. Open Decision #5
-   is **resolved by the owner** (cap the book metaphor to 2–3 chapters) — T2-01's PR must not carry a
-   "shipped on a default" caveat. Open Decision #8 (CSRF scope) is still open; it changes T4-02's
-   size, not its contract, so start with the Type D discovery in `overhaul/17` Contract A.
-9. **Append a line to `overhaul/progress-log.md` after every task state change**, before moving on.
+1. Check `overhaul/progress-log.md` first — skip anything Codex already took.
+2. `agentOwner: "claude"` → implement. `"paired"`/`"codex"` → write the packet, create the branch from
+   `tasks.json`'s `branch` field, log `handed-off-to-codex`. Don't implement Codex-owned work yourself;
+   the split exists so review stays independent of implementation.
+3. **Type E** (`executionType: "E"`): do **both** passes yourself, re-deriving the risk model from
+   scratch on the second rather than confirming the first. Only you may merge a Type E branch.
+   *Both new findings last session came from pass 2, not pass 1.*
+4. Type B / non-E with green gates and no protected-file conflict: merge after one pass.
+5. Respect every freeze and protected-file rule in `overhaul/07`.
+6. Append to `overhaul/progress-log.md` after **every** state change.
 
-## Current state — `main` @ `38a9c3c`
-
-Wave 0 fully merged. Wave 1 in progress:
-
-| Task | State | What's needed |
-|---|---|---|
-| T1-01/T1-02 | **Blocked — do not merge** | Money-path overbooking race found on Type E pass 2: cron cancels an expired lock, seat is resold, then the late Paymob webhook confirms unconditionally at `app/api/webhooks/paymob/route.ts:163-171`. Two confirmed bookings on a one-seat class, first student has paid. Scope already extended in `tasks.json`; Codex is authorised. |
-| T1-03 | Merged, then **reopened** | `app/centers/page.tsx:19-22` still redirects anonymous users, so `UX-JOURNEY-002` is not closed. Registry corrected. |
-| T1-05 | Fabricated-zero fixed | Needs payload capture across all 7 `CONN-003` surfaces for FULL/LIMITED/VIEW_ONLY. Fixtures now exist. |
-| T1-06 | **Merged** | — |
-| T1-07/T1-08 | **Highest urgency** | Takes `npm audit` from 18 vulns (2 critical) to 0. T1-08 is Type E; credentials now exist. |
-| T1-09 | Verified closed | I re-tested the revised guard: 0 off-origin escapes. Nit: still uses `window.location.href`, which trips a new 16.3.0 lint rule once T1-07 lands. |
-| T1-10 | Not started | Scope corrected — the label lives in `app/admin/AdminClient.tsx`. Relabel only. |
-| T1-11 | Acceptance not met | Suspense boundary landed but all 117 routes are still dynamic; `PERF-001` not closed. Amend scope or split the render-mode work. |
-
-**Test credentials** — `prisma/fixtures-acceptance.ts`, password `FixturePass!234` for `student@`,
-`tutor-full@`, `tutor-limited@`, `tutor-viewonly@` `fixtures.coursaty.test`. Each tutor owns a class
-with a 500 EGP paid booking; `Concurrency Test Class (1 seat)` is the T1-01 race target. `--clean`
-removes everything.
-
-## Gotchas that already cost real time
-
-1. **Diff against `git merge-base main <branch>`, never `main`.** Otherwise the diff falsely shows
-   `overhaul/*` docs being deleted.
-2. **Scope grants belong in `tasks.json`, not prose.** Codex validates `filesAffected` and correctly
-   refuses out-of-scope edits. A grant written only in a handoff doc was inert and Codex refused it —
-   correctly. Two Wave 1 tasks stalled on under-scoped registry entries.
-3. **Verify a packet's factual claims before approving on them.** T1-03 was approved on the packet's
-   assertion that page logic was "already public-permissive." It wasn't. Codex caught it, not me.
-4. **Check `components/` and `lib/` before accepting any "new" component.** The audit's #1 defect is
-   dead-parallel implementations; `SignInRequiredModal` and `PromoCodeInput` already exist and are
-   the intended bases for T3-06 and T2-04.
+**Verify a packet's factual claims before approving on them.** T1-03 was approved on an unverified
+assertion and had to be reopened. Last session that habit paid twice: the refund-queue claim checked out
+(read the actual admin query), and Codex's "build fails" report turned out to be environmental.
 
 ## Stop condition
 
-Stop only when every task in `tasks.json` is `merged`, `skipped-blocked-decision`, or
-`awaiting-review` with no Claude-side action left. Then produce one report: waves closed, tasks still
-awaiting Codex, decisions shipped on a default that should be revisited, and the severity check from
-`overhaul/10-audit-closure-matrix.md` confirming zero Critical/High findings remain in `ready` limbo.
+Stop when every task in `tasks.json` is `merged`, `skipped-blocked-decision`, or `awaiting-review` with
+no Claude-side action left. Then report: waves closed, tasks still awaiting Codex, decisions shipped on a
+default that should be revisited, and the `overhaul/10` severity check confirming zero Critical/High
+findings remain in `ready` limbo.
 
-Wave 2's entry criteria are `T1-11` merged plus the baseline — do not open Wave 2 UI work before
-both. `overhaul/06` is your authority to proceed between waves, not a checkpoint to pause at.
+Wave 2 entry needs **T1-11 merged** — the baseline half is already done.
 
 ## Reporting style
 
 The owner has granted blanket approval to proceed without per-step confirmation and is
-**non-technical**. Report outcomes in plain language — what works, what's broken, what you need from
-them — not in task IDs and jargon. Flag anything that writes to their real database or costs money
-before doing it. PR creation currently returns `403` and `gh` isn't installed, so branches merge
-locally; mention it once, don't block on it.
+**non-technical**. Report in plain language: what works, what's broken, what you need from them. Flag
+anything that writes to their real database or costs money before doing it. The dev DB is real — the
+fixtures script (`prisma/fixtures-acceptance.ts`, password `FixturePass!234`, accounts `student@`,
+`tutor-full@`, `tutor-limited@`, `tutor-viewonly@` `fixtures.coursaty.test`) is namespaced, idempotent,
+and safe to re-run; `--clean` removes it.
+
+**Outstanding owner action:** `gh auth login` (device flow) to mint a properly scoped token, so the
+`GH_TOKEN` workaround above is no longer needed.
