@@ -30,7 +30,6 @@ const OUT = dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 
 const CLASS_ID = process.env.CLASS_ID ?? "cmm6hgt740003v2qk98myu3z4";
-const CENTER_ID = process.env.CENTER_ID ?? "cmm6hgsic0000v2qkdrdbab5o";
 
 const ROUTES = [
   { slug: "index", path: "/", full: true },
