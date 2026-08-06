@@ -1,0 +1,47 @@
+phase,item,finding_ids,priority,complexity,parallelizable,dependencies
+Phase 0,Add Playwright MCP + capture screenshot baseline,P0-A,P1,S,yes,none
+Phase 0,Create CLAUDE.md importing AGENTS.md,P0-B,P1,XS,yes,none
+Phase 1,Fix booking overbooking race via lockSeat(),CONN-001;CONN-002,P0,M,yes,none
+Phase 1,Revert/re-port booking checkout regression,I18N-001;LINK-006;UX-JOURNEY-005;RTL-001,P0,M,best done with CONN-001 same file,none
+Phase 1,Fix /centers proxy.ts role gate,UX-JOURNEY-002,P0,S,yes,none
+Phase 1,Build center-creation flow or hide the path,UX-JOURNEY-008,P1,M,yes,none
+Phase 1,Close dashboard revenue leak (4 surfaces),CONN-003;UX-JOURNEY-006,P1,S-M,yes,none
+Phase 1,Fix Flutter mock-data field mismatch,CONN-004,P0,S,yes,none
+Phase 1,Upgrade next to 16.3.0 (fixes SEC-002/SEC-003),SEC-002;SEC-003,P0,S,yes,none
+Phase 1,Apply next-auth/@auth-core patch when available,SEC-001,P0,M,no,depends on upstream patch release
+Phase 1,Fix open-redirect on login callbackUrl,SEC-006,P1,S,yes,none
+Phase 1,Fix or relabel refund-approval money movement,CONN-008,P2,M,yes,depends on Paymob refund API availability
+Phase 1,Add Suspense boundary around Navbar auth() call,PERF-001,P0,M,no,should land before Phase 3 CSP nonce work
+Phase 2,Simplify landing-page scroll-gate + RTL + tokens,UX-001;UX-002;UX-003;UX-010,P1-P3,M-L,yes,should follow Phase 1 booking fixes
+Phase 2,Resolve orphaned pages (/messages/new /onboarding/role /profile),ROUTE-003;ROUTE-004;ROUTE-007,P2-P3,S,yes,none
+Phase 2,Wire referral code capture + completion trigger,CONN-005,P2,S,yes,none
+Phase 2,Add promo-code input field to checkout,CONN-006,P2,S,yes,best done with Phase 1.2 checkout revert
+Phase 2,Wire Write-review button + resolve auth mismatch,CONN-007;UX-007,P1-P2,S-M,yes,none
+Phase 2,Wire or remove 5 dead admin buttons,LINK-001;LINK-002;LINK-003;LINK-004;LINK-005;UX-JOURNEY-009,P2,S,yes,none
+Phase 2,Add /privacy and /terms pages,ROUTE-005;ROUTE-006,P2,S,yes,none
+Phase 2,Consolidate booking-cancel waitlist-notify logic,CONN-010,P3,S,yes,best done with CONN-001
+Phase 3,Wire core-surface i18n (ClassCard first),I18N-002;I18N-003;I18N-004;I18N-005;I18N-006;I18N-007,P1-P3,S-M,yes,none
+Phase 3,Fix RTL physical-direction CSS + icon flips,RTL-001;RTL-002;RTL-003;RTL-004;UX-003,P2-P4,S,yes,none
+Phase 3,Fix locale-aware date/number formatting,FORMAT-001;FORMAT-002;FORMAT-003;FORMAT-004,P2-P3,S,yes,none
+Phase 3,Standardize terminology (session word; Center Admin translation),TERM-001;TERM-002,P2-P3,S,yes,none
+Phase 3,Build shared 44px-minimum icon-button component,MOBILE-003;MOBILE-005;MOBILE-009,P2,M,yes,none
+Phase 3,Build shared Modal component with height cap,MOBILE-007,P2,M,yes,none
+Phase 3,Unify mobile-nav breakpoints,MOBILE-001;MOBILE-002,P2-P3,S,yes,none
+Phase 3,Nonce-based CSP for script-src,SEC-CSP,P2,M,no,should follow Phase 1.9 (PERF-001)
+Phase 3,Cookie-based lang/dir for correct SSR,A11Y-001,P1,M,yes,none
+Phase 4,Enable email verification gate (post deliverability check),CONN-011;SEC-007,P1-P2,XS,no,requires Resend deliverability confirmation first
+Phase 4,Consolidate + apply CSRF same-origin check consistently,CONN-012,P2,S,yes,none
+Phase 4,Mobile auth/rate-limit parity with web,SEC-004;SEC-005;ARCH-003,P1-P2,S-M,yes,none
+Phase 4,Establish real Prisma migration history going forward,DB-001,P1,M,no,process change
+Phase 4,Build or explicitly defer notification system,CONN-009,P3,L,no,net-new feature - product decision needed first
+Phase 5,Test coverage tranche 1 (webhook seat-lock auth rate-limit),TEST-001,P0,M,no,seat-lock test depends on Phase 1.1 landing first
+Phase 5,Add sitemap/robots/structured-data/hreflang,SEO-001;SEO-002;SEO-003;SEO-005;SEO-006,P1-P2,M,yes,none
+Phase 5,Add OG image + apple-touch-icon,LINK-009;LINK-010,P2-P3,S,yes,none
+Phase 5,Fix duplicated page-title suffix,LINK-008,P2,XS,yes,none
+Phase 5,Routine + major dependency maintenance pass,DEP-001;DEP-002,P1-P3,S-M,no,after Phase 1.6 security upgrades land
+Phase 5,Rewrite README with real project onboarding,DOC-001,P2,S,yes,none
+Phase 5,Perf polish (analyze script i18n dict split image remotePatterns),PERF-002;PERF-003;PERF-004,P2,S,yes,none
+Phase 5,Split oversized files + remove confirmed-dead files,CODE-001;CODE-006,P2,M,yes,best done incrementally as files are touched anyway
+Phase 6,Decide and build Parent accounts (or explicitly defer),UX-JOURNEY-007,P3,L,no,product decision required - see audit/14-open-decisions.md
+Phase 6,Add persistent browser-automation MCP for ongoing QA,TOOL-002,P3,S,yes,none
+Phase 6,Resume queued AI image-generation briefs,n/a,P4,S,yes,depends on Higgsfield credit availability

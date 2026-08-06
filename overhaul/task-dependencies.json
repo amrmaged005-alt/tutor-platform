@@ -1,0 +1,378 @@
+{
+  "tasks": [
+    {
+      "id": "T0-01",
+      "wave": 0,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "0-all"
+    },
+    {
+      "id": "T0-02",
+      "wave": 0,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "0-all"
+    },
+    {
+      "id": "T0-03",
+      "wave": 0,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "0-all"
+    },
+    {
+      "id": "T0-04",
+      "wave": 0,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "0-all"
+    },
+    {
+      "id": "T0-05",
+      "wave": 0,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "0-all"
+    },
+    {
+      "id": "T0-06",
+      "wave": 0,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "0-all"
+    },
+    {
+      "id": "T1-01",
+      "wave": 1,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "1-a"
+    },
+    {
+      "id": "T1-02",
+      "wave": 1,
+      "dependsOn": [
+        "T1-01"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "1-a"
+    },
+    {
+      "id": "T1-03",
+      "wave": 1,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "1-b"
+    },
+    {
+      "id": "T1-04",
+      "wave": 1,
+      "dependsOn": [
+        "T1-03"
+      ],
+      "blockedBy": "open-decision-1",
+      "parallelGroup": "1-b"
+    },
+    {
+      "id": "T1-05",
+      "wave": 1,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "1-c"
+    },
+    {
+      "id": "T1-06",
+      "wave": 1,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "1-b"
+    },
+    {
+      "id": "T1-07",
+      "wave": 1,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "1-b"
+    },
+    {
+      "id": "T1-08",
+      "wave": 1,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "1-c"
+    },
+    {
+      "id": "T1-09",
+      "wave": 1,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "1-b"
+    },
+    {
+      "id": "T1-10",
+      "wave": 1,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "1-b"
+    },
+    {
+      "id": "T1-11",
+      "wave": 1,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "1-d-solo"
+    },
+    {
+      "id": "T2-01",
+      "wave": 2,
+      "dependsOn": [
+        "T1-11",
+        "T0-01"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "2-a-solo"
+    },
+    {
+      "id": "T2-02",
+      "wave": 2,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "2-b"
+    },
+    {
+      "id": "T2-03",
+      "wave": 2,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "2-b"
+    },
+    {
+      "id": "T2-04",
+      "wave": 2,
+      "dependsOn": [
+        "T1-02"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "1-a-followon"
+    },
+    {
+      "id": "T2-05",
+      "wave": 2,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "2-b"
+    },
+    {
+      "id": "T2-06",
+      "wave": 2,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "2-b"
+    },
+    {
+      "id": "T2-07",
+      "wave": 2,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "2-b"
+    },
+    {
+      "id": "T2-08",
+      "wave": 2,
+      "dependsOn": [
+        "T1-01"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "1-a-followon"
+    },
+    {
+      "id": "T3-01",
+      "wave": 3,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "3-a"
+    },
+    {
+      "id": "T3-02",
+      "wave": 3,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "3-a"
+    },
+    {
+      "id": "T3-03",
+      "wave": 3,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "3-a"
+    },
+    {
+      "id": "T3-04",
+      "wave": 3,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "3-a"
+    },
+    {
+      "id": "T3-05",
+      "wave": 3,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "3-b-solo"
+    },
+    {
+      "id": "T3-06",
+      "wave": 3,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "3-b-solo"
+    },
+    {
+      "id": "T3-07",
+      "wave": 3,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "3-a"
+    },
+    {
+      "id": "T3-08",
+      "wave": 3,
+      "dependsOn": [
+        "T1-11"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "3-c-solo"
+    },
+    {
+      "id": "T3-09",
+      "wave": 3,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "3-c-solo"
+    },
+    {
+      "id": "T4-01",
+      "wave": 4,
+      "dependsOn": [],
+      "blockedBy": "open-decision-7",
+      "parallelGroup": "4-a-solo"
+    },
+    {
+      "id": "T4-02",
+      "wave": 4,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "4-b"
+    },
+    {
+      "id": "T4-03",
+      "wave": 4,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "4-b"
+    },
+    {
+      "id": "T4-04",
+      "wave": 4,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "4-c-solo"
+    },
+    {
+      "id": "T4-05",
+      "wave": 4,
+      "dependsOn": [],
+      "blockedBy": "open-decision-4",
+      "parallelGroup": "4-d-solo"
+    },
+    {
+      "id": "T5-01",
+      "wave": 5,
+      "dependsOn": [
+        "T0-05",
+        "T1-01"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "5-a-solo"
+    },
+    {
+      "id": "T5-02",
+      "wave": 5,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "5-b"
+    },
+    {
+      "id": "T5-03",
+      "wave": 5,
+      "dependsOn": [
+        "T6-03"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "5-b"
+    },
+    {
+      "id": "T5-04",
+      "wave": 5,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "5-b"
+    },
+    {
+      "id": "T5-05",
+      "wave": 5,
+      "dependsOn": [
+        "T1-08"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "5-c-solo"
+    },
+    {
+      "id": "T5-06",
+      "wave": 5,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "5-b"
+    },
+    {
+      "id": "T5-07",
+      "wave": 5,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "5-b"
+    },
+    {
+      "id": "T5-08",
+      "wave": 5,
+      "dependsOn": [
+        "T1-02"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "5-d"
+    },
+    {
+      "id": "T6-01",
+      "wave": 6,
+      "dependsOn": [],
+      "blockedBy": "open-decision-2",
+      "parallelGroup": "6-solo"
+    },
+    {
+      "id": "T6-02",
+      "wave": 6,
+      "dependsOn": [
+        "T0-01"
+      ],
+      "blockedBy": null,
+      "parallelGroup": "6-solo"
+    },
+    {
+      "id": "T6-03",
+      "wave": 6,
+      "dependsOn": [],
+      "blockedBy": null,
+      "parallelGroup": "6-solo"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+task_id,wave,title,agent_owner,reviewer,execution_type,priority,complexity,status
+T0-01,0,"Add project-scoped Playwright MCP + capture screenshot baseline",claude,,A,P1,S,ready-in-wave
+T0-02,0,"Create CLAUDE.md importing AGENTS.md",claude,,A,P1,XS,done-this-session
+T0-03,0,"Commit audit/ and overhaul/ as the plan's baseline; decide whether to commit .mcp.json",claude,,A,P1,XS,ready-in-wave
+T0-04,0,"Remove stray Claude worktree .claude/worktrees/friendly-raman-8e4a6e",claude,,A,P2,XS,ready-in-wave
+T0-05,0,"Choose test framework (Vitest, pending no objection) and add minimal harness",claude,,A,P1,S,ready-in-wave
+T0-06,0,"Decide branch/PR workflow (commit-to-main vs PR-based) now that GitHub MCP exists",claude,,A,P1,XS,ready-in-wave
+T1-01,1,"Fix booking overbooking race by wiring lockSeat()",paired,claude,E,P0,M,ready-in-wave
+T1-02,1,"Revert/re-port booking checkout regression from e500435",paired,claude,E,P0,M,ready-in-wave
+T1-03,1,"Fix /centers proxy.ts role gate",codex,claude,B,P0,S,ready-in-wave
+T1-04,1,"Build center-creation flow or hide the path",paired,claude,C,P1,M,blocked-by-decision:open-decision-1
+T1-05,1,"Close dashboard revenue leak (4 remaining surfaces)",paired,claude,E,P1,S-M,ready-in-wave
+T1-06,1,"Fix Flutter mock-data field mismatch",codex,claude,B,P0,S,ready-in-wave
+T1-07,1,"Verify + commit Next.js 16.3.0 upgrade (already in working tree)",codex,claude,B,P0,S,ready-in-wave
+T1-08,1,"Verify next-auth beta.32 addresses SEC-001; run auth regression suite; commit",paired,claude,E,P0,M,ready-in-wave
+T1-09,1,"Fix login open redirect (callbackUrl)",codex,claude,B,P1,S,ready-in-wave
+T1-10,1,"Relabel refund approval; automate only if Paymob refund API confirmed available",paired,claude,C,P2,M,ready-in-wave
+T1-11,1,"Add Suspense boundary around Navbar auth() call",paired,claude,E,P0,M,ready-in-wave
+T2-01,2,"Simplify landing-page scroll-gate; unify tokens; RTL-branch page-flip",paired,claude,C,P1-P3,M-L,ready-in-wave
+T2-02,2,"Resolve orphaned pages (/messages/new, /onboarding/role, /profile)",codex,claude,B,P2-P3,S,ready-in-wave
+T2-03,2,"Wire referral code capture + completion trigger",codex,claude,B,P2,S,ready-in-wave
+T2-04,2,"Add promo-code input field to checkout",codex,claude,B,P2,S,ready-in-wave
+T2-05,2,"Wire Write-review button; resolve auth-helper mismatch",paired,claude,C,P1-P2,S-M,ready-in-wave
+T2-06,2,"Wire or remove 5 dead admin buttons",codex,claude,B,P2,S,ready-in-wave
+T2-07,2,"Add /privacy and /terms pages",codex,claude,B,P2,S,ready-in-wave
+T2-08,2,"Consolidate booking-cancel waitlist-notify logic",codex,claude,B,P3,S,ready-in-wave
+T3-01,3,"Wire core-surface i18n (ClassCard first)",codex,claude,C,P1-P3,S-M,ready-in-wave
+T3-02,3,"Fix RTL physical-direction CSS + icon flips",codex,claude,B,P2-P4,S,ready-in-wave
+T3-03,3,"Fix locale-aware date/number formatting",codex,claude,B,P2-P3,S,ready-in-wave
+T3-04,3,"Standardize terminology (session word; Center Admin translation)",paired,claude,A,P2-P3,S,ready-in-wave
+T3-05,3,"Build shared 44px-minimum icon-button component",paired,claude,C,P2,M,ready-in-wave
+T3-06,3,"Build shared Modal component with height cap + internal scroll",paired,claude,C,P2,M,ready-in-wave
+T3-07,3,"Unify mobile-nav breakpoints (768px CSS vs 640px JS)",codex,claude,B,P2-P3,S,ready-in-wave
+T3-08,3,"Nonce-based CSP for script-src",paired,claude,E,P2,M,ready-in-wave
+T3-09,3,"Cookie-based lang/dir for correct first-paint SSR",paired,claude,C,P1,M,ready-in-wave
+T4-01,4,"Enable email verification gate (post deliverability check)",paired,claude,C,P1-P2,XS,blocked-by-decision:open-decision-7
+T4-02,4,"Consolidate + apply CSRF same-origin check consistently",paired,claude,C,P2,S,ready-in-wave
+T4-03,4,"Mobile auth/rate-limit parity with web",codex,claude,C,P1-P2,S-M,ready-in-wave
+T4-04,4,"Establish real Prisma migration history going forward",paired,claude,E,P1,M,ready-in-wave
+T4-05,4,"Build or explicitly defer notification system",paired,claude,E,P3,L,blocked-by-decision:open-decision-4
+T5-01,5,"Test coverage tranche 1 (webhook, seat-lock concurrency, auth gating, rate limiters)",paired,claude,C,P0,M,ready-in-wave
+T5-02,5,"Add sitemap/robots/structured-data/hreflang",codex,claude,B,P1-P2,M,ready-in-wave
+T5-03,5,"Add OG image + apple-touch-icon",codex,claude,B,P2-P3,S,ready-in-wave
+T5-04,5,"Fix duplicated page-title suffix",codex,claude,B,P2,XS,ready-in-wave
+T5-05,5,"Routine + major dependency maintenance pass",codex,claude,D,P1-P3,S-M,ready-in-wave
+T5-06,5,"Rewrite README with real project onboarding",codex,claude,B,P2,S,ready-in-wave
+T5-07,5,"Perf polish (analyze script, i18n dict split, image remotePatterns)",codex,claude,B,P2,S,ready-in-wave
+T5-08,5,"Split oversized files + remove confirmed-dead files",paired,claude,C,P2,M,ready-in-wave
+T6-01,6,"Decide and build Parent accounts (or explicitly defer)",claude,,A,P3,L,blocked-by-decision:open-decision-2
+T6-02,6,"Expand Playwright MCP usage to full ongoing regression QA",codex,claude,B,P3,S,ready-in-wave
+T6-03,6,"Resume queued AI image-generation briefs via Codex image_gen",paired,claude,C,P4,S,ready-in-wave

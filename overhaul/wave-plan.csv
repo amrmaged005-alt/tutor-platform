@@ -1,0 +1,51 @@
+wave,task_id,title,parallel_group,depends_on,branch
+0,T0-01,"Add project-scoped Playwright MCP + capture screenshot baseline",0-all,"",overhaul/foundation-playwright-mcp
+0,T0-02,"Create CLAUDE.md importing AGENTS.md",0-all,"",overhaul/foundation-claude-md
+0,T0-03,"Commit audit/ and overhaul/ as the plan's baseline; decide whether to commit .mcp.json",0-all,"",overhaul/foundation-commit-plan
+0,T0-04,"Remove stray Claude worktree .claude/worktrees/friendly-raman-8e4a6e",0-all,"",overhaul/foundation-worktree-cleanup
+0,T0-05,"Choose test framework (Vitest, pending no objection) and add minimal harness",0-all,"",overhaul/foundation-test-framework
+0,T0-06,"Decide branch/PR workflow (commit-to-main vs PR-based) now that GitHub MCP exists",0-all,"",overhaul/foundation-workflow-decision
+1,T1-01,"Fix booking overbooking race by wiring lockSeat()",1-a,"",overhaul/booking-seat-lock
+1,T1-02,"Revert/re-port booking checkout regression from e500435",1-a,"T1-01",overhaul/booking-seat-lock
+1,T1-03,"Fix /centers proxy.ts role gate",1-b,"",overhaul/centers-gate-fix
+1,T1-04,"Build center-creation flow or hide the path",1-b,"T1-03",overhaul/centers-creation-or-hide
+1,T1-05,"Close dashboard revenue leak (4 remaining surfaces)",1-c,"",overhaul/dashboard-revenue-gate
+1,T1-06,"Fix Flutter mock-data field mismatch",1-b,"",overhaul/flutter-mock-data-fix
+1,T1-07,"Verify + commit Next.js 16.3.0 upgrade (already in working tree)",1-b,"",overhaul/dep-upgrade-next
+1,T1-08,"Verify next-auth beta.32 addresses SEC-001; run auth regression suite; commit",1-c,"",overhaul/dep-upgrade-next
+1,T1-09,"Fix login open redirect (callbackUrl)",1-b,"",overhaul/login-open-redirect-fix
+1,T1-10,"Relabel refund approval; automate only if Paymob refund API confirmed available",1-b,"",overhaul/refund-relabel
+1,T1-11,"Add Suspense boundary around Navbar auth() call",1-d-solo,"",overhaul/perf-suspense-navbar
+2,T2-01,"Simplify landing-page scroll-gate; unify tokens; RTL-branch page-flip",2-a-solo,"T1-11;T0-01",overhaul/landing-simplify
+2,T2-02,"Resolve orphaned pages (/messages/new, /onboarding/role, /profile)",2-b,"",overhaul/orphaned-routes
+2,T2-03,"Wire referral code capture + completion trigger",2-b,"",overhaul/referral-wiring
+2,T2-04,"Add promo-code input field to checkout",1-a-followon,"T1-02",overhaul/booking-seat-lock
+2,T2-05,"Wire Write-review button; resolve auth-helper mismatch",2-b,"",overhaul/reviews-wiring
+2,T2-06,"Wire or remove 5 dead admin buttons",2-b,"",overhaul/admin-dead-buttons
+2,T2-07,"Add /privacy and /terms pages",2-b,"",overhaul/legal-pages
+2,T2-08,"Consolidate booking-cancel waitlist-notify logic",1-a-followon,"T1-01",overhaul/booking-cancel-consolidation
+3,T3-01,"Wire core-surface i18n (ClassCard first)",3-a,"",overhaul/i18n-core-surfaces
+3,T3-02,"Fix RTL physical-direction CSS + icon flips",3-a,"",overhaul/rtl-fixes
+3,T3-03,"Fix locale-aware date/number formatting",3-a,"",overhaul/format-fixes
+3,T3-04,"Standardize terminology (session word; Center Admin translation)",3-a,"",overhaul/terminology-standardization
+3,T3-05,"Build shared 44px-minimum icon-button component",3-b-solo,"",overhaul/shared-icon-button
+3,T3-06,"Build shared Modal component with height cap + internal scroll",3-b-solo,"",overhaul/shared-modal
+3,T3-07,"Unify mobile-nav breakpoints (768px CSS vs 640px JS)",3-a,"",overhaul/mobile-nav-breakpoint
+3,T3-08,"Nonce-based CSP for script-src",3-c-solo,"T1-11",overhaul/csp-nonce
+3,T3-09,"Cookie-based lang/dir for correct first-paint SSR",3-c-solo,"",overhaul/lang-dir-cookie
+4,T4-01,"Enable email verification gate (post deliverability check)",4-a-solo,"",overhaul/email-verification-gate
+4,T4-02,"Consolidate + apply CSRF same-origin check consistently",4-b,"",overhaul/csrf-consistency
+4,T4-03,"Mobile auth/rate-limit parity with web",4-b,"",overhaul/mobile-auth-parity
+4,T4-04,"Establish real Prisma migration history going forward",4-c-solo,"",overhaul/prisma-migration-baseline
+4,T4-05,"Build or explicitly defer notification system",4-d-solo,"",overhaul/notifications-system
+5,T5-01,"Test coverage tranche 1 (webhook, seat-lock concurrency, auth gating, rate limiters)",5-a-solo,"T0-05;T1-01",overhaul/test-coverage-tranche-1
+5,T5-02,"Add sitemap/robots/structured-data/hreflang",5-b,"",overhaul/seo-baseline
+5,T5-03,"Add OG image + apple-touch-icon",5-b,"T6-03",overhaul/social-preview-assets
+5,T5-04,"Fix duplicated page-title suffix",5-b,"",overhaul/seo-baseline
+5,T5-05,"Routine + major dependency maintenance pass",5-c-solo,"T1-08",overhaul/dependency-maintenance
+5,T5-06,"Rewrite README with real project onboarding",5-b,"",overhaul/readme-rewrite
+5,T5-07,"Perf polish (analyze script, i18n dict split, image remotePatterns)",5-b,"",overhaul/perf-polish
+5,T5-08,"Split oversized files + remove confirmed-dead files",5-d,"T1-02",overhaul/code-cleanup
+6,T6-01,"Decide and build Parent accounts (or explicitly defer)",6-solo,"",n/a
+6,T6-02,"Expand Playwright MCP usage to full ongoing regression QA",6-solo,"T0-01",overhaul/playwright-regression-suite
+6,T6-03,"Resume queued AI image-generation briefs via Codex image_gen",6-solo,"",overhaul/image-gen-briefs

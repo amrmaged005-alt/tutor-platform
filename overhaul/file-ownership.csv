@@ -1,0 +1,93 @@
+file_or_path,owning_task_id,agent_owner,protected
+".mcp.json",T0-01,claude,yes
+"CLAUDE.md",T0-02,claude,yes
+"audit/**",T0-03,claude,no
+"overhaul/**",T0-03,claude,no
+".mcp.json",T0-03,claude,yes
+".claude/worktrees/**",T0-04,claude,no
+"package.json",T0-05,claude,yes
+"vitest.config.ts",T0-05,claude,no
+"AGENTS.md",T0-06,claude,yes
+"app/api/bookings/route.ts",T1-01,paired,no
+"app/actions/bookings.ts",T1-01,paired,no
+"app/classes/[id]/book/BookingCheckout.tsx",T1-01,paired,no
+"app/classes/[id]/book/BookingCheckout.tsx",T1-02,paired,no
+"proxy.ts",T1-03,codex,yes
+"app/api/centers/route.ts (new)",T1-04,paired,no
+"nav/signup UI",T1-04,paired,no
+"app/dashboard/page.tsx",T1-05,paired,no
+"app/dashboard/components/DashboardStats.tsx",T1-05,paired,no
+"app/api/dashboard/payouts/route.ts",T1-05,paired,no
+"app/api/dashboard/analytics/route.ts",T1-05,paired,no
+"mobile/.../services.dart",T1-06,codex,no
+"package.json",T1-07,codex,yes
+"package-lock.json",T1-07,codex,yes
+"package.json",T1-08,paired,yes
+"package-lock.json",T1-08,paired,yes
+"app/login/page.tsx",T1-09,codex,no
+"app/api/admin/refund-requests/[id]/approve/route.ts",T1-10,paired,no
+"lib/paymob.ts",T1-10,paired,no
+"app/layout.tsx",T1-11,paired,yes
+"app/Navbar.tsx",T1-11,paired,yes
+"app/(landing)/**",T2-01,paired,no
+"app/messages/new",T2-02,codex,no
+"app/onboarding/role",T2-02,codex,no
+"nav/account menu",T2-02,codex,no
+"app/signup",T2-03,codex,no
+"app/api/me/referral/complete",T2-03,codex,no
+"app/classes/[id]/book/BookingCheckout.tsx",T2-04,codex,no
+"app/tutors/[id]/TutorProfileClient.tsx",T2-05,paired,no
+"app/api/reviews/route.ts",T2-05,paired,no
+"app/admin/**",T2-06,codex,no
+"app/privacy",T2-07,codex,no
+"app/terms",T2-07,codex,no
+"lib/booking.ts (new shared helper)",T2-08,codex,no
+"components/ClassCard.tsx",T3-01,codex,no
+"app/classes/[id]/ClassDetailClient.tsx",T3-01,codex,no
+"app/centers/[id]/CenterProfileClient.tsx",T3-01,codex,no
+"dashboard components",T3-01,codex,no
+"BookingCheckout calendar CSS",T3-02,codex,no
+"ClassSearch.tsx",T3-02,codex,no
+"decorative blobs",T3-02,codex,no
+"admin charts",T3-02,codex,no
+"ClassCard/ClassClient/ClassSearch price rendering",T3-03,codex,no
+"TutorProfileClient",T3-03,codex,no
+"ReviewSection",T3-03,codex,no
+"dashboard/bookings",T3-03,codex,no
+"dictionary files",T3-04,paired,no
+"components/IconButton.tsx (new)",T3-05,paired,no
+"all call sites",T3-05,paired,no
+"components/Modal.tsx (new)",T3-06,paired,no
+"3 duplicated modal call sites",T3-06,paired,no
+"nav CSS",T3-07,codex,no
+"nav JS matchMedia",T3-07,codex,no
+"proxy.ts",T3-08,paired,yes
+"app/layout.tsx",T3-08,paired,yes
+"app/layout.tsx",T3-09,paired,yes
+"language-switch component",T3-09,paired,no
+"lib/auth.ts:121-126",T4-01,paired,no
+"lib/security.ts (extracted)",T4-02,paired,no
+"~85 mutation routes",T4-02,paired,no
+"api/mobile/book-class",T4-03,codex,no
+"requireMobileUser() wrapper",T4-03,codex,no
+"mobile login",T4-03,codex,no
+"prisma/migrations/ (new)",T4-04,paired,no
+"prisma/schema.prisma (Notification model, new)",T4-05,paired,yes
+"trigger points",T4-05,paired,no
+"mobile feed",T4-05,paired,no
+"push provider integration",T4-05,paired,no
+"tests/ (new)",T5-01,paired,no
+"app/sitemap.ts (new)",T5-02,codex,no
+"app/robots.ts (new)",T5-02,codex,no
+"generateMetadata across 34 pages",T5-02,codex,no
+"app/opengraph-image",T5-03,codex,no
+"public/apple-touch-icon.png",T5-03,codex,no
+"app/layout.tsx title template",T5-04,codex,yes
+"package.json",T5-05,codex,yes
+"README.md",T5-06,codex,no
+"package.json (analyze script)",T5-07,codex,yes
+"i18n dictionary loading",T5-07,codex,no
+"next.config.ts",T5-07,codex,no
+"BookingCheckout.tsx and other 800+ line files",T5-08,paired,no
+"26 identified dead files",T5-08,paired,no
+"public/images/**",T6-03,paired,no

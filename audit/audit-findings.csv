@@ -1,0 +1,122 @@
+id,source_doc,area,severity,priority,title,complexity
+ARCH-001,01-current-architecture.md,Performance/Architecture,High,P1,"Zero static generation sitewide - Navbar's auth() call in root layout forces full dynamic rendering",M
+ARCH-002,01-current-architecture.md,Architecture/Security,High,P1,"Production auth stack (NextAuth v5) is a long-running beta release",M
+ARCH-003,01-current-architecture.md,Security,Medium,P2,"Mobile login bypasses account-lockout brute-force protection enforced on web",S
+ARCH-004,01-current-architecture.md,Architecture,Low,P3,"Duplicate/divergent CORS configuration between next.config.ts and proxy.ts",S
+DB-001,01-current-architecture.md,Database,High,P1,"No committed migration history; schema managed via db push/Supabase MCP ad hoc",M
+DB-002,01-current-architecture.md,Database,Low,P3,"User.trustScore field is dead - never read or written by app code",S
+DB-003,01-current-architecture.md,Database,Low,P4,"Payout.recipientType / Class.recurrence are unenforced free-text enums",S
+DB-004,01-current-architecture.md,Infrastructure,Medium,P2,"Linked Supabase project is currently paused (INACTIVE)",S
+ROUTE-001,02-route-and-feature-inventory.md,Routes,Medium,P2,"/tutors/[id]/edit not covered by proxy.ts gating; unreachable via any UI link",S
+ROUTE-002,02-route-and-feature-inventory.md,Booking,High,P1,"Booking flow partially implemented - contradicts REMAINING_LIMITATIONS.md claim it was fixed",M
+ROUTE-003,02-route-and-feature-inventory.md,Messaging,Low,P3,"/messages/new is orphaned dead code, superseded by direct POST /api/messages/new",S
+ROUTE-004,02-route-and-feature-inventory.md,Onboarding,Medium,P3,"/onboarding/role is orphaned - no link found leading to it",S
+ROUTE-005,02-route-and-feature-inventory.md,Links,Medium,P2,"Footer Privacy link points to nonexistent /privacy (404 on every page)",S
+ROUTE-006,02-route-and-feature-inventory.md,Links,Medium,P2,"Footer Terms link points to nonexistent /terms (404 on every page)",S
+ROUTE-007,02-route-and-feature-inventory.md,Routes,High,P2,"/profile fully built and correct but has zero discoverable entry point",S
+ROUTE-008,02-route-and-feature-inventory.md,Waitlist,Medium,P3,"Waitlist API has no discoverable UI trigger found",M
+ROUTE-009,02-route-and-feature-inventory.md,SEO,Low,P4,"/global-states internal QA tool has no noindex, publicly indexable",S
+ROUTE-010,02-route-and-feature-inventory.md,Assets,Info,P4,"Root book-landing.html confirmed unshipped design prototype, no action needed",XS
+UX-JOURNEY-001,03-user-journey-audit.md,Landing,Medium,P3,"Silent fallback to empty landing page on DB error",S
+UX-JOURNEY-002,03-user-journey-audit.md,Centers,High,P1,"/centers nav link leads to /unauthorized for most users (role-gate bug)",S
+UX-JOURNEY-003,03-user-journey-audit.md,Auth,High,P1,"Email verification UI implies a gate the backend doesn't enforce",S
+UX-JOURNEY-004,03-user-journey-audit.md,i18n,Medium,P2,"Onboarding role-selection page has zero i18n",S
+UX-JOURNEY-005,03-user-journey-audit.md,Booking,High,P1,"Booking checkout pre-fills identity fields with fake placeholder data",M
+UX-JOURNEY-006,03-user-journey-audit.md,Dashboard,High,P1,"DashboardStats revenue tile bypasses the access-level gate (CONN-003 root cause)",S
+UX-JOURNEY-007,03-user-journey-audit.md,Product,Medium,P3,"No parent/guardian role or child-management flow exists",L
+UX-JOURNEY-008,03-user-journey-audit.md,Centers,Critical,P0,"No code path exists to create a LearningCenter - center admin signup is a dead end",M
+UX-JOURNEY-009,03-user-journey-audit.md,Admin,Medium,P2,"Dead admin buttons are visually indistinguishable from working ones",S
+UX-001,04-ux-ui-audit.md,Landing,High,P1,"Landing hero forces ~600svh of scroll-gated animation before real content",M
+UX-002,04-ux-ui-audit.md,Landing/A11y,Medium,P2,"prefers-reduced-motion only partially honored; scroll-hijack has no CSS fallback",M
+UX-003,04-ux-ui-audit.md,Landing/RTL,Medium,P2,"Book page-flip animation direction is not RTL-aware",S
+UX-004,04-ux-ui-audit.md,Landing,Low,P3,"Landing hero styling fragmented across four concatenated files, no clear ownership",M
+UX-005,04-ux-ui-audit.md,Landing,Medium,P3,"Landing has 9 sections, likely redundant with the book-chapter content",M
+UX-006,04-ux-ui-audit.md,Tutors,Low,P3,"Duplicated filter UI logic inside 783-line TutorsClient",M
+UX-007,04-ux-ui-audit.md,Reviews,High,P1,"Write review button has no onClick handler (re-confirms CONN-007)",S
+UX-008,04-ux-ui-audit.md,Booking,Medium,P2,"BookingCheckout StepIndicator hardcoded to always show step 1 active",S
+UX-009,04-ux-ui-audit.md,Booking,Medium,P2,"BookingCheckout shows fabricated rating/seats-left/duration values",S
+UX-010,04-ux-ui-audit.md,Design system,Low,P3,"Landing hero defines a second, separate design-token set instead of reusing global tokens",S
+MOBILE-001,05-mobile-responsive-audit.md,Navigation,Medium,P2,"Two independent, mismatched mobile-nav breakpoints (768px CSS vs 640px JS)",S
+MOBILE-002,05-mobile-responsive-audit.md,Navigation,Low,P3,"Bottom nav pops in after hydration, no SSR/CSS fallback",S
+MOBILE-003,05-mobile-responsive-audit.md,Touch targets,Low,P3,"Hamburger/close icon buttons under 44px touch-target guideline",S
+MOBILE-004,05-mobile-responsive-audit.md,Cards/grids,Medium,P2,"Forced 2-column card grid below 640px may crush content at 320-375px",S
+MOBILE-005,05-mobile-responsive-audit.md,Cards/grids,Low,P3,"Favorite-heart icon button under touch-target size",S
+MOBILE-006,05-mobile-responsive-audit.md,Dashboards,Low,P3,"Two tables in CenterAdminRevenue.tsx lack overflow-x wrapper",S
+MOBILE-007,05-mobile-responsive-audit.md,Modals,Medium,P2,"No shared Modal component; 3 duplicated implementations, none cap height/scroll",M
+MOBILE-008,05-mobile-responsive-audit.md,RTL,Low,P4,"Hardcoded borderLeft divider in DashboardRevenue.tsx",S
+MOBILE-009,05-mobile-responsive-audit.md,Touch targets,Medium,P2,"Sub-44px touch targets are a systemic pattern across nav/filters/messages/dashboard",M
+I18N-001,06-content-localization-rtl-audit.md,Booking/i18n,Critical,P0,"Booking checkout regressed to fake hardcoded May-2025 calendar + hardcoded English",M
+I18N-002,06-content-localization-rtl-audit.md,i18n,High,P1,"Class detail page has zero i18n",M
+I18N-003,06-content-localization-rtl-audit.md,i18n,High,P1,"ClassCard (reused on ~10 pages) has zero i18n",S
+I18N-004,06-content-localization-rtl-audit.md,i18n,High,P1,"Center public profile page has zero i18n",M
+I18N-005,06-content-localization-rtl-audit.md,i18n,Medium,P2,"DashboardMaterials.tsx mixed i18n usage",S
+I18N-006,06-content-localization-rtl-audit.md,i18n,Medium,P2,"DashboardPrimitives.tsx StudentBookingRow mixed i18n usage",S
+I18N-007,06-content-localization-rtl-audit.md,i18n,Low,P3,"ClassFilters.tsx example chips hardcoded",S
+RTL-001,06-content-localization-rtl-audit.md,RTL,Medium,P2,"BookingCheckout calendar CSS uses physical left/right",S
+RTL-002,06-content-localization-rtl-audit.md,RTL,Low,P3,"ClassSearch.tsx physical left/right (admin-only)",S
+RTL-003,06-content-localization-rtl-audit.md,RTL,Low,P4,"Decorative blob positioning uses physical left/right",S
+RTL-004,06-content-localization-rtl-audit.md,RTL,Low,P4,"Admin chart margins use physical left/right",S
+FORMAT-001,06-content-localization-rtl-audit.md,i18n,Medium,P2,"ClassCard/ClassClient/ClassSearch prices use locale-blind toLocaleString()",S
+FORMAT-002,06-content-localization-rtl-audit.md,i18n,Medium,P2,"TutorProfileClient hardcodes en-US for review dates",S
+FORMAT-003,06-content-localization-rtl-audit.md,i18n,Low,P3,"ReviewSection hardcodes en-US, no i18n at all",S
+FORMAT-004,06-content-localization-rtl-audit.md,i18n,Low,P3,"dashboard/bookings and DashboardPrimitives hardcode en-EG unconditionally",S
+TERM-001,06-content-localization-rtl-audit.md,Content,Low,P3,"Session terminology (حصة vs جلسة) used inconsistently",S
+TERM-002,06-content-localization-rtl-audit.md,Content,Low,P2,"Center Admin translated two different ways",S
+LINK-001,07-links-assets-media-audit.md,Admin,Medium,P2,"Export CSV button has no click handler",S
+LINK-002,07-links-assets-media-audit.md,Admin,Medium,P2,"Broadcast button has no click handler",S
+LINK-003,07-links-assets-media-audit.md,Admin,Medium,P2,"Edit user icon button has no click handler",S
+LINK-004,07-links-assets-media-audit.md,Admin,Medium,P2,"Delete user icon button has no click handler",S
+LINK-005,07-links-assets-media-audit.md,Admin,Medium,P2,"Delete class icon button has no click handler",S
+LINK-006,07-links-assets-media-audit.md,Booking,High,P1,"Calendar month-nav dead control; selected date/time silently dropped before booking API",M
+LINK-007,07-links-assets-media-audit.md,Admin,Low,P3,"href=backslash-dashboard malformed URL (works by accident)",XS
+LINK-008,07-links-assets-media-audit.md,SEO,Medium,P2,"Page titles duplicate | Coursaty suffix on 9+ routes",S
+LINK-009,07-links-assets-media-audit.md,SEO/Social,Medium,P2,"No Open Graph/Twitter preview image anywhere despite summary_large_image card type",S
+LINK-010,07-links-assets-media-audit.md,PWA,Low,P3,"No apple-touch-icon / app icon",XS
+LINK-011,07-links-assets-media-audit.md,SEO,Low,P3,"/global-states internal tool has no robots noindex, publicly indexable",XS
+LINK-012,07-links-assets-media-audit.md,Assets,Info,P4,"6 unused static files in public/, reported not deleted",XS
+CONN-001,08-functional-connections-audit.md,Booking,Critical,P0,"Live booking flow has TOCTOU overbooking race; safe lockSeat() implementation is dead code",M
+CONN-002,08-functional-connections-audit.md,Booking,High,P1,"cron/cleanup-locks is a no-op; abandoned bookings permanently consume capacity",S
+CONN-003,08-functional-connections-audit.md,Dashboard,High,P1,"Tutor-access-level enforcement partial; revenue visible to restricted tutors on 4 of 7 surfaces",S-M
+CONN-004,08-functional-connections-audit.md,Mobile app,Critical,P0,"Flutter class-browse screen silently serves mock data (API field-name mismatch)",S
+CONN-005,08-functional-connections-audit.md,Referral,Medium,P2,"Referral program fully stubbed - signup never captures the referral code",S
+CONN-006,08-functional-connections-audit.md,Promo codes,Medium,P2,"Promo codes: correct backend logic but no UI field to enter one; dead parallel preview path exists",S
+CONN-007,08-functional-connections-audit.md,Reviews,Medium,P2,"Review creation has two competing implementations; neither reachable from web UI",S-M
+CONN-008,08-functional-connections-audit.md,Payments,Medium,P2,"Refund approval never triggers an actual Paymob refund - DB says REFUNDED, money doesn't move",M
+CONN-009,08-functional-connections-audit.md,Notifications,Medium,P3,"No real notification system exists; endpoints serve two unrelated non-feed purposes",M (net-new)
+CONN-010,08-functional-connections-audit.md,Booking,Low-Medium,P3,"Three divergent booking-cancel code paths; waitlist notification only fires from one",S
+CONN-011,08-functional-connections-audit.md,Auth,High,P1,"Email verification pipeline fully built but enforces nothing at login",XS (needs deliverability check)
+CONN-012,08-functional-connections-audit.md,Security,Medium,P2,"CSRF same-origin check applied to only 3 of ~85 API routes",S
+SEC-001,09-security-accessibility-performance-seo.md,Security,Critical,P0,"2 critical CVEs in next-auth beta / @auth/core, including fail-open auth check",M
+SEC-002,09-security-accessibility-performance-seo.md,Security,High,P0,"Next.js Middleware/Proxy-bypass CVEs; app's entire access control runs on this exact mechanism",S-M
+SEC-003,09-security-accessibility-performance-seo.md,Security,High,P1,"sharp libvips CVEs (fixed by the same Next.js upgrade as SEC-002)",S
+SEC-004,09-security-accessibility-performance-seo.md,Security,Medium,P1,"Mobile book-class endpoint has no rate limit (web equivalent already fixed)",S
+SEC-005,09-security-accessibility-performance-seo.md,Security,Medium,P2,"No rate limiting across /api/mobile/* generally",M
+SEC-006,09-security-accessibility-performance-seo.md,Security,Medium,P1,"Open redirect via callbackUrl (protocol-relative URL bypass) on /login",S
+SEC-007,09-security-accessibility-performance-seo.md,Security,Medium,P2,"Email verification disabled in live auth path (see CONN-011)",XS
+SEC-010,09-security-accessibility-performance-seo.md,Security,Mixed,P1/P3,"18 total npm audit findings (2 critical/12 high/3 moderate/1 low)",S
+SEC-CSP,09-security-accessibility-performance-seo.md,Security,Medium,P2,"CSP script-src unsafe-inline defeats most XSS mitigation",M
+A11Y-001,09-security-accessibility-performance-seo.md,Accessibility,Medium,P1,"html lang hardcoded en server-side, dir never set server-side until client JS runs",M
+A11Y-002,09-security-accessibility-performance-seo.md,Accessibility,Low,P3,"Border/divider contrast below WCAG 1.4.11 non-text minimum",S
+A11Y-004,09-security-accessibility-performance-seo.md,Accessibility,Low,P3,"8 files use raw img instead of next/image",S
+A11Y-005,09-security-accessibility-performance-seo.md,Accessibility,Low,P3,"prefers-reduced-motion covered in only ~39% of framer-motion usage",M
+A11Y-006,09-security-accessibility-performance-seo.md,Accessibility,Info,P3,"5 of 34 pages not confirmed to have an h1 (needs follow-up spot check)",S
+PERF-001,09-security-accessibility-performance-seo.md,Performance,Critical,P0,"Zero static generation sitewide, root-caused to auth() call in root-layout Navbar",M
+PERF-002,09-security-accessibility-performance-seo.md,Performance,Medium,P2,"Bundle analyzer configured but no npm script to run it",XS
+PERF-003,09-security-accessibility-performance-seo.md,Performance,Medium,P2,"1114-line bilingual dictionary ships as client bundle on every page",M
+PERF-004,09-security-accessibility-performance-seo.md,Performance,Low,P2,"next/image remotePatterns wildcard allows any HTTPS host (cross-ref SEC-003)",S
+SEO-001,09-security-accessibility-performance-seo.md,SEO,High,P1,"No sitemap.ts / robots.ts / robots.txt anywhere",S
+SEO-002,09-security-accessibility-performance-seo.md,SEO,Medium,P1,"generateMetadata used on only 3 of 34 pages",M
+SEO-003,09-security-accessibility-performance-seo.md,SEO,Medium,P2,"No structured data (JSON-LD) anywhere",M
+SEO-004,09-security-accessibility-performance-seo.md,SEO,Low,P3,"No canonical URLs on filterable listing pages",S
+SEO-005,09-security-accessibility-performance-seo.md,SEO,Medium,P2,"No explicit noindex/robots exclusion for authenticated-only routes",S
+SEO-006,09-security-accessibility-performance-seo.md,SEO,Medium,P2,"No locale routing/hreflang; Arabic content invisible to locale-aware search",M
+TEST-001,10-codebase-and-dependency-audit.md,Testing,Critical,P0,"Zero automated test coverage across 84 API routes and 31 pages",XL (M tranche 1)
+DEP-001,10-codebase-and-dependency-audit.md,Dependencies,High,P1,"NextAuth v5 beta in production (reinforced with concrete CVEs by SEC-001)",S-M
+CODE-001,10-codebase-and-dependency-audit.md,Code quality,Medium,P2,"Files exceeding 800-line guideline (BookingCheckout.tsx 1437 lines, others)",M
+CODE-006,10-codebase-and-dependency-audit.md,Code quality,Medium,P2,"26 unused files/dead code including lockSeat() (see CONN-001)",S-M
+DOC-001,10-codebase-and-dependency-audit.md,Documentation,Medium,P2,"README is unmodified create-next-app boilerplate with no project onboarding",S
+CODE-002,10-codebase-and-dependency-audit.md,Code quality,Low,P3,"any typing usage - narrow and concentrated in 2 files",S-M
+CODE-003,10-codebase-and-dependency-audit.md,Code quality,Low,P3,"No dedicated logger; raw console.log in webhook handler",S
+DEP-002,10-codebase-and-dependency-audit.md,Dependencies,Low,P3,"Routine and major dependency updates outstanding (non-urgent)",S-L
+TOOL-001,11-claude-codex-tooling-opportunities.md,Tooling,Medium,P2,"No CLAUDE.md exists (only AGENTS.md) - Claude Code has never read project instructions",XS
+TOOL-002,11-claude-codex-tooling-opportunities.md,Tooling,Low,P3,"No persistent browser-automation MCP configured for this project",S
