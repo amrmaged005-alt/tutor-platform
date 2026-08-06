@@ -6,8 +6,8 @@ const PROTECTED = ["/dashboard", "/messages", "/favorites", "/settings", "/refer
 // Routes gated by role.
 const ROLE_GATES: Record<string, string[]> = {
   "/admin": ["ADMIN"],
-  "/centers": ["CENTER_ADMIN", "ADMIN"],
 };
+const CENTER_ADMIN_ROUTE = /^\/centers\/[^/]+\/admin(?:\/|$)/;
 // Auth screens a signed-in user shouldn't see (verify-email intentionally omitted).
 const AUTH_ROUTES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
@@ -50,7 +50,10 @@ export async function proxy(req: NextRequest) {
   if (!pathname.startsWith("/api/")) {
     const token = await getToken({ req, secret: process.env.AUTH_SECRET });
 
-    const roleGate = Object.entries(ROLE_GATES).find(([route]) => matches(pathname, route));
+    const roleGate: readonly [string, readonly string[]] | undefined =
+      CENTER_ADMIN_ROUTE.test(pathname)
+        ? ["/centers/[id]/admin", ["CENTER_ADMIN", "ADMIN"]]
+        : Object.entries(ROLE_GATES).find(([route]) => matches(pathname, route));
     const isProtected = PROTECTED.some((route) => matches(pathname, route));
     const isAuthRoute = AUTH_ROUTES.some((route) => matches(pathname, route));
 
