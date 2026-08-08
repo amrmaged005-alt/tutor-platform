@@ -10,12 +10,24 @@ export async function GET() {
 
   const me = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, role: true },
+    select: {
+      id: true,
+      role: true,
+      centerId: true,
+      centerAccessLevel: true,
+    },
   });
   if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   if (me.role !== "TUTOR" && me.role !== "CENTER_ADMIN") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (me.role === "TUTOR" && me.centerId && me.centerAccessLevel !== "FULL") {
+    return NextResponse.json(
+      { error: "Your center manages payout information." },
+      { status: 403 }
+    );
   }
 
   const payouts = await prisma.payout.findMany({

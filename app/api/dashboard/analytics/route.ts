@@ -18,11 +18,23 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where:  { id: session.user.id },
-    select: { id: true, role: true },
+    select: {
+      id: true,
+      role: true,
+      centerId: true,
+      centerAccessLevel: true,
+    },
   });
 
   if (!user || (user.role !== "TUTOR" && user.role !== "CENTER_ADMIN")) {
     return NextResponse.json({ error: "Tutor or center account required", code: "FORBIDDEN" }, { status: 403 });
+  }
+
+  if (user.role === "TUTOR" && user.centerId && user.centerAccessLevel !== "FULL") {
+    return NextResponse.json(
+      { error: "Your center manages analytics.", code: "FORBIDDEN" },
+      { status: 403 }
+    );
   }
 
   const classFilter = {
