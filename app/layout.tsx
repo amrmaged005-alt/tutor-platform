@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Cairo, Inter, Lora } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
-import Navbar from "./Navbar";
+import Navbar, { NavbarFallback } from "./Navbar";
 import { I18nProvider } from "@/app/components/i18n";
 import { ThemeProvider } from "@/app/components/Theme";
 import FooterContent from "@/app/components/FooterContent";
@@ -91,7 +92,9 @@ export default function RootLayout({
           <I18nProvider>
             <ToastProvider>
               <SkipLink />
-              <Navbar />
+              <Suspense fallback={<NavbarFallback />}>
+                <Navbar />
+              </Suspense>
               <main id="main-content" className="app-main" tabIndex={-1} style={{ minHeight: "100vh" }}>
                 <PageTransition>{children}</PageTransition>
               </main>
