@@ -29,7 +29,7 @@ export default function SignupPage() {
     if (typeof window === "undefined") return "STUDENT";
     const requestedRole = new URLSearchParams(window.location.search).get("role");
     if (requestedRole === "tutor") return "TUTOR";
-    if (requestedRole === "center") return "CENTER_ADMIN";
+    // Centers self-serve hidden per Open Decision #1 default (overhaul/16, T1-04). Admin-assigned CENTER_ADMIN still supported.
     return "STUDENT";
   });
   const strength = evaluatePasswordStrength(password);
@@ -135,7 +135,7 @@ export default function SignupPage() {
             <select id="role" name="role" className="input" value={role} onChange={(event) => setRole(event.target.value)} aria-label="Account role">
               <option value="STUDENT">{t("signup.student")}</option>
               <option value="TUTOR">{t("signup.tutor")}</option>
-              <option value="CENTER_ADMIN">{t("signup.center")}</option>
+              {/* Centers self-serve hidden per Open Decision #1 default (overhaul/16, T1-04). Admin-assigned CENTER_ADMIN still supported. */}
             </select>
             <AnimatePresence>
               {error && <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}><FormAlert>{error}</FormAlert></motion.div>}
